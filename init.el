@@ -170,6 +170,12 @@ decrease this. If you experience stuttering, increase this.")
 (require 'init-dart)
 (require 'init-elixir)
 (require 'init-web)
+(require 'init-scala)
+
+
+;; Expansion packages added by Zhipeng Bao of NEU
+(require 'init-spacing)
+(require 'init-pyim)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init.el ends here
