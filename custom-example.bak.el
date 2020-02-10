@@ -4,14 +4,14 @@
 ;;;       Put your own configurations in custom-post.el to override default configurations.
 ;;; Code:
 
-(setq centaur-logo nil)                        ; Logo file or nil (official logo)
-(setq centaur-full-name "P0ng")           ; User full name
-(setq centaur-mail-address "P0ng.64@Yahoo.com")   ; Email address
+;; (setq centaur-logo nil)                        ; Logo file or nil (official logo)
+;; (setq centaur-full-name "user name")           ; User full name
+;; (setq centaur-mail-address "user@email.com")   ; Email address
 ;; (setq centaur-proxy "127.0.0.1:1080")          ; Network proxy
-(setq centaur-package-archives 'emacs-china)   ; Package repo: melpa, melpa-mirror, emacs-china, netease, tencent or tuna
-(setq centaur-theme 'dark)                    ; Color theme: default, classic, colorful, dark, light, day or night
+;; (setq centaur-package-archives 'emacs-china)   ; Package repo: melpa, melpa-mirror, emacs-china, netease, tencent or tuna
+;; (setq centaur-theme 'light)                    ; Color theme: default, classic, colorful, dark, light, day or night
 ;; (setq centaur-dashboard nil)                   ; Use dashboard at startup or not: t or nil
-(setq centaur-lsp 'eglot)                      ; Set LSP client: lsp-mode, eglot or nil
+;; (setq centaur-lsp 'eglot)                      ; Set LSP client: lsp-mode, eglot or nil
 ;; (setq centaur-chinese-calendar nil)            ; Use Chinese calendar or not: t or nil
 ;; (setq centaur-prettify-symbols-alist nil)      ; Alist of symbol prettifications
 ;; (setq centaur-benchmark t)                     ; Enable initialization benchmark or not: t or nil
@@ -53,7 +53,7 @@
 ;;       smtpmail-smtp-service 587)
 
 ;; Misc.
-(setq confirm-kill-emacs 'y-or-n-p)
+;; (setq confirm-kill-emacs 'y-or-n-p)
 
 ;; Display on the specified monitor
 ;; (when (and (> (length (display-monitor-attributes-list)) 1)
@@ -65,8 +65,6 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(blink-cursor-mode nil)
- '(custom-enabled-themes (quote (doom-dracula)))
  )
 
 (custom-set-faces
