@@ -126,7 +126,7 @@ decrease this. If you experience stuttering, increase this.")
 (require 'init-package)
 
 ;; Preferences
-(require 'init-base)
+(require 'init-basic)
 (require 'init-hydra)
 
 (require 'init-ui)
@@ -170,7 +170,6 @@ decrease this. If you experience stuttering, increase this.")
 (require 'init-dart)
 (require 'init-elixir)
 (require 'init-web)
-(require 'init-scala)
 
 
 ;; Expansion packages added by Zhipeng Bao of NEU
