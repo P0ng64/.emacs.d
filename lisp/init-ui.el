@@ -373,15 +373,6 @@
       auto-window-vscroll nil
       scroll-preserve-screen-position t)
 
-;; Good pixel line scrolling
-(when (and emacs/>=27p
-           (not sys/macp))
-  (use-package good-scroll
-    :diminish
-    :hook (after-init . good-scroll-mode)
-    :bind (([remap next] . good-scroll-up-full-screen)
-           ([remap prior] . good-scroll-down-full-screen))))
-
 ;; Smooth scrolling over images
 (when emacs/>=26p
   (use-package iscroll
@@ -474,6 +465,9 @@
         (set-char-table-range composition-ligature-table (car char-regexp)
                               `([,(cdr char-regexp) 0 font-shape-gstring]))))
     (set-char-table-parent composition-ligature-table composition-function-table)))
+
+;; fuck blink cursor
+(blink-cursor-mode 0)
 
 (provide 'init-ui)
 
