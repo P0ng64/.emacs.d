@@ -134,7 +134,9 @@
     (warm    . doom-solarized-light)
     (cold    . doom-city-lights)
     (day     . doom-tomorrow-day)
-    (night   . doom-tomorrow-night))
+    (night   . doom-tomorrow-night)
+    (plain   . doom-plain)
+    (ice     . doom-nord-light))
   "List of themes mapped to internal themes."
   :group 'centaur
   :type '(alist :key-type (symbol :tag "Theme")
@@ -153,9 +155,9 @@ For example:
   :type '(alist :key-type (string :tag "Time")
                 :value-type (symbol :tag "Theme")))
 
-(when (boundp 'ns-system-appearance)
-  (defcustom centaur-system-themes '((light . doom-one-light)
-				                     (dark  . doom-one))
+(when (boundp 'ns-system-appearance-change-functions)
+  (defcustom centaur-system-themes '((light . doom-nord-light)
+				                     (dark  . doom-nord))
     "List of themes related the system appearance. It's only available on macOS."
     :group 'centaur
     :type '(alist :key-type (symbol :tag "Appearance")
