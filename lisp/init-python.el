@@ -45,7 +45,9 @@
   ;; systems stupidly make the unversioned one point at Python 2.
   (when (and (executable-find "python3")
              (string= python-shell-interpreter "python"))
-    (setq python-shell-interpreter "python3"))
+    (setq python-shell-interpreter "python3"
+          python-shell-interpreter-args "-i"
+          python-shell-prompt-detect-failure-warning nil))
 
   ;; Env vars
   (with-eval-after-load 'exec-path-from-shell
@@ -53,6 +55,18 @@
 
   ;; Live Coding in Python
   (use-package live-py-mode))
+
+(use-package conda
+  :after (:any python ess)
+  :config
+  (setq conda-anaconda-home "/opt/homebrew/Caskroom/miniforge/base")
+  (setq conda-env-home-directory "~/.conda/")
+  (conda-env-initialize-eshell)
+  (conda-env-initialize-interactive-shells)
+  ;; (conda-env-autoactivate-mode t)
+  ;; (conda-env-activate-path "~/.conda/envs/ML")
+  )
+
 
 (provide 'init-python)
 
