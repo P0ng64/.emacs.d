@@ -136,13 +136,13 @@ prepended to the element after the #+HEADER: tag."
 
         org-agenda-files `(,centaur-org-directory)
         org-todo-keywords
-        '((sequence "TODO(t)" "DOING(i)" "HANGUP(h)" "|" "DONE(d)" "CANCEL(c)")
-          (sequence "⚑(T)" "🏴(I)" "❓(H)" "|" "✔(D)" "✘(C)"))
-        org-todo-keyword-faces '(("HANGUP" . warning)
-                                 ("❓" . warning))
-        org-priority-faces '((?A . error)
-                             (?B . warning)
-                             (?C . success))
+        '((sequence "TODO(t)" "DOING(i)" "HANGUP(h)" "|" "DONE(d)" "CANCELED(c)"))
+        org-todo-keyword-faces '(("HANGUP" . warning))
+        org-priority-lowest '?D
+        org-priority-faces '((?A . all-the-icons-orange)
+                             (?B . all-the-icons-yellow)
+                             (?C . all-the-icons-blue)
+                             (?D . all-the-icons-purple))
 
         org-tags-column -80
         org-log-done 'time
@@ -177,17 +177,14 @@ prepended to the element after the #+HEADER: tag."
   ;; Prettify UI
   (when emacs/>=26p
     (use-package org-superstar
-      :if (and (display-graphic-p) (char-displayable-p ?⚫))
       :hook (org-mode . org-superstar-mode)
-      :init (setq org-superstar-headline-bullets-list '("⚫" "⚫" "⚫" "⚫"))))
+      :init (setq org-superstar-headline-bullets-list '("⦿" "⦾" "❖" "⁍"))))
 
   (use-package org-fancy-priorities
     :diminish
     :hook (org-mode . org-fancy-priorities-mode)
     :init (setq org-fancy-priorities-list
-                (if (and (display-graphic-p) (char-displayable-p ?⯀))
-                    '("⯀" "⯀" "⯀" "⯀")
-                  '("HIGH" "MEDIUM" "LOW" "OPTIONAL"))))
+                '("HIGH" "MEDIUM" "LOW" "OPTIONAL")))
 
   ;; Babel
   (setq org-confirm-babel-evaluate nil
@@ -279,21 +276,21 @@ prepended to the element after the #+HEADER: tag."
                 org-tree-slide-modeline-display 'outside
                 org-tree-slide-skip-done nil
                 org-tree-slide-skip-comments t
-                org-tree-slide-skip-outline-level 3))
+                org-tree-slide-skip-outline-level 3)))
 
-  ;; Pomodoro
-  (use-package org-pomodoro
-    :custom-face
-    (org-pomodoro-mode-line ((t (:inherit warning))))
-    (org-pomodoro-mode-line-overtime ((t (:inherit error))))
-    (org-pomodoro-mode-line-break ((t (:inherit success))))
-    :bind (:map org-mode-map
-           ("C-c C-x m" . org-pomodoro))
-    :init
-    (with-eval-after-load 'org-agenda
-      (bind-keys :map org-agenda-mode-map
-        ("K" . org-pomodoro)
-        ("C-c C-x m" . org-pomodoro)))))
+;; Pomodoro
+(use-package org-pomodoro
+  :custom-face
+  (org-pomodoro-mode-line ((t (:inherit warning))))
+  (org-pomodoro-mode-line-overtime ((t (:inherit error))))
+  (org-pomodoro-mode-line-break ((t (:inherit success))))
+  :bind (:map org-mode-map
+         ("C-c C-x m" . org-pomodoro))
+  :init
+  (with-eval-after-load 'org-agenda
+    (bind-keys :map org-agenda-mode-map
+      ("K" . org-pomodoro)
+      ("C-c C-x m" . org-pomodoro))))
 
 ;; Roam
 (when (and emacs/>=26p (executable-find "cc"))
