@@ -61,6 +61,7 @@
     "Source"
     (("s" (hot-expand "<s") "src")
      ("m" (hot-expand "<s" "emacs-lisp") "emacs-lisp")
+     ("R" (hot-expand "<s" "racket :lang sicp") "sicp")
      ("y" (hot-expand "<s" "python :results output") "python")
      ("p" (hot-expand "<s" "perl") "perl")
      ("r" (hot-expand "<s" "ruby") "ruby")
@@ -216,6 +217,13 @@ prepended to the element after the #+HEADER: tag."
   ;; Use mermadi-cli: npm install -g @mermaid-js/mermaid-cli
   (use-package ob-mermaid
     :init (cl-pushnew '(mermaid . t) load-language-list))
+
+  (use-package ob-racket
+    :load-path "~/.emacs.d/site-lisp/emacs-ob-racket"
+    :init (cl-pushnew '(racket . t) load-language-list)
+    :config
+    (add-hook 'ob-racket-pre-runtime-library-load-hook
+              #'ob-racket-raco-make-runtime-library))
 
   (org-babel-do-load-languages 'org-babel-load-languages
                                load-language-list)

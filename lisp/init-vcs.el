@@ -266,7 +266,8 @@
          ("B" . browse-at-remote)))
 
 ;; Git configuration modes
-(use-package git-modes)
+;; DEPRECATED
+;; (use-package git-modes)
 
 (provide 'init-vcs)
 
