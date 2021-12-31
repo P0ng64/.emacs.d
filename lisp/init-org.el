@@ -208,6 +208,8 @@ prepended to the element after the #+HEADER: tag."
       (cl-pushnew '(shell . t) load-language-list)
     (cl-pushnew '(sh . t) load-language-list))
 
+  (setq org-babel-python-command "python3")
+
   (use-package ob-go
     :init (cl-pushnew '(go . t) load-language-list))
 
@@ -218,6 +220,7 @@ prepended to the element after the #+HEADER: tag."
   (use-package ob-mermaid
     :init (cl-pushnew '(mermaid . t) load-language-list))
 
+  ;; Pre-configuration: raco pkg install sicp
   (use-package ob-racket
     :load-path "~/.emacs.d/site-lisp/emacs-ob-racket"
     :init (cl-pushnew '(racket . t) load-language-list)
