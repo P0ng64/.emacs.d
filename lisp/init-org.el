@@ -228,6 +228,14 @@ prepended to the element after the #+HEADER: tag."
     (add-hook 'ob-racket-pre-runtime-library-load-hook
               #'ob-racket-raco-make-runtime-library))
 
+  ;; Pre-configuration: brew install plantuml
+  (use-package ob-plantuml
+    :load-path "~/.emacs.d/site-lisp/emacs-ob-plantuml/ob-plantuml.el"
+    :init (cl-pushnew '(plantuml . t) load-language-list)
+    :config
+    (setq org-plantuml-exec-mode 'plantuml)
+    (setq org-plantuml-executable-path "/opt/homebrew/bin/plantuml"))
+
   (org-babel-do-load-languages 'org-babel-load-languages
                                load-language-list)
 
@@ -255,6 +263,8 @@ prepended to the element after the #+HEADER: tag."
   (use-package org-fragtog
     :diminish
     :hook (org-mode . org-fragtog-mode))
+
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
 
   ;; Preview
   (use-package org-preview-html
