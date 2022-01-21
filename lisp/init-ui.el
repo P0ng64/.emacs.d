@@ -325,7 +325,8 @@
     (use-package display-line-numbers
       :ensure nil
       :hook ((prog-mode yaml-mode) . display-line-numbers-mode)
-      :init (setq display-line-numbers-width-start t))
+      :init (setq display-line-numbers-width-start t
+                  display-line-numbers-type 'relative))
   (use-package linum-off
     :demand
     :defines linum-format

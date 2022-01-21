@@ -149,9 +149,10 @@ prepended to the element after the #+HEADER: tag."
         org-log-done 'time
         org-catch-invisible-edits 'smart
         org-startup-indented t
-        org-ellipsis (if (and (display-graphic-p) (char-displayable-p ?⏷)) "\t⏷" nil)
+        org-ellipsis (if (and (display-graphic-p) (char-displayable-p ?↩)) " ↩" nil)
         org-pretty-entities nil
-        org-hide-emphasis-markers t)
+        org-hide-emphasis-markers t
+        org-image-actual-width nil)
 
   ;; Add new template
   (add-to-list 'org-structure-template-alist '("n" . "note"))
@@ -179,7 +180,10 @@ prepended to the element after the #+HEADER: tag."
   (when emacs/>=26p
     (use-package org-superstar
       :hook (org-mode . org-superstar-mode)
-      :init (setq org-superstar-headline-bullets-list '("⦿" "⦾" "❖" "⁍"))))
+      :init (setq org-superstar-headline-bullets-list '("⦿" "⦾" "❖" "⁍")
+                  org-superstar-item-bullet-alist '((?* . ?•)
+                                                    (?+ . ?➤)
+                                                    (?- . ?•)))))
 
   (use-package org-fancy-priorities
     :diminish
@@ -220,7 +224,7 @@ prepended to the element after the #+HEADER: tag."
   (use-package ob-mermaid
     :init (cl-pushnew '(mermaid . t) load-language-list))
 
-  ;; Pre-configuration: raco pkg install sicp
+  ;; Use racket sicp environment: raco pkg install sicp
   (use-package ob-racket
     :load-path "~/.emacs.d/site-lisp/emacs-ob-racket"
     :init (cl-pushnew '(racket . t) load-language-list)
@@ -233,8 +237,8 @@ prepended to the element after the #+HEADER: tag."
     :load-path "~/.emacs.d/site-lisp/emacs-ob-plantuml/ob-plantuml.el"
     :init (cl-pushnew '(plantuml . t) load-language-list)
     :config
-    (setq org-plantuml-exec-mode 'plantuml)
-    (setq org-plantuml-executable-path "/opt/homebrew/bin/plantuml"))
+    (setq org-plantuml-exec-mode 'plantuml
+          org-plantuml-executable-path "/opt/homebrew/bin/plantuml"))
 
   (org-babel-do-load-languages 'org-babel-load-languages
                                load-language-list)
@@ -330,6 +334,15 @@ prepended to the element after the #+HEADER: tag."
     :config
     (unless (file-exists-p org-roam-directory)
       (make-directory org-roam-directory))))
+
+;; (use-package separate-inline
+;;   :load-path "~/.emacs.d/site-lisp/separate-inline"
+;;   :config
+;;   (add-hook 'org-mode-hook
+;;             '(lambda ()
+;;                (add-hook 'separate-inline-mode-hook
+;;                          'separate-inline-use-default-rules-for-org-local
+;;                          nil 'make-it-local))))
 
 (provide 'init-org)
 

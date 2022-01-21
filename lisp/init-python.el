@@ -59,10 +59,8 @@
 (use-package conda
   :after (:any python ess)
   :config
-  (setq conda-anaconda-home "/opt/homebrew/Caskroom/miniforge/base")
-  (setq conda-env-home-directory "~/.conda/")
-  (conda-env-initialize-eshell)
-  (conda-env-initialize-interactive-shells)
+  (setq conda-anaconda-home "/opt/homebrew/Caskroom/miniforge/base"
+        conda-env-home-directory "~/.conda")
   ;; (conda-env-autoactivate-mode t)
   ;; (conda-env-activate-path "~/.conda/envs/ML")
   )

@@ -389,6 +389,15 @@
   :diminish
   :hook (after-init . fancy-narrow-mode))
 
+(use-package sis
+  :config
+  (sis-ism-lazyman-config
+   "com.apple.keylayout.ABC"
+   "com.apple.inputmethod.SCIM.ITABC")
+  (sis-global-respect-mode t)
+  (sis-global-context-mode t)
+  (sis-global-inline-mode t))
+
 (provide 'init-edit)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
