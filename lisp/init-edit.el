@@ -399,6 +399,11 @@
   (sis-global-context-mode t)
   (sis-global-inline-mode t))
 
+(use-package jieba
+  :load-path "~/.emacs.d/site-lisp/jieba/jieba.el"
+  :commands jieba-mode
+  :init (jieba-mode))
+
 (provide 'init-edit)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

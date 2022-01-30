@@ -335,15 +335,6 @@ prepended to the element after the #+HEADER: tag."
     (unless (file-exists-p org-roam-directory)
       (make-directory org-roam-directory))))
 
-;; (use-package separate-inline
-;;   :load-path "~/.emacs.d/site-lisp/separate-inline"
-;;   :config
-;;   (add-hook 'org-mode-hook
-;;             '(lambda ()
-;;                (add-hook 'separate-inline-mode-hook
-;;                          'separate-inline-use-default-rules-for-org-local
-;;                          nil 'make-it-local))))
-
 (provide 'init-org)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
