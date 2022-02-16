@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -165,8 +165,7 @@
                     (vterm-clear t))
                   (setq-local cursor-type 'box))
                 ;; Focus the child frame
-                (select-frame-set-input-focus vterm-posframe--frame)))))
-        (bind-key "C-`" #'vterm-posframe-toggle)))))
+                (select-frame-set-input-focus vterm-posframe--frame)))))))))
 
 ;; Shell Pop
 (use-package shell-pop
