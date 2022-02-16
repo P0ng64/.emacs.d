@@ -45,7 +45,7 @@
     :custom-face (dashboard-heading ((t (:inherit (font-lock-string-face bold)))))
     :pretty-hydra
     ((:title (pretty-hydra-title "Dashboard" 'material "dashboard" :height 1.2 :v-adjust -0.2)
-      :color pink :quit-key "q")
+             :color pink :quit-key "q")
      ("Navigator"
       (("U" update-config-and-packages "update" :exit t)
        ("H" browse-homepage "homepage" :exit t)

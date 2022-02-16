@@ -110,7 +110,7 @@
 (require 'init-yasnippet)
 
 (require 'init-bookmark)
-(require 'init-calendar)
+;; (require 'init-calendar)
 (require 'init-dashboard)
 (require 'init-dired)
 (require 'init-highlight)
@@ -130,6 +130,7 @@
 (require 'init-dict)
 (require 'init-docker)
 (require 'init-utils)
+(require 'init-tricks)
 
 ;; Programming
 (require 'init-vcs)
@@ -141,13 +142,13 @@
 (require 'init-prog)
 (require 'init-elisp)
 (require 'init-c)
-(require 'init-go)
-(require 'init-rust)
 (require 'init-python)
-(require 'init-ruby)
-(require 'init-dart)
-(require 'init-elixir)
 (require 'init-web)
+;; (require 'init-go)
+;; (require 'init-rust)
+;; (require 'init-ruby)
+;; (require 'init-dart)
+;; (require 'init-elixir)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init.el ends here

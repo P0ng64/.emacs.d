@@ -235,10 +235,15 @@ prepended to the element after the #+HEADER: tag."
   ;; Pre-configuration: brew install plantuml
   (use-package ob-plantuml
     :load-path "~/.emacs.d/site-lisp/emacs-ob-plantuml/ob-plantuml.el"
-    :init (cl-pushnew '(plantuml . t) load-language-list)
-    :config
-    (setq org-plantuml-exec-mode 'plantuml
-          org-plantuml-executable-path "/opt/homebrew/bin/plantuml"))
+    :init
+    (cl-pushnew '(plantuml . t) load-language-list)
+    (setq org-plantuml-executable-path "/opt/homebrew/bin/plantuml"
+          org-plantuml-exec-mode 'plantuml))
+
+  (use-package ob-latex-as-png
+    :init
+    (cl-pushnew '(latex-as-png . t) load-language-list)
+    :ensure t)
 
   (org-babel-do-load-languages 'org-babel-load-languages
                                load-language-list)

@@ -54,15 +54,7 @@
     ;; Compatible with Emacs Mac port
 
     (setq mac-option-modifier 'super
-          mac-command-modifier 'meta)
-    (bind-keys ([(super a)] . mark-whole-buffer)
-               ([(super c)] . kill-ring-save)
-               ([(super l)] . goto-line)
-               ([(super q)] . save-buffers-kill-emacs)
-               ([(super s)] . save-buffer)
-               ([(super v)] . yank)
-               ([(super w)] . delete-frame)
-               ([(super z)] . undo))))
+          mac-command-modifier 'meta)))
 
   ;; Optimization
   (when sys/win32p
@@ -305,7 +297,7 @@ Also, delete any process that is exited or signaled."
 (when (display-graphic-p)
   (add-hook 'window-setup-hook #'fix-fullscreen-cocoa)
   (bind-keys ("C-<f11>" . toggle-frame-fullscreen)
-             ("C-s-f" . toggle-frame-fullscreen) ; Compatible with macOS
+             ("C-M-f" . toggle-frame-fullscreen) ; Compatible with macOS
              ("S-s-<return>" . toggle-frame-fullscreen)
              ("M-S-<return>" . toggle-frame-fullscreen)))
 
