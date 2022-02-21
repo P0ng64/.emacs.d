@@ -1,0 +1,11 @@
+* Centaur Emacs -- P0ng_0064 edited
+
+**  non-elpa packages
+- [[https://github.com/cireu/jieba.el][jieba]]
+- [[https://github.com/emacs-mirror/emacs/blob/master/lisp/org/ob-plantuml.el][emacs-ob-plantuml]]
+- [[https://github.com/hasu/emacs-ob-racket][emacs-ob-racket]]
+- [[https://github.com/ingtshan/separate-inline.el][separate-inline]]
+
+** Things TBD
+*** TODO Resolve the incompatibility of =sis= and =ivy-posframe=
+*** TODO Improve the Chinese/English Typography in org-mode
