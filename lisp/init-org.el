@@ -268,13 +268,22 @@ prepended to the element after the #+HEADER: tag."
   (use-package org-timeline
     :hook (org-agenda-finalize . org-timeline-insert-timeline))
 
-  (when emacs/>=27p
-    ;; Auto-toggle Org LaTeX fragments
-    (use-package org-fragtog
-      :diminish
-      :hook (org-mode . org-fragtog-mode))
+  ;; Automatically toggle org-mode mark up symbols
+  (use-package org-appear
+    :hook (org-mode . org-appear-mode)
+    :config (setq org-appear-autolinks t)))
 
-  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
+(when emacs/>=27p
+  ;; Auto-toggle Org LaTeX fragments
+  (use-package org-fragtog
+    :diminish
+    :hook (org-mode . org-fragtog-mode))
+
+  (setq org-format-latex-options
+        (plist-put org-format-latex-options
+                   :scale 1.5))
+
+  (setq org-preview-latex-default-process 'dvisvgm)
 
   ;; Preview
   (use-package org-preview-html

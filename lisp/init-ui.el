@@ -38,8 +38,8 @@
 (setq fancy-splash-image centaur-logo)
 
 ;; Title
-(setq frame-title-format '("Centaur Emacs - %b")
-      icon-title-format frame-title-format)
+(setq frame-title-format '("Emacs - %b"))
+(setq ns-use-proxy-icon nil)
 
 (when (and sys/mac-ns-p sys/mac-x-p)
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
@@ -480,6 +480,9 @@
 
 ;; fuck blink cursor
 (blink-cursor-mode 0)
+
+(when (display-graphic-p)
+  (set-frame-size (selected-frame) 80 26))
 
 ;; improve CJK character performance when line truncating
 (when emacs/>=28p

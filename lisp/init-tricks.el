@@ -1,6 +1,6 @@
 ;; init-tricks.el --- Define utility functions.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2021 Zhipeng Bao
+;; Copyright (C) 2019-2022 Zhipeng Bao
 
 ;; Author: Zhipeng Bao <p0ng.64@Yahoo.com>
 ;; URL: https://github.com/P0ng64/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -40,11 +40,7 @@
     (set-face-attribute 'default nil
                         :font "CMU Typewriter Text"
                         :height 160)
-    (set-fontset-font t '(#x4e00 . #x9fff)
-                      (font-spec :family "Songti TC"
-                                 :size 16
-                                 ))
-    (set-fontset-font t '(#xff00 . #xffef)
+    (set-fontset-font t 'unicode
                       (font-spec :family "Songti TC"
                                  :size 16
                                  ))))
@@ -57,11 +53,7 @@
     (set-face-attribute 'default nil
                         :font "Monaco"
                         :height 140)
-    (set-fontset-font t '(#x4e00 . #x9fff)
-                      (font-spec :family "PingFang SC"
-                                 :size 14
-                                 ))
-    (set-fontset-font t '(#xff00 . #xffef)
+    (set-fontset-font t 'unicode
                       (font-spec :family "PingFang SC"
                                  :size 14
                                  ))))

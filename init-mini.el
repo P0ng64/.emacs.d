@@ -57,6 +57,7 @@
 (setq auto-save-default nil)               ; Disable auto save
 (setq set-mark-command-repeat-pop t)       ; Repeating C-SPC after popping mark pops it again
 ;; (setq kill-whole-line t)                   ; Kill line including '\n'
+(fset 'yes-or-no-p 'y-or-n-p)
 
 (setq-default major-mode 'text-mode)
 
@@ -70,7 +71,21 @@
               indent-tabs-mode nil)
 
 ;; UI
-(load-theme 'wombat t)
+(load-theme 'modus-vivendi t)
+
+;; Transparent titlebar on macOS GUI
+(when (and (eq system-type 'darwin)
+           (display-graphic-p))
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
+  (add-to-list 'default-frame-alist '(ns-appearance . dark))
+  (add-hook 'after-load-theme-hook
+            (lambda ()
+              (let ((bg (frame-parameter nil 'background-mode)))
+                (set-frame-parameter nil 'ns-appearance bg)
+                (setcdr (assq 'ns-appearance default-frame-alist) bg)))))
+
+(when (display-graphic-p)
+  (set-frame-size (selected-frame) 80 26))
 
 (unless (eq window-system 'ns)
   (menu-bar-mode -1))
@@ -81,11 +96,15 @@
 (when (fboundp 'horizontal-scroll-bar-mode)
   (horizontal-scroll-bar-mode -1))
 
-;; (global-hl-line-mode 1)
+(global-hl-line-mode 1)
 
-;; (if (fboundp 'display-line-numbers-mode)
-;;     (global-display-line-numbers-mode 1)
-;;   (global-linum-mode 1))
+(if (fboundp 'display-line-numbers-mode)
+    (global-display-line-numbers-mode 1)
+  (global-linum-mode 1))
+
+(setq column-number-mode t)
+
+(set-face-attribute 'mode-line nil :box nil)
 
 ;; Basic modes
 (recentf-mode 1)
@@ -140,30 +159,17 @@
   (setq w32-lwindow-modifier 'super     ; Left Windows key
         w32-apps-modifier 'hyper)       ; Menu/App key
   (w32-register-hot-key [s-t]))
- ((eq window-system 'mac)
+ ((eq system-type 'darwin)
   ;; Compatible with Emacs Mac port
-  (setq mac-option-modifier 'meta
-        mac-command-modifier 'super)
-  (global-set-key [(super a)] #'mark-whole-buffer)
-  (global-set-key [(super v)] #'yank)
-  (global-set-key [(super c)] #'kill-ring-save)
-  (global-set-key [(super s)] #'save-buffer)
-  (global-set-key [(super l)] #'goto-line)
-  (global-set-key [(super w)] #'delete-frame)
-  (global-set-key [(super z)] #'undo)))
+  (if (display-graphic-p)
+      (setq mac-option-modifier 'super
+            mac-command-modifier 'meta)
+    (setq mac-option-modifier 'meta
+          mac-command-modifier 'super))))
 
 ;; Keybindings
 (global-set-key (kbd "C-.") #'imenu)
 (global-set-key (kbd "<C-return>") #'rectangle-mark-mode)
-
-(defun revert-current-buffer ()
-  "Revert the current buffer."
-  (interactive)
-  (message "Revert this buffer")
-  (text-scale-set 0)
-  (widen)
-  (revert-buffer t t))
-(global-set-key (kbd "<f5>") #'revert-current-buffer)
 
 (add-hook 'emacs-lisp-mode-hook
           (lambda ()

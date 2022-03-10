@@ -52,9 +52,8 @@
           ns-option-modifier 'super))
    (sys/mac-port-p
     ;; Compatible with Emacs Mac port
-
-    (setq mac-option-modifier 'super
-          mac-command-modifier 'meta)))
+    (setq mac-command-modifier 'meta
+          mac-option-modifier 'super)))
 
   ;; Optimization
   (when sys/win32p
@@ -294,7 +293,8 @@ Also, delete any process that is exited or signaled."
 (when (display-graphic-p)
   (add-hook 'window-setup-hook #'fix-fullscreen-cocoa)
   (bind-keys ("C-<f11>" . toggle-frame-fullscreen)
-             ("C-M-f" . toggle-frame-fullscreen) ; Compatible with macOS
+             ;; ("C-S-f" . toggle-frame-fullscreen) ; Compatible with macOS
+             ;; Conflict with forward-sexp, disabled
              ("S-s-<return>" . toggle-frame-fullscreen)
              ("M-S-<return>" . toggle-frame-fullscreen)))
 

@@ -169,12 +169,12 @@
 
 ;; Shell Pop
 (use-package shell-pop
-  :bind (("C-`" . (lambda ()
-                    (interactive)
-                    (if (fboundp 'vterm-posframe-toggle)
-                        (vterm-posframe-toggle)
-                      (shell-pop nil))))
-         ([f9] . shell-pop))
+  :bind (([f9] . (lambda ()
+                   (interactive)
+                   (if (fboundp 'vterm-posframe-toggle)
+                       (vterm-posframe-toggle)
+                     (shell-pop nil))))
+         ("C-`" . shell-pop))
   :init
   (setq shell-pop-window-size 30
         shell-pop-shell-type
