@@ -109,9 +109,9 @@
 (require 'init-company)
 (require 'init-yasnippet)
 
-(require 'init-bookmark)
+;; (require 'init-bookmark)
 ;; (require 'init-calendar)
-(require 'init-dashboard)
+;; (require 'init-dashboard)
 (require 'init-dired)
 (require 'init-highlight)
 (require 'init-ibuffer)
@@ -128,7 +128,7 @@
 (require 'init-reader)
 
 (require 'init-dict)
-(require 'init-docker)
+;; (require 'init-docker)
 (require 'init-utils)
 (require 'init-tricks)
 

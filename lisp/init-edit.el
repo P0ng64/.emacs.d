@@ -390,14 +390,14 @@
   :hook (after-init . fancy-narrow-mode))
 
 (use-package sis
-  :hook (after-init . sis-global-respect-mode)
+  ;; :hook (after-init . sis-global-respect-mode)
   :config
   (sis-ism-lazyman-config
    "com.apple.keylayout.ABC"
    "com.apple.inputmethod.SCIM.ITABC")
-  (setq sis-global-respect-mode t)
-  (setq sis-global-inline-mode t)
-  (setq sis-global-context-mode t)
+  ;; (setq sis-global-respect-mode t)
+  ;; (setq sis-global-inline-mode t)
+  ;; (setq sis-global-context-mode t)
   (global-set-key (kbd "M-》") 'end-of-buffer)
   (global-set-key (kbd "M-《") 'beginning-of-buffer))
 

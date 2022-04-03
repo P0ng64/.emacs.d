@@ -180,7 +180,7 @@ prepended to the element after the #+HEADER: tag."
   (when emacs/>=26p
     (use-package org-superstar
       :hook (org-mode . org-superstar-mode)
-      :init (setq org-superstar-headline-bullets-list '("⦿" "⦾" "❖" "⁍")
+      :init (setq org-superstar-headline-bullets-list '("⦿" "⦾" "❖" "◇")
                   org-superstar-item-bullet-alist '((?* . ?•)
                                                     (?+ . ?➤)
                                                     (?- . ?•)))))
@@ -271,19 +271,19 @@ prepended to the element after the #+HEADER: tag."
   ;; Automatically toggle org-mode mark up symbols
   (use-package org-appear
     :hook (org-mode . org-appear-mode)
-    :config (setq org-appear-autolinks t)))
+    :config (setq org-appear-autolinks t))
+
+  (setq org-format-latex-options
+        (plist-put org-format-latex-options
+                   :scale 1.5))
+
+  (setq org-preview-latex-default-process 'dvisvgm))
 
 (when emacs/>=27p
   ;; Auto-toggle Org LaTeX fragments
   (use-package org-fragtog
     :diminish
     :hook (org-mode . org-fragtog-mode))
-
-  (setq org-format-latex-options
-        (plist-put org-format-latex-options
-                   :scale 1.5))
-
-  (setq org-preview-latex-default-process 'dvisvgm)
 
   ;; Preview
   (use-package org-preview-html
@@ -295,12 +295,12 @@ prepended to the element after the #+HEADER: tag."
     :functions (org-display-inline-images
                 org-remove-inline-images)
     :bind (:map org-mode-map
-           ("s-<f7>" . org-tree-slide-mode)
-           :map org-tree-slide-mode-map
-           ("<left>" . org-tree-slide-move-previous-tree)
-           ("<right>" . org-tree-slide-move-next-tree)
-           ("S-SPC" . org-tree-slide-move-previous-tree)
-           ("SPC" . org-tree-slide-move-next-tree))
+                ("s-<f7>" . org-tree-slide-mode)
+                :map org-tree-slide-mode-map
+                ("<left>" . org-tree-slide-move-previous-tree)
+                ("<right>" . org-tree-slide-move-next-tree)
+                ("S-SPC" . org-tree-slide-move-previous-tree)
+                ("SPC" . org-tree-slide-move-next-tree))
     :hook ((org-tree-slide-play . (lambda ()
                                     (text-scale-increase 4)
                                     (org-display-inline-images)
@@ -354,6 +354,11 @@ prepended to the element after the #+HEADER: tag."
         :init
         (when (featurep 'xwidget-internal)
           (setq org-roam-ui-browser-function #'xwidget-webkit-browse-url))))))
+
+;; (use-package org-download
+;;   :hook (dired-mode . org-download-enable)
+;;   :config
+;;   (setq-default org-download-image-dir "./img"))
 
 (provide 'init-org)
 

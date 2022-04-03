@@ -481,9 +481,6 @@
 ;; fuck blink cursor
 (blink-cursor-mode 0)
 
-(when (display-graphic-p)
-  (set-frame-size (selected-frame) 80 26))
-
 ;; improve CJK character performance when line truncating
 (when emacs/>=28p
   (setq word-wrap-by-category t))

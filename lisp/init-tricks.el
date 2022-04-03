@@ -58,6 +58,21 @@
                                  :size 14
                                  ))))
 
+(defun sis-enable ()
+  "Enable smart-input-source"
+  (interactive)
+  (sis-global-respect-mode t)
+  (sis-global-context-mode t)
+  (sis-global-inline-mode t))
+
+
+(defun sis-disable ()
+  "Disable smart-input-source"
+  (interactive)
+  (sis-global-respect-mode 0)
+  (sis-global-context-mode 0)
+  (sis-global-inline-mode 0))
+
 (provide 'init-tricks)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

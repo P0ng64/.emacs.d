@@ -170,37 +170,38 @@ of the buffer text to be displayed in the popup"
     (bind-key "s R" #'rg-project projectile-command-map)))
 
 ;; A Simple and cool pomodoro timer
-(use-package pomidor
-  :bind ("s-<f12>" . pomidor)
-  :init
-  (setq alert-default-style 'mode-line)
+;; (use-package pomidor
+;;   :bind ("s-<f12>" . pomidor)
+;;   :init
+;;   (setq alert-default-style 'mode-line)
 
-  (with-eval-after-load 'all-the-icons
-    (setq alert-severity-faces
-          '((urgent   . all-the-icons-red)
-            (high     . all-the-icons-orange)
-            (moderate . all-the-icons-yellow)
-            (normal   . all-the-icons-green)
-            (low      . all-the-icons-blue)
-            (trivial  . all-the-icons-purple))
-          alert-severity-colors
-          `((urgent   . ,(face-foreground 'all-the-icons-red))
-            (high     . ,(face-foreground 'all-the-icons-orange))
-            (moderate . ,(face-foreground 'all-the-icons-yellow))
-            (normal   . ,(face-foreground 'all-the-icons-green))
-            (low      . ,(face-foreground 'all-the-icons-blue))
-            (trivial  . ,(face-foreground 'all-the-icons-purple)))))
+;;   (with-eval-after-load 'all-the-icons
+;;     (setq alert-severity-faces
+;;           '((urgent   . all-the-icons-red)
+;;             (high     . all-the-icons-orange)
+;;             (moderate . all-the-icons-yellow)
+;;             (normal   . all-the-icons-green)
+;;             (low      . all-the-icons-blue)
+;;             (trivial  . all-the-icons-purple))
+;;           alert-severity-colors
+;;           `((urgent   . ,(face-foreground 'all-the-icons-red))
+;;             (high     . ,(face-foreground 'all-the-icons-orange))
+;;             (moderate . ,(face-foreground 'all-the-icons-yellow))
+;;             (normal   . ,(face-foreground 'all-the-icons-green))
+;;             (low      . ,(face-foreground 'all-the-icons-blue))
+;;             (trivial  . ,(face-foreground 'all-the-icons-purple)))))
 
-  (when sys/macp
-    (setq pomidor-play-sound-file
-          (lambda (file)
-            (when (executable-find "afplay")
-              (start-process "pomidor-play-sound" nil "afplay" file))))))
+;;   (when sys/macp
+;;     (setq pomidor-play-sound-file
+;;           (lambda (file)
+;;             (when (executable-find "afplay")
+;;               (start-process "pomidor-play-sound" nil "afplay" file))))))
 
 ;; Nice writing
 (use-package olivetti
   :diminish
-  :bind ("<f7>" . olivetti-mode)
+  :bind (("<f7>" . olivetti-mode)
+         ("C-c C-o" . olivetti-mode))
   :init (setq olivetti-body-width 0.618))
 
 ;; Edit text for browsers with GhostText or AtomicChrome extension
@@ -218,24 +219,24 @@ of the buffer text to be displayed in the popup"
             '(("github\\.com" . gfm-mode)))))
 
 ;; Music player
-(use-package bongo
-  :bind ("C-<f9>" . bongo)
-  :config
-  (with-eval-after-load 'dired
-    (with-no-warnings
-      (defun bongo-add-dired-files ()
-        "Add marked files to the Bongo library."
-        (interactive)
-        (bongo-buffer)
-        (let (file (files nil))
-          (dired-map-over-marks
-           (setq file (dired-get-filename)
-                 files (append files (list file)))
-           nil t)
-          (with-bongo-library-buffer
-           (mapc 'bongo-insert-file files)))
-        (bongo-switch-buffers))
-      (bind-key "b" #'bongo-add-dired-files dired-mode-map))))
+;; (use-package bongo
+;;   :bind ("C-<f9>" . bongo)
+;;   :config
+;;   (with-eval-after-load 'dired
+;;     (with-no-warnings
+;;       (defun bongo-add-dired-files ()
+;;         "Add marked files to the Bongo library."
+;;         (interactive)
+;;         (bongo-buffer)
+;;         (let (file (files nil))
+;;           (dired-map-over-marks
+;;            (setq file (dired-get-filename)
+;;                  files (append files (list file)))
+;;            nil t)
+;;           (with-bongo-library-buffer
+;;             (mapc 'bongo-insert-file files)))
+;;         (bongo-switch-buffers))
+;;       (bind-key "b" #'bongo-add-dired-files dired-mode-map))))
 
 ;; Process
 (use-package proced
@@ -246,34 +247,34 @@ of the buffer text to be displayed in the popup"
         proced-auto-update-interval 3))
 
 ;; Search
-(use-package webjump
-  :ensure nil
-  :bind ("C-c /" . webjump)
-  :init (setq webjump-sites
-              '(;; Emacs
-                ("Emacs Home Page" .
-                 "www.gnu.org/software/emacs/emacs.html")
-                ("Xah Emacs Site" . "ergoemacs.org/index.html")
-                ("(or emacs irrelevant)" . "oremacs.com")
-                ("Mastering Emacs" .
-                 "https://www.masteringemacs.org/")
+;; (use-package webjump
+;;   :ensure nil
+;;   :bind ("C-c /" . webjump)
+;;   :init (setq webjump-sites
+;;               '(;; Emacs
+;;                 ("Emacs Home Page" .
+;;                  "www.gnu.org/software/emacs/emacs.html")
+;;                 ("Xah Emacs Site" . "ergoemacs.org/index.html")
+;;                 ("(or emacs irrelevant)" . "oremacs.com")
+;;                 ("Mastering Emacs" .
+;;                  "https://www.masteringemacs.org/")
 
-                ;; Search engines.
-                ("DuckDuckGo" .
-                 [simple-query "duckduckgo.com"
-                               "duckduckgo.com/?q=" ""])
-                ("Google" .
-                 [simple-query "www.google.com"
-                               "www.google.com/search?q=" ""])
-                ("Bing" .
-                 [simple-query "www.bing.com"
-                               "www.bing.com/search?q=" ""])
+;;                 ;; Search engines.
+;;                 ("DuckDuckGo" .
+;;                  [simple-query "duckduckgo.com"
+;;                                "duckduckgo.com/?q=" ""])
+;;                 ("Google" .
+;;                  [simple-query "www.google.com"
+;;                                "www.google.com/search?q=" ""])
+;;                 ("Bing" .
+;;                  [simple-query "www.bing.com"
+;;                                "www.bing.com/search?q=" ""])
 
-                ("Baidu" .
-                 [simple-query "www.baidu.com"
-                               "www.baidu.com/s?wd=" ""])
-                ("Wikipedia" .
-                 [simple-query "wikipedia.org" "wikipedia.org/wiki/" ""]))))
+;;                 ("Baidu" .
+;;                  [simple-query "www.baidu.com"
+;;                                "www.baidu.com/s?wd=" ""])
+;;                 ("Wikipedia" .
+;;                  [simple-query "wikipedia.org" "wikipedia.org/wiki/" ""]))))
 
 ;; IRC
 (use-package erc
