@@ -1,6 +1,6 @@
 ;; init-dashboard.el --- Initialize dashboard configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2021 Vincent Zhang
+;; Copyright (C) 2018-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -34,7 +34,7 @@
 (require 'init-custom)
 
 ;; Dashboard
-(unless emacs/>=25.3p (setq centaur-dashboard nil))
+(unless emacs/>=26p (setq centaur-dashboard nil))
 (when centaur-dashboard
   (use-package dashboard
     :diminish dashboard-mode

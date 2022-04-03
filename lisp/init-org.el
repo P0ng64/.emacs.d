@@ -1,6 +1,6 @@
 ;; init-org.el --- Initialize org configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2021 Vincent Zhang
+;; Copyright (C) 2006-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -87,7 +87,10 @@
   :hook (((org-babel-after-execute org-mode) . org-redisplay-inline-images) ; display image
          (org-mode . (lambda ()
                        "Beautify org symbols."
-                       (setq prettify-symbols-alist centaur-prettify-org-symbols-alist)
+                       (when centaur-prettify-org-symbols-alist
+                         (if prettify-symbols-alist
+                             (push centaur-prettify-org-symbols-alist prettify-symbols-alist)
+                           (setq prettify-symbols-alist centaur-prettify-org-symbols-alist)))
                        (prettify-symbols-mode 1)))
          (org-indent-mode . (lambda()
                               (diminish 'org-indent-mode)
@@ -189,7 +192,9 @@ prepended to the element after the #+HEADER: tag."
     :diminish
     :hook (org-mode . org-fancy-priorities-mode)
     :init (setq org-fancy-priorities-list
-                '("HIGH" "MEDIUM" "LOW" "OPTIONAL")))
+                (if (and (display-graphic-p) (char-displayable-p ?🅐))
+                        '("🅐" "🅑" "🅒" "🅓")
+                      '("HIGH" "MEDIUM" "LOW" "OPTIONAL"))))
 
   ;; Babel
   (setq org-confirm-babel-evaluate nil
@@ -285,9 +290,13 @@ prepended to the element after the #+HEADER: tag."
     :diminish
     :hook (org-mode . org-fragtog-mode))
 
-  ;; Preview
-  (use-package org-preview-html
-    :diminish)
+    ;; Preview
+    (use-package org-preview-html
+      :diminish
+      :bind (:map org-mode-map
+             ("C-c C-h" . org-preview-html-mode))
+      :init (when (featurep 'xwidget-internal)
+              (setq org-preview-html-viewer 'xwidget))))
 
   ;; Presentation
   (use-package org-tree-slide
@@ -355,6 +364,7 @@ prepended to the element after the #+HEADER: tag."
         (when (featurep 'xwidget-internal)
           (setq org-roam-ui-browser-function #'xwidget-webkit-browse-url))))))
 
+;; TODO: Support org-download drag-and-drop
 ;; (use-package org-download
 ;;   :hook (dired-mode . org-download-enable)
 ;;   :config

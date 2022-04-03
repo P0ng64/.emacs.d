@@ -1,6 +1,6 @@
 ;;; init.el --- A Fancy and Fast Emacs Configuration.	-*- lexical-binding: t no-byte-compile: t -*-
 
-;; Copyright (C) 2006-2021 Vincent Zhang
+;; Copyright (C) 2006-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -86,7 +86,10 @@
     (push (expand-file-name dir user-emacs-directory) load-path)))
 
 (defun add-subdirs-to-load-path (&rest _)
-  "Add subdirectories to `load-path'."
+  "Add subdirectories to `load-path'.
+
+Don't put large files in `site-lisp' directory, e.g. EAF.
+Otherwise the startup will be very slow. "
   (let ((default-directory (expand-file-name "site-lisp" user-emacs-directory)))
     (normal-top-level-add-subdirs-to-load-path)))
 

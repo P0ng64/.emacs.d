@@ -1,6 +1,6 @@
 ;; init-shell.el --- Initialize shell configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2021 Vincent Zhang
+;; Copyright (C) 2006-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -141,8 +141,8 @@
                   (posframe-hide buffer)
                   ;; Focus the parent frame
                   (select-frame-set-input-focus (frame-parent vterm-posframe--frame)))
-              (let ((width  (max 80 (/ (frame-width) 2)))
-                    (height (/ (frame-height) 2)))
+              (let ((width  (max 80 (floor (* (frame-width) 0.62))))
+                    (height (floor (* (frame-height) 0.62))))
                 (setq vterm-posframe--frame
                       (posframe-show
                        buffer

@@ -1,6 +1,6 @@
 ;; init-ui.el --- Better lookings and appearances.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2021 Vincent Zhang
+;; Copyright (C) 2006-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -77,10 +77,10 @@
         :hook (after-load-theme . solaire-global-mode))
 
       (use-package doom-themes
+        :bind ("C-c T" . centaur-load-theme)
         :custom-face
         (doom-modeline-buffer-file ((t (:inherit (mode-line bold)))))
-        :custom
-        (doom-themes-treemacs-theme "doom-colors")
+        :custom (doom-themes-treemacs-theme "doom-colors")
         :init (centaur-load-theme centaur-theme t)
         :config
         ;; Enable flashing mode-line on errors
@@ -239,7 +239,7 @@
 (use-package all-the-icons
   :if (and centaur-icon (display-graphic-p))
   :init (unless (or sys/win32p (font-installed-p "all-the-icons"))
-          (all-the-icons-install-fonts t))
+          (centaur-install-fonts))
   :config
   (with-no-warnings
     (defun all-the-icons-reset ()
@@ -376,7 +376,7 @@
       scroll-preserve-screen-position t)
 
 ;; Good pixel line scrolling
-(if (boundp 'pixel-scroll-precision-mode)
+(if (fboundp 'pixel-scroll-precision-mode)
     (pixel-scroll-precision-mode t)
   (when (and emacs/>=27p (not sys/macp))
     (use-package good-scroll

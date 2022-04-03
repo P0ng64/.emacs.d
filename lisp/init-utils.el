@@ -1,6 +1,6 @@
 ;; init-utils.el --- Initialize ultilities.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2021 Vincent Zhang
+;; Copyright (C) 2006-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -172,9 +172,8 @@ of the buffer text to be displayed in the popup"
 ;; Nice writing
 (use-package olivetti
   :diminish
-  :bind (("<f7>" . olivetti-mode)
-         ("C-c C-o" . olivetti-mode))
-  :init (setq olivetti-body-width 0.618))
+  :bind ("<f7>" . olivetti-mode)
+  :init (setq olivetti-body-width 0.62))
 
 ;; Edit text for browsers with GhostText or AtomicChrome extension
 (use-package atomic-chrome

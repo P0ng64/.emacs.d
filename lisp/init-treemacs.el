@@ -1,6 +1,6 @@
 ;; init-treemacs.el --- Initialize treemacs.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2021 Vincent Zhang
+;; Copyright (C) 2018-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -85,7 +85,7 @@
 
     (use-package treemacs-persp
       :after persp-mode
-      :demand t
+      :demand
       :functions treemacs-set-scope-type
       :config (treemacs-set-scope-type 'Perspectives))))
 

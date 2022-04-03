@@ -1,6 +1,6 @@
 ;; init-reader.el --- Initialize readers.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2021 Vincent Zhang
+;; Copyright (C) 2019-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -32,6 +32,8 @@
 
 (require 'init-const)
 
+(bind-key "M-<f7>" #'centaur-read-mode)
+
 ;; PDF reader
 (when (display-graphic-p)
   (use-package pdf-view
@@ -40,7 +42,7 @@
                pdf-view-midnight-minor-mode
                pdf-view-printer-minor-mode)
     :defines pdf-annot-activate-created-annotations
-    :hook ((pdf-tools-enabled . pdf-view-themed-minor-mode)
+    :hook (;(pdf-tools-enabled . pdf-view-themed-minor-mode)
            (pdf-tools-enabled . pdf-view-auto-slice-minor-mode)
            (pdf-tools-enabled . pdf-isearch-minor-mode))
     :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
