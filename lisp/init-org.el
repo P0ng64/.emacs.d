@@ -40,7 +40,7 @@
   :custom-face (org-ellipsis ((t (:foreground nil))))
   :pretty-hydra
   ((:title (pretty-hydra-title "Org Template" 'fileicon "org" :face 'all-the-icons-green :height 1.1 :v-adjust 0.0)
-    :color blue :quit-key "q")
+           :color blue :quit-key "q")
    ("Basic"
     (("a" (hot-expand "<a") "ascii")
      ("c" (hot-expand "<c") "center")
@@ -193,8 +193,8 @@ prepended to the element after the #+HEADER: tag."
     :hook (org-mode . org-fancy-priorities-mode)
     :init (setq org-fancy-priorities-list
                 (if (and (display-graphic-p) (char-displayable-p ?🅐))
-                        '("🅐" "🅑" "🅒" "🅓")
-                      '("HIGH" "MEDIUM" "LOW" "OPTIONAL"))))
+                    '("🅐" "🅑" "🅒" "🅓")
+                  '("HIGH" "MEDIUM" "LOW" "OPTIONAL"))))
 
   ;; Babel
   (setq org-confirm-babel-evaluate nil
@@ -256,7 +256,7 @@ prepended to the element after the #+HEADER: tag."
   ;; Rich text clipboard
   (use-package org-rich-yank
     :bind (:map org-mode-map
-           ("C-M-y" . org-rich-yank)))
+                ("C-M-y" . org-rich-yank)))
 
   ;; Table of contents
   (use-package toc-org
@@ -265,9 +265,9 @@ prepended to the element after the #+HEADER: tag."
   ;; Export text/html MIME emails
   (use-package org-mime
     :bind (:map message-mode-map
-           ("C-c M-o" . org-mime-htmlize)
-           :map org-mode-map
-           ("C-c M-o" . org-mime-org-buffer-htmlize)))
+                ("C-c M-o" . org-mime-htmlize)
+                :map org-mode-map
+                ("C-c M-o" . org-mime-org-buffer-htmlize)))
 
   ;; Add graphical view of agenda
   (use-package org-timeline
@@ -290,56 +290,42 @@ prepended to the element after the #+HEADER: tag."
     :diminish
     :hook (org-mode . org-fragtog-mode))
 
-    ;; Preview
-    (use-package org-preview-html
-      :diminish
-      :bind (:map org-mode-map
-             ("C-c C-h" . org-preview-html-mode))
-      :init (when (featurep 'xwidget-internal)
-              (setq org-preview-html-viewer 'xwidget))))
-
-  ;; Presentation
-  (use-package org-tree-slide
+  ;; Preview
+  (use-package org-preview-html
     :diminish
-    :functions (org-display-inline-images
-                org-remove-inline-images)
     :bind (:map org-mode-map
-                ("s-<f7>" . org-tree-slide-mode)
-                :map org-tree-slide-mode-map
-                ("<left>" . org-tree-slide-move-previous-tree)
-                ("<right>" . org-tree-slide-move-next-tree)
-                ("S-SPC" . org-tree-slide-move-previous-tree)
-                ("SPC" . org-tree-slide-move-next-tree))
-    :hook ((org-tree-slide-play . (lambda ()
-                                    (text-scale-increase 4)
-                                    (org-display-inline-images)
-                                    (read-only-mode 1)))
-           (org-tree-slide-stop . (lambda ()
-                                    (text-scale-increase 0)
-                                    (org-remove-inline-images)
-                                    (read-only-mode -1))))
-    :init (setq org-tree-slide-header nil
-                org-tree-slide-slide-in-effect t
-                org-tree-slide-heading-emphasis nil
-                org-tree-slide-cursor-init t
-                org-tree-slide-modeline-display 'outside
-                org-tree-slide-skip-done nil
-                org-tree-slide-skip-comments t
-                org-tree-slide-skip-outline-level 3)))
+                ("C-c C-h" . org-preview-html-mode))
+    :init (when (featurep 'xwidget-internal)
+            (setq org-preview-html-viewer 'xwidget))))
 
-;; Pomodoro
-(use-package org-pomodoro
-  :custom-face
-  (org-pomodoro-mode-line ((t (:inherit warning))))
-  (org-pomodoro-mode-line-overtime ((t (:inherit error))))
-  (org-pomodoro-mode-line-break ((t (:inherit success))))
+;; Presentation
+(use-package org-tree-slide
+  :diminish
+  :functions (org-display-inline-images
+              org-remove-inline-images)
   :bind (:map org-mode-map
-         ("C-c C-x m" . org-pomodoro))
-  :init
-  (with-eval-after-load 'org-agenda
-    (bind-keys :map org-agenda-mode-map
-      ("K" . org-pomodoro)
-      ("C-c C-x m" . org-pomodoro))))
+              ("s-<f7>" . org-tree-slide-mode)
+              :map org-tree-slide-mode-map
+              ("<left>" . org-tree-slide-move-previous-tree)
+              ("<right>" . org-tree-slide-move-next-tree)
+              ("S-SPC" . org-tree-slide-move-previous-tree)
+              ("SPC" . org-tree-slide-move-next-tree))
+  :hook ((org-tree-slide-play . (lambda ()
+                                  (text-scale-increase 4)
+                                  (org-display-inline-images)
+                                  (read-only-mode 1)))
+         (org-tree-slide-stop . (lambda ()
+                                  (text-scale-increase 0)
+                                  (org-remove-inline-images)
+                                  (read-only-mode -1))))
+  :init (setq org-tree-slide-header nil
+              org-tree-slide-slide-in-effect t
+              org-tree-slide-heading-emphasis nil
+              org-tree-slide-cursor-init t
+              org-tree-slide-modeline-display 'outside
+              org-tree-slide-skip-done nil
+              org-tree-slide-skip-comments t
+              org-tree-slide-skip-outline-level 3))
 
 ;; Roam
 (when (and emacs/>=26p (executable-find "cc"))
@@ -364,11 +350,13 @@ prepended to the element after the #+HEADER: tag."
         (when (featurep 'xwidget-internal)
           (setq org-roam-ui-browser-function #'xwidget-webkit-browse-url))))))
 
-;; TODO: Support org-download drag-and-drop
-;; (use-package org-download
-;;   :hook (dired-mode . org-download-enable)
-;;   :config
-;;   (setq-default org-download-image-dir "./img"))
+;; Image drag-and-drop in org-mode and dired-mode
+(use-package org-download
+  :hook ((dired-mode . org-download-enable)
+         (org-mode . org-download-enable))
+  :config
+  (setq-default org-download-image-dir "./img"
+                org-download-timestamp ""))
 
 (provide 'init-org)
 
