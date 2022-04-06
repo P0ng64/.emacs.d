@@ -57,14 +57,10 @@
   (use-package live-py-mode))
 
 (use-package conda
-  :after (:any python ess)
+  :after python
   :config
   (setq conda-anaconda-home "/opt/homebrew/Caskroom/miniforge/base"
-        conda-env-home-directory "~/.conda")
-  ;; (conda-env-autoactivate-mode t)
-  ;; (conda-env-activate-path "~/.conda/envs/ML")
-  )
-
+        conda-env-home-directory (expand-file-name "~/.conda")))
 
 (provide 'init-python)
 
