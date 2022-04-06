@@ -39,10 +39,10 @@
     (load-theme 'doom-plain t)
     (set-face-attribute 'default nil
                         :font "CMU Typewriter Text"
-                        :height 160)
+                        :height 140)
     (set-fontset-font t 'unicode
                       (font-spec :family "Songti TC"
-                                 :size 16
+                                 :size 14
                                  ))))
 
 (defun back-to-code ()
