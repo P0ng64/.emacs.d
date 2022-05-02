@@ -32,11 +32,11 @@
 
 (require 'init-funcs)
 
-(defun note-with-plain ()
+(defun note-with-light ()
   "Set Emacs theme and font to a note-taking-friendly style."
   (interactive)
   (progn
-    (load-theme 'doom-plain t)
+    (load-theme 'doom-one-light t)
     (set-face-attribute 'default nil
                         :font "CMU Typewriter Text"
                         :height 140)
@@ -72,6 +72,16 @@
   (sis-global-respect-mode 0)
   (sis-global-context-mode 0)
   (sis-global-inline-mode 0))
+
+(when sys/macp
+  (defun reveal-current-file ()
+    "Reveal current file in finder"
+    (interactive)
+    (shell-command (concat "open -R "
+                           ;; Get current file name
+                           (replace-regexp-in-string "#<buffer \\(.+\\)>"
+                                                     "\\1"
+                                                     (prin1-to-string (current-buffer)))))))
 
 (provide 'init-tricks)
 

@@ -40,7 +40,7 @@
   :custom-face (org-ellipsis ((t (:foreground nil))))
   :pretty-hydra
   ((:title (pretty-hydra-title "Org Template" 'fileicon "org" :face 'all-the-icons-green :height 1.1 :v-adjust 0.0)
-           :color blue :quit-key "q")
+    :color blue :quit-key "q")
    ("Basic"
     (("a" (hot-expand "<a") "ascii")
      ("c" (hot-expand "<c") "center")
@@ -152,7 +152,7 @@ prepended to the element after the #+HEADER: tag."
         org-log-done 'time
         org-catch-invisible-edits 'smart
         org-startup-indented t
-        org-ellipsis (if (and (display-graphic-p) (char-displayable-p ?↩)) " ↩" nil)
+        org-ellipsis (if (and (display-graphic-p) (char-displayable-p ?⋯)) " ⋯" nil)
         org-pretty-entities nil
         org-hide-emphasis-markers t
         org-image-actual-width nil)
@@ -256,7 +256,7 @@ prepended to the element after the #+HEADER: tag."
   ;; Rich text clipboard
   (use-package org-rich-yank
     :bind (:map org-mode-map
-                ("C-M-y" . org-rich-yank)))
+           ("C-M-y" . org-rich-yank)))
 
   ;; Table of contents
   (use-package toc-org
@@ -265,9 +265,9 @@ prepended to the element after the #+HEADER: tag."
   ;; Export text/html MIME emails
   (use-package org-mime
     :bind (:map message-mode-map
-                ("C-c M-o" . org-mime-htmlize)
-                :map org-mode-map
-                ("C-c M-o" . org-mime-org-buffer-htmlize)))
+           ("C-c M-o" . org-mime-htmlize)
+           :map org-mode-map
+           ("C-c M-o" . org-mime-org-buffer-htmlize)))
 
   ;; Add graphical view of agenda
   (use-package org-timeline
@@ -282,7 +282,11 @@ prepended to the element after the #+HEADER: tag."
         (plist-put org-format-latex-options
                    :scale 1.5))
 
-  (setq org-preview-latex-default-process 'dvisvgm))
+  (setq org-preview-latex-default-process 'dvisvgm ;; Clear LaTeX fragments Preview
+        ;; Syntax highlighting for exported code blocks
+        org-latex-pdf-process '("latexmk -shell-escape -f -pdf -%latex -interaction=nonstopmode -output-directory=%o %f")
+        org-latex-listings 'minted
+        org-latex-packages-alist '(("" "minted"))))
 
 (when emacs/>=27p
   ;; Auto-toggle Org LaTeX fragments
@@ -294,7 +298,7 @@ prepended to the element after the #+HEADER: tag."
   (use-package org-preview-html
     :diminish
     :bind (:map org-mode-map
-                ("C-c C-h" . org-preview-html-mode))
+           ("C-c C-h" . org-preview-html-mode))
     :init (when (featurep 'xwidget-internal)
             (setq org-preview-html-viewer 'xwidget))))
 

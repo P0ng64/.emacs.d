@@ -392,16 +392,14 @@
   :hook (after-init . fancy-narrow-mode))
 
 (use-package sis
-  ;; :hook (after-init . sis-global-respect-mode)
   :config
+  (setq sis-english-source "com.apple.keylayout.ABC")
   (sis-ism-lazyman-config
    "com.apple.keylayout.ABC"
-   "com.apple.inputmethod.SCIM.ITABC")
-  ;; (setq sis-global-respect-mode t)
-  ;; (setq sis-global-inline-mode t)
-  ;; (setq sis-global-context-mode t)
-  (global-set-key (kbd "M-》") 'end-of-buffer)
-  (global-set-key (kbd "M-《") 'beginning-of-buffer))
+   "com.apple.inputmethod.SCIM.ITABC" 'macism)
+  :bind (("M-》" . end-of-buffer)
+         ("M-《" . beginning-of-buffer)
+         ("s-；" . (lambda () (interactive) (insert "……")))))
 
 (use-package jieba
   :load-path "~/.emacs.d/site-lisp/jieba/jieba.el"
