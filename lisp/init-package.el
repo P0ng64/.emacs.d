@@ -1,6 +1,6 @@
 ;;; init-package.el --- Initialize package configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2021 Vincent Zhang
+;; Copyright (C) 2006-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -69,13 +69,15 @@
          (load centaur-custom-post-file))))
 (add-hook 'after-init-hook #'load-custom-post-file)
 
-;; HACK: DO NOT copy package-selected-packages to init/custom file forcibly.
+;; HACK: DO NOT save package-selected-packages to `custom-file'.
 ;; https://github.com/jwiegley/use-package/issues/383#issuecomment-247801751
-(defun my-save-selected-packages (&optional value)
+(defun my-package--save-selected-packages (&optional value)
   "Set `package-selected-packages' to VALUE but don't save to `custom-file'."
   (when value
-    (setq package-selected-packages value)))
-(advice-add 'package--save-selected-packages :override #'my-save-selected-packages)
+    (setq package-selected-packages value))
+  (unless after-init-time
+    (add-hook 'after-init-hook #'my-package--save-selected-packages)))
+(advice-add 'package--save-selected-packages :override #'my-package--save-selected-packages)
 
 ;; Set ELPA packages
 (set-package-archives centaur-package-archives nil nil t)

@@ -1,6 +1,6 @@
 ;; init-company.el --- Initialize company configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2015-2021 Vincent Zhang
+;; Copyright (C) 2015-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -56,6 +56,7 @@
         company-idle-delay 0
         company-echo-delay (if (display-graphic-p) nil 0)
         company-minimum-prefix-length 1
+        company-icon-margin 3
         company-require-match nil
         company-dabbrev-ignore-case nil
         company-dabbrev-downcase nil
@@ -107,7 +108,7 @@
                      (len (length arg)))
                 (put-text-property 0 len 'yas-annotation snip arg)
                 (put-text-property 0 len 'yas-annotation-patch t arg)))
-            (funcall fn cmd  arg))))
+            (funcall fn cmd arg))))
       (advice-add #'company-yasnippet :around #'my-company-yasnippet-disable-inline)))
 
   ;; Better sorting and filtering
@@ -179,26 +180,25 @@
 
                       ;; Handle hr lines of markdown
                       ;; @see `lsp-ui-doc--handle-hr-lines'
-                      (with-current-buffer (company-box--get-buffer "doc")
-                        (let (bolp next before after)
-                          (goto-char 1)
-                          (while (setq next (next-single-property-change (or next 1) 'markdown-hr))
-                            (when (get-text-property next 'markdown-hr)
-                              (goto-char next)
-                              (setq bolp (bolp)
-                                    before (char-before))
-                              (delete-region (point) (save-excursion (forward-visible-line 1) (point)))
-                              (setq after (char-after (1+ (point))))
-                              (insert
-                               (concat
-                                (and bolp (not (equal before ?\n)) (propertize "\n" 'face '(:height 0.5)))
-                                (propertize "\n" 'face '(:height 0.5))
-                                (propertize " "
-                                            'display '(space :height (1))
-                                            'company-box-doc--replace-hr t
-                                            'face `(:background ,(face-foreground 'font-lock-comment-face)))
-                                (propertize " " 'display '(space :height (1)))
-                                (and (not (equal after ?\n)) (propertize " \n" 'face '(:height 0.5)))))))))
+                      (let (bolp next before after)
+                        (goto-char 1)
+                        (while (setq next (next-single-property-change (or next 1) 'markdown-hr))
+                          (when (get-text-property next 'markdown-hr)
+                            (goto-char next)
+                            (setq bolp (bolp)
+                                  before (char-before))
+                            (delete-region (point) (save-excursion (forward-visible-line 1) (point)))
+                            (setq after (char-after (1+ (point))))
+                            (insert
+                             (concat
+                              (and bolp (not (equal before ?\n)) (propertize "\n" 'face '(:height 0.5)))
+                              (propertize "\n" 'face '(:height 0.5))
+                              (propertize " "
+                                          'display '(space :height (1))
+                                          'company-box-doc--replace-hr t
+                                          'face `(:background ,(face-foreground 'font-lock-comment-face)))
+                              (propertize " " 'display '(space :height (1)))
+                              (and (not (equal after ?\n)) (propertize " \n" 'face '(:height 0.5))))))))
 
                       (setq mode-line-format nil
                             display-line-numbers nil

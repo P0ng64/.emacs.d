@@ -1,6 +1,6 @@
 ;; init-org.el --- Initialize org configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2021 Vincent Zhang
+;; Copyright (C) 2006-2022 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -9,7 +9,7 @@
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
+;; published by the Free Software Foundation; either version 3, or
 ;; (at your option) any later version.
 ;;
 ;; This program is distributed in the hope that it will be useful,
@@ -87,7 +87,10 @@
   :hook (((org-babel-after-execute org-mode) . org-redisplay-inline-images) ; display image
          (org-mode . (lambda ()
                        "Beautify org symbols."
-                       (setq prettify-symbols-alist centaur-prettify-org-symbols-alist)
+                       (when centaur-prettify-org-symbols-alist
+                         (if prettify-symbols-alist
+                             (push centaur-prettify-org-symbols-alist prettify-symbols-alist)
+                           (setq prettify-symbols-alist centaur-prettify-org-symbols-alist)))
                        (prettify-symbols-mode 1)))
          (org-indent-mode . (lambda()
                               (diminish 'org-indent-mode)
@@ -268,16 +271,21 @@ prepended to the element after the #+HEADER: tag."
   (use-package org-timeline
     :hook (org-agenda-finalize . org-timeline-insert-timeline))
 
-  ;; Auto-toggle Org LaTeX fragments
-  (use-package org-fragtog
-    :diminish
-    :hook (org-mode . org-fragtog-mode))
+  (when emacs/>=27p
+    ;; Auto-toggle Org LaTeX fragments
+    (use-package org-fragtog
+      :diminish
+      :hook (org-mode . org-fragtog-mode))
 
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
 
-  ;; Preview
   (use-package org-preview-html
-    :diminish)
+    :diminish
+    :bind (:map org-mode-map
+           ("C-c C-h" . org-preview-html-mode))
+    :init (when (featurep 'xwidget-internal)
+            (setq org-preview-html-viewer 'xwidget))))
+
 
   ;; Presentation
   (use-package org-tree-slide
@@ -334,11 +342,16 @@ prepended to the element after the #+HEADER: tag."
            ("C-c n c" . org-roam-capture)
            ("C-c n j" . org-roam-dailies-capture-today))
     :init
-    (setq org-roam-directory (file-truename centaur-org-directory)
-          org-roam-v2-ack t)
+    (setq org-roam-directory (file-truename centaur-org-directory))
     :config
     (unless (file-exists-p org-roam-directory)
-      (make-directory org-roam-directory))))
+      (make-directory org-roam-directory))
+
+    (when emacs/>=27p
+      (use-package org-roam-ui
+        :init
+        (when (featurep 'xwidget-internal)
+          (setq org-roam-ui-browser-function #'xwidget-webkit-browse-url))))))
 
 (provide 'init-org)
 
