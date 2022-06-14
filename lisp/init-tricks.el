@@ -32,39 +32,12 @@
 
 (require 'init-funcs)
 
-(defun note-with-light ()
-  "Set Emacs theme and font to a note-taking-friendly style."
-  (interactive)
-  (progn
-    (load-theme 'doom-one-light t)
-    (set-face-attribute 'default nil
-                        :font "CMU Typewriter Text"
-                        :height 140)
-    (set-fontset-font t 'unicode
-                      (font-spec :family "Songti TC"
-                                 :size 14
-                                 ))))
-
-(defun back-to-code ()
-  "Set Emacs theme and font to a programming-friendly style."
-  (interactive)
-  (progn
-    (centaur-load-theme centaur-theme)
-    (set-face-attribute 'default nil
-                        :font "Monaco"
-                        :height 140)
-    (set-fontset-font t 'unicode
-                      (font-spec :family "PingFang SC"
-                                 :size 14
-                                 ))))
-
 (defun sis-enable ()
   "Enable smart-input-source"
   (interactive)
   (sis-global-respect-mode t)
   (sis-global-context-mode t)
   (sis-global-inline-mode t))
-
 
 (defun sis-disable ()
   "Disable smart-input-source"
@@ -73,15 +46,42 @@
   (sis-global-context-mode 0)
   (sis-global-inline-mode 0))
 
+(defun note-with-light ()
+  "Set Emacs theme and font to a note-taking-friendly style."
+  (interactive)
+  (progn
+    (load-theme 'doom-one-light t)
+    (sis-enable)
+    (set-face-attribute 'default nil
+                        :font "CMU Typewriter Text")
+    (set-fontset-font t 'unicode
+                      (font-spec :family "Songti TC"))))
+
+(defun back-to-code ()
+  "Set Emacs theme and font to a programming-friendly style."
+  (interactive)
+  (progn
+    (centaur-load-theme centaur-theme)
+    (sis-disable)
+    (set-face-attribute 'default nil
+                        :font "Monaco")
+    (set-fontset-font t 'unicode
+                      (font-spec :family "PingFang SC"))))
+
 (when sys/macp
   (defun reveal-current-file ()
     "Reveal current file in finder"
     (interactive)
     (shell-command (concat "open -R "
-                           ;; Get current file name
-                           (replace-regexp-in-string "#<buffer \\(.+\\)>"
-                                                     "\\1"
-                                                     (prin1-to-string (current-buffer)))))))
+                           (cond
+                            (load-in-progress load-file-name)
+                            ((and (boundp 'byte-compile-current-file) byte-compile-current-file)
+                             byte-compile-current-file)
+                            (:else (buffer-file-name))))))
+
+  (defun refresh-chrome-tab ()
+    (do-applescript "tell application \"Chrome\" to tell the active tab \
+                    of its first window to reload")))
 
 (provide 'init-tricks)
 
