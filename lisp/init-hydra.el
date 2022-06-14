@@ -33,8 +33,17 @@
 (require 'init-custom)
 (require 'init-funcs)
 
+(use-package hydra
+  :hook (emacs-lisp-mode . hydra-add-imenu))
+
 (use-package pretty-hydra
   :bind ("<f6>" . toggles-hydra/body)
+  :hook (emacs-lisp-mode . (lambda ()
+                             (add-to-list
+                              'imenu-generic-expression
+                              '("Hydras"
+                                "^.*(\\(pretty-hydra-define\\) \\([a-zA-Z-]+\\)"
+                                2))))
   :init
   (cl-defun pretty-hydra-title (title &optional icon-type icon-name
                                       &key face height v-adjust)
@@ -43,7 +52,7 @@
           (height (or height 1.0))
           (v-adjust (or v-adjust 0.0)))
       (concat
-       (when (and (icons-displayable-p) icon-type icon-name)
+       (when (and (icon-displayable-p) icon-type icon-name)
          (let ((f (intern (format "all-the-icons-%s" icon-type))))
            (when (fboundp f)
              (concat
@@ -132,18 +141,18 @@
        "Package Archive"
        (("p m" (centaur-set-package-archives 'melpa t)
          "melpa" :toggle (eq centaur-package-archives 'melpa) :exit t)
+        ("p c" (centaur-set-package-archives 'emacs-cn t)
+         "emacs-cn" :toggle (eq centaur-package-archives 'emacs-cn) :exit t)
         ("p b" (centaur-set-package-archives 'bfsu t)
          "bfsu" :toggle (eq centaur-package-archives 'bfsu) :exit t)
-        ("p c" (centaur-set-package-archives 'emacs-china t)
-         "emacs china" :toggle (eq centaur-package-archives 'emacs-china) :exit t)
         ("p n" (centaur-set-package-archives 'netease t)
          "netease" :toggle (eq centaur-package-archives 'netease) :exit t)
-        ("p s" (centaur-set-package-archives 'ustc t)
-         "ustc" :toggle (eq centaur-package-archives 'ustc) :exit t)
-        ("p t" (centaur-set-package-archives 'tencent t)
-         "tencent" :toggle (eq centaur-package-archives 'tencent) :exit t)
-        ("p u" (centaur-set-package-archives 'tuna t)
+        ("p s" (centaur-set-package-archives 'sjtu t)
+         "sjtu" :toggle (eq centaur-package-archives 'sjtu) :exit t)
+        ("p t" (centaur-set-package-archives 'tuna t)
          "tuna" :toggle (eq centaur-package-archives 'tuna) :exit t)
+        ("p u" (centaur-set-package-archives 'ustc t)
+         "ustc" :toggle (eq centaur-package-archives 'ustc) :exit t)
         ("p T" (centaur-test-package-archives) "speed test" :exit t))))))
 
 (provide 'init-hydra)

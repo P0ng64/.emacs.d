@@ -29,7 +29,6 @@
 ;;
 
 ;;; Code:
-
 (require 'cl-lib)
 
 (require 'init-const)
@@ -45,9 +44,6 @@
 (declare-function flycheck-buffer 'flycheck)
 (declare-function flymake-start 'flymake)
 (declare-function upgrade-packages 'init-package)
-
-(unless (fboundp 'caadr)
-  (defalias 'caadr #'cl-caadr))
 
 
 
@@ -160,7 +156,10 @@ NEW-SESSION specifies whether to create a new xwidget-webkit session."
 (defun mode-line-height ()
   "Get the height of the mode-line."
   (- (elt (window-pixel-edges) 3)
-     (elt (window-inside-pixel-edges) 3)))
+     (elt (window-inside-pixel-edges) 3)
+     (if (bound-and-true-p window-divider-mode)
+         window-divider-default-bottom-width
+       0)))
 
 ;; Reload configurations
 (defun reload-init-file ()
@@ -220,11 +219,12 @@ NEW-SESSION specifies whether to create a new xwidget-webkit session."
         (async-byte-recompile-directory temp-dir)
       (byte-recompile-directory temp-dir 0 t))))
 
-(defun icons-displayable-p ()
-  "Return non-nil if `all-the-icons' is displayable."
+(defun icon-displayable-p ()
+  "Return non-nil if icons are displayable."
   (and centaur-icon
-       (display-graphic-p)
-       (require 'all-the-icons nil t)))
+       (or (display-graphic-p) (daemonp))
+       (or (featurep 'all-the-icons)
+           (require 'all-the-icons nil t))))
 
 (defun centaur-set-variable (variable value &optional no-save)
   "Set the VARIABLE to VALUE, and return VALUE.
@@ -266,8 +266,10 @@ ASYNC specifies whether to perform the downloads in the background.
 Save to `custom-file' if NO-SAVE is nil."
   (interactive
    (list
-    (intern (completing-read "Select package archives: "
-                             (mapcar #'car centaur-package-archives-alist)))))
+    (intern
+     (ivy-read "Select package archives: "
+               (mapcar #'car centaur-package-archives-alist)
+               :preselect (symbol-name centaur-package-archives)))))
   ;; Set option
   (centaur-set-variable 'centaur-package-archives archives no-save)
 
@@ -285,24 +287,16 @@ Not displaying the chart if NO-CHART is non-nil.
 Return the fastest package archive."
   (interactive)
 
-  (let* ((urls (mapcar
-                (lambda (url)
-                  (concat url "archive-contents"))
-                (mapcar #'cdr
-                        (mapcar #'cadr
-                                (mapcar #'cdr
-                                        centaur-package-archives-alist)))))
-         (durations (mapcar
-                     (lambda (url)
-                       (let ((start (current-time)))
+  (let* ((durations (mapcar
+                     (lambda (pair)
+                       (let ((url (concat (cdr (nth 2 (cdr pair)))
+                                          "archive-contents"))
+                             (start (current-time)))
                          (message "Fetching %s..." url)
-                         (cond ((executable-find "curl")
-                                (call-process "curl" nil nil nil "--max-time" "10" url))
-                               ((executable-find "wget")
-                                (call-process "wget" nil nil nil "--timeout=10" url))
-                               (t (user-error "curl or wget is not found")))
+                         (ignore-errors
+                           (url-copy-file url null-device t))
                          (float-time (time-subtract (current-time) start))))
-                     urls))
+                     centaur-package-archives-alist))
          (fastest (car (nth (cl-position (apply #'min durations) durations)
                             centaur-package-archives-alist))))
 
@@ -313,12 +307,11 @@ Return the fastest package archive."
       (chart-bar-quickie
        'horizontal
        "Speed test for the ELPA mirrors"
-       (mapcar (lambda (url) (url-host (url-generic-parse-url url))) urls) "ELPA"
+       (mapcar (lambda (p) (symbol-name (car p))) centaur-package-archives-alist)
+       "ELPA"
        (mapcar (lambda (d) (* 1e3 d)) durations) "ms"))
 
-    (message "%s" urls)
-    (message "%s" durations)
-    (message "%s is the fastest package archive" fastest)
+    (message "`%s' is the fastest package archive" fastest)
 
     ;; Return the fastest
     fastest))
@@ -328,7 +321,6 @@ Return the fastest package archive."
   "Address blank screen issue with child-frame in fullscreen.
 This issue has been addressed in 28."
   (and sys/mac-cocoa-p
-       emacs/>=26p
        (not emacs/>=28p)
        (bound-and-true-p ns-use-native-fullscreen)
        (setq ns-use-native-fullscreen nil)))
@@ -530,11 +522,11 @@ If SYNC is non-nil, the updating process is synchronous."
 
 (defun childframe-workable-p ()
   "Test whether childframe is workable."
-  (and emacs/>=26p
-       (eq centaur-completion-style 'childframe)
-       (not (or noninteractive
-                emacs-basic-display
-                (not (display-graphic-p))))))
+  (and (eq centaur-completion-style 'childframe)
+       (or (not (or noninteractive
+                    emacs-basic-display
+                    (not (display-graphic-p))))
+           (daemonp))))
 
 (defun centaur--theme-name (theme)
   "Return internal THEME name."
@@ -558,9 +550,10 @@ If SYNC is non-nil, the updating process is synchronous."
 (defun centaur--load-theme (theme)
   "Disable others and enable new one."
   (when theme
+    (message "Loading theme `%s'..." theme)
     (mapc #'disable-theme custom-enabled-themes)
     (load-theme theme t)
-    (message "Loaded theme `%s'" theme)))
+    (message "Loading theme `%s'...done" theme)))
 
 (defun centaur--load-system-theme (appearance)
   "Load theme, taking current system APPEARANCE into consideration."
@@ -576,19 +569,21 @@ If SYNC is non-nil, the updating process is synchronous."
   (interactive)
   (let* ((themes (mapcar #'cdr centaur-theme-alist))
          (theme (nth (random (length themes)) themes)))
-    (if theme
-        (centaur--load-theme theme)
-      (user-error "Failed to load `random' theme"))))
+    (if (eq theme centaur-theme)
+        (centaur-load-random-theme)
+      (centaur--load-theme theme))))
 
 (defun centaur-load-theme (theme &optional no-save)
   "Load color THEME. Save to `custom-file' if NO-SAVE is nil."
   (interactive
-   (list (intern (completing-read
-                  "Load theme: "
-                  `(auto
-                    random
-                    ,(if (bound-and-true-p ns-system-appearance) 'system "")
-                    ,@(mapcar #'car centaur-theme-alist))))))
+   (list
+    (intern
+     (ivy-read "Load theme: "
+               `(auto
+                 random
+                 ,(if (bound-and-true-p ns-system-appearance) 'system "")
+                 ,@(mapcar #'car centaur-theme-alist))
+               :preselect (symbol-name centaur-theme)))))
   ;; Set option
   (centaur-set-variable 'centaur-theme theme no-save)
 

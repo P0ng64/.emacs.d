@@ -79,13 +79,17 @@
       (condition-case error
           (progn
             (fix-fullscreen-cocoa)
-            (load persp-frame-file)
+            (load persp-frame-file nil t)
 
-            ;; Handle multiple monitors gracefully
-            (when (or (>= (eval (frame-parameter nil 'left)) (display-pixel-width))
-                      (>= (eval (frame-parameter nil 'top)) (display-pixel-height)))
-              (set-frame-parameter nil 'left 0)
-              (set-frame-parameter nil 'top 0)))
+            ;; NOTE: Only usable in `emacs-startup-hook' while not `window-setup-hook'.
+            (add-hook 'emacs-startup-hook
+                      (lambda ()
+                        "Adjust initial frame position."
+                        ;; Handle multiple monitors gracefully
+                        (when (or (>= (eval (frame-parameter nil 'top)) (display-pixel-height))
+                                  (>= (eval (frame-parameter nil 'left)) (display-pixel-width)))
+                          (set-frame-parameter nil 'top 0)
+                          (set-frame-parameter nil 'left 0)))))
         (error
          (warn "persp frame: %s" (error-message-string error))))))
 
@@ -132,12 +136,11 @@
   ;; Ivy Integration
   (with-eval-after-load 'ivy
     (add-to-list 'ivy-ignore-buffers
-                 #'(lambda (b)
-                     (when persp-mode
-                       (let ((persp (get-current-persp)))
-                         (if persp
-                             (not (persp-contain-buffer-p b persp))
-                           nil))))))
+                 (lambda (b)
+                   (when persp-mode
+                     (if-let ((persp (get-current-persp)))
+                         (not (persp-contain-buffer-p b persp))
+                       nil)))))
 
   ;; Eshell integration
   (persp-def-buffer-save/load
@@ -152,9 +155,10 @@
 
 ;; Projectile integration
 (use-package persp-mode-projectile-bridge
+  :after (persp-mode projectile)
   :commands (persp-mode-projectile-bridge-find-perspectives-for-all-buffers
              persp-mode-projectile-bridge-kill-perspectives)
-  :hook ((persp-mode . persp-mode-projectile-bridge-mode)
+  :hook ((after-init . persp-mode-projectile-bridge-mode)
          (persp-mode-projectile-bridge-mode
           .
           (lambda ()

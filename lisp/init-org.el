@@ -94,7 +94,7 @@
                        (prettify-symbols-mode 1)))
          (org-indent-mode . (lambda()
                               (diminish 'org-indent-mode)
-                              ;; WORKAROUND: Prevent text moving around while using brackets
+                              ;; HACK: Prevent text moving around while using brackets
                               ;; @see https://github.com/seagle0128/.emacs.d/issues/88
                               (make-variable-buffer-local 'show-paren-mode)
                               (setq show-paren-mode nil))))
@@ -131,14 +131,13 @@ prepended to the element after the #+HEADER: tag."
            "* TODO %?\n%U\n%a\n" :clock-in t :clock-resume t)
           ("n" "Note" entry (file ,(concat org-directory "/note.org"))
            "* %? :NOTE:\n%U\n%a\n" :clock-in t :clock-resume t)
-          ("j" "Journal" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
+          ("j" "Journal" entry ('file+olp+datetree
                                 ,(concat org-directory "/journal.org"))
            "*  %^{Title} %?\n%U\n%a\n" :clock-in t :clock-resume t)
-	      ("b" "Book" entry (,(if emacs/>=26p 'file+olp+datetree 'file+datetree)
+	      ("b" "Book" entry ('file+olp+datetree
                              ,(concat org-directory "/book.org"))
 	       "* Topic: %^{Description}  %^g %? Added: %U"))
 
-        org-agenda-files `(,centaur-org-directory)
         org-todo-keywords
         '((sequence "TODO(t)" "DOING(i)" "HANGUP(h)" "|" "DONE(d)" "CANCELED(c)"))
         org-todo-keyword-faces '(("HANGUP" . warning))
@@ -147,6 +146,16 @@ prepended to the element after the #+HEADER: tag."
                              (?B . all-the-icons-yellow)
                              (?C . all-the-icons-blue)
                              (?D . all-the-icons-purple))
+
+        ;; Agenda styling
+        org-agenda-files `(,centaur-org-directory)
+        org-agenda-block-separator ?─
+        org-agenda-time-grid
+        '((daily today require-timed)
+          (800 1000 1200 1400 1600 1800 2000)
+          " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄")
+        org-agenda-current-time-string
+        "⭠ now ─────────────────────────────────────────────────"
 
         org-tags-column -80
         org-log-done 'time
@@ -213,9 +222,7 @@ prepended to the element after the #+HEADER: tag."
                                (plantuml . t)))
 
   ;; ob-sh renamed to ob-shell since 26.1.
-  (if emacs/>=26p
-      (cl-pushnew '(shell . t) load-language-list)
-    (cl-pushnew '(sh . t) load-language-list))
+  (cl-pushnew '(shell . t) load-language-list)
 
   (setq org-babel-python-command "python3")
 
@@ -340,7 +347,7 @@ prepended to the element after the #+HEADER: tag."
               org-tree-slide-skip-outline-level 3))
 
 ;; Roam
-(when (and emacs/>=26p (executable-find "cc"))
+(when (executable-find "cc")
   (use-package org-roam
     :diminish
     :hook (after-init . org-roam-db-autosync-enable)

@@ -66,8 +66,10 @@
   ;; Access Git forges from Magit
   (when (executable-find "cc")
     (use-package forge
-      :demand
+      :demand t
       :defines forge-topic-list-columns
+      :custom-face
+      (forge-topic-label ((t (:inherit variable-pitch :height 0.9 :width condensed :weight regular :underline nil))))
       :init
       (setq forge-topic-list-columns
             '(("#" 5 forge-topic-list-sort-by-number (:right-align t) number nil)
@@ -76,18 +78,17 @@
               ("Updated" 10 t nil updated nil)))))
 
   ;; Show TODOs in magit
-  (when emacs/>=25.2p
-    (use-package magit-todos
-      :defines magit-todos-nice
-      :bind ("C-c C-t" . ivy-magit-todos)
-      :init
-      (setq magit-todos-nice (if (executable-find "nice") t nil))
-      (let ((inhibit-message t))
-        (magit-todos-mode 1))
-      :config
-      (with-eval-after-load 'magit-status
-        (transient-append-suffix 'magit-status-jump '(0 0 -1)
-          '("t " "Todos" magit-todos-jump-to-todos))))))
+  (use-package magit-todos
+    :defines magit-todos-nice
+    :bind ("C-c C-t" . ivy-magit-todos)
+    :init
+    (setq magit-todos-nice (if (executable-find "nice") t nil))
+    (let ((inhibit-message t))
+      (magit-todos-mode 1))
+    :config
+    (with-eval-after-load 'magit-status
+      (transient-append-suffix 'magit-status-jump '(0 0 -1)
+        '("t " "Todos" magit-todos-jump-to-todos)))))
 
 ;; Display transient in child frame
 (when (childframe-workable-p)
@@ -95,7 +96,7 @@
     :diminish
     :custom-face
     (transient-posframe ((t (:inherit tooltip))))
-    (transient-posframe-border ((t (:background ,(face-foreground 'font-lock-comment-face nil t)))))
+    (transient-posframe-border ((t (:inherit posframe-border))))
     :hook (after-init . transient-posframe-mode)
     :init
     (setq transient-posframe-border-width 3
@@ -105,13 +106,6 @@
           transient-posframe-parameters '((left-fringe . 8)
                                           (right-fringe . 8)))
     :config
-    (add-hook
-     'after-load-theme-hook
-     (lambda ()
-       (custom-set-faces
-        '(transient-posframe ((t (:inherit tooltip))))
-        `(transient-posframe-border ((t (:background ,(face-foreground 'font-lock-comment-face nil t))))))))
-
     (with-no-warnings
       (defun my-transient-posframe--hide ()
         "Hide transient posframe."
@@ -214,7 +208,7 @@
                                 :max-width (round (* (frame-width) 0.62))
                                 :max-height (round (* (frame-height) 0.62))
                                 :internal-border-width 1
-                                :internal-border-color (face-foreground 'font-lock-comment-face nil t)
+                                :internal-border-color (face-background 'posframe-border nil t)
                                 :background-color (face-background 'tooltip nil t))
                  (unwind-protect
                      (push (read-event) unread-command-events)
