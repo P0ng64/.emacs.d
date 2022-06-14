@@ -277,14 +277,14 @@ prepended to the element after the #+HEADER: tag."
       :diminish
       :hook (org-mode . org-fragtog-mode))
 
-  (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
+    (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.5))
 
-  (use-package org-preview-html
-    :diminish
-    :bind (:map org-mode-map
-           ("C-c C-h" . org-preview-html-mode))
-    :init (when (featurep 'xwidget-internal)
-            (setq org-preview-html-viewer 'xwidget))))
+    (use-package org-preview-html
+      :diminish
+      :bind (:map org-mode-map
+             ("C-c C-h" . org-preview-html-mode))
+      :init (when (featurep 'xwidget-internal)
+              (setq org-preview-html-viewer 'xwidget))))
 
 
   ;; Presentation
