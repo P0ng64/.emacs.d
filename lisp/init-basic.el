@@ -289,7 +289,8 @@ Also, delete any process that is exited or signaled."
 ;; Frame
 (when (display-graphic-p)
   (add-hook 'window-setup-hook #'fix-fullscreen-cocoa)
-(bind-key "S-s-<return>" #'toggle-frame-fullscreen)
+  (bind-key "S-s-<return>" #'toggle-frame-fullscreen)
+>>>>>>> seagle0128-master
   (and sys/mac-x-p (bind-key "C-s-f" #'toggle-frame-fullscreen))
 
   ;; Resize and re-position frames conveniently
