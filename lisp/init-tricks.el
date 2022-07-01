@@ -69,19 +69,31 @@
                       (font-spec :family "PingFang SC"))))
 
 (when sys/macp
-  (defun reveal-current-file ()
-    "Reveal current file in finder"
+  (defun reveal-in-finder ()
+    "Reveal current file or directory in finder"
     (interactive)
-    (shell-command (concat "open -R "
-                           (cond
-                            (load-in-progress load-file-name)
-                            ((and (boundp 'byte-compile-current-file) byte-compile-current-file)
-                             byte-compile-current-file)
-                            (:else (buffer-file-name))))))
+    (if (eq major-mode 'dired-mode)
+        (shell-command (concat "open "
+                               (expand-file-name default-directory)))
+      (shell-command (concat "open -R "
+                             (cond
+                              (load-in-progress load-file-name)
+                              ((and (boundp 'byte-compile-current-file) byte-compile-current-file)
+                               byte-compile-current-file)
+                              (:else (buffer-file-name)))))))
 
   (defun refresh-chrome-tab ()
     (do-applescript "tell application \"Chrome\" to tell the active tab \
                     of its first window to reload")))
+
+(defun pandoc-convert-to-docx ()
+  "Use pandoc to convert current file to Microsoft Word docx."
+  (interactive)
+  (shell-command (concat "pandoc "
+                         (buffer-name)
+                         " -o "
+                         (concat (car (split-string (buffer-name) "\\."))
+                                 ".docx"))))
 
 (provide 'init-tricks)
 

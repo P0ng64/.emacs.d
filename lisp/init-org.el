@@ -40,7 +40,7 @@
   :custom-face (org-ellipsis ((t (:foreground nil))))
   :pretty-hydra
   ((:title (pretty-hydra-title "Org Template" 'fileicon "org" :face 'all-the-icons-green :height 1.1 :v-adjust 0.0)
-    :color blue :quit-key "q")
+           :color blue :quit-key "q")
    ("Basic"
     (("a" (hot-expand "<a") "ascii")
      ("c" (hot-expand "<c") "center")
@@ -189,13 +189,12 @@ prepended to the element after the #+HEADER: tag."
     (bind-key [remap org-set-tags-command] #'counsel-org-tag org-mode-map))
 
   ;; Prettify UI
-  (when emacs/>=26p
-    (use-package org-superstar
-      :hook (org-mode . org-superstar-mode)
-      :init (setq org-superstar-headline-bullets-list '("⦿" "⦾" "❖" "◇")
-                  org-superstar-item-bullet-alist '((?* . ?•)
-                                                    (?+ . ?➤)
-                                                    (?- . ?•)))))
+  (use-package org-superstar
+    :hook (org-mode . org-superstar-mode)
+    :init (setq org-superstar-headline-bullets-list '("⦿" "⦾" "❖" "◇")
+                org-superstar-item-bullet-alist '((?* . ?•)
+                                                  (?+ . ?➤)
+                                                  (?- . ?•))))
 
   (use-package org-fancy-priorities
     :diminish
@@ -263,7 +262,7 @@ prepended to the element after the #+HEADER: tag."
   ;; Rich text clipboard
   (use-package org-rich-yank
     :bind (:map org-mode-map
-           ("C-M-y" . org-rich-yank)))
+                ("C-M-y" . org-rich-yank)))
 
   ;; Table of contents
   (use-package toc-org
@@ -272,9 +271,9 @@ prepended to the element after the #+HEADER: tag."
   ;; Export text/html MIME emails
   (use-package org-mime
     :bind (:map message-mode-map
-           ("C-c M-o" . org-mime-htmlize)
-           :map org-mode-map
-           ("C-c M-o" . org-mime-org-buffer-htmlize)))
+                ("C-c M-o" . org-mime-htmlize)
+                :map org-mode-map
+                ("C-c M-o" . org-mime-org-buffer-htmlize)))
 
   ;; Add graphical view of agenda
   (use-package org-timeline
@@ -289,9 +288,11 @@ prepended to the element after the #+HEADER: tag."
         (plist-put org-format-latex-options
                    :scale 1.5))
 
-  (setq org-preview-latex-default-process 'dvisvgm ;; Clear LaTeX fragments Preview
-        ;; Syntax highlighting for exported code blocks
-        org-latex-pdf-process '("latexmk -shell-escape -f -pdf -%latex -interaction=nonstopmode -output-directory=%o %f")
+  ;; Clear LaTeX fragments Preview
+  (setq org-preview-latex-default-process 'dvisvgm)
+
+  ;; Syntax highlighting for exported code blocks
+  (setq org-latex-pdf-process '("latexmk -shell-escape -f -pdf -%latex -interaction=nonstopmode -output-directory=%o %f")
         org-latex-listings 'minted
         org-latex-packages-alist '(("" "minted"))))
 
@@ -302,20 +303,20 @@ prepended to the element after the #+HEADER: tag."
     :hook (org-mode . org-fragtog-mode))
 
   ;; Preview
-    (use-package org-preview-html
-      :diminish
-      :bind (:map org-mode-map
-             ("C-c C-h" . org-preview-html-mode))
-      :init (when (featurep 'xwidget-internal)
-              (setq org-preview-html-viewer 'xwidget))))
-
-  ;; Presentation
-  (use-package org-tree-slide
+  (use-package org-preview-html
     :diminish
     :bind (:map org-mode-map
            ("C-c C-h" . org-preview-html-mode))
     :init (when (featurep 'xwidget-internal)
-            (setq org-preview-html-viewer 'xwidget)))
+            (setq org-preview-html-viewer 'xwidget))))
+
+;; Presentation
+(use-package org-tree-slide
+  :diminish
+  :bind (:map org-mode-map
+         ("C-c C-h" . org-preview-html-mode))
+  :init (when (featurep 'xwidget-internal)
+          (setq org-preview-html-viewer 'xwidget)))
 
 ;; Presentation
 (use-package org-tree-slide
@@ -323,12 +324,12 @@ prepended to the element after the #+HEADER: tag."
   :functions (org-display-inline-images
               org-remove-inline-images)
   :bind (:map org-mode-map
-              ("s-<f7>" . org-tree-slide-mode)
-              :map org-tree-slide-mode-map
-              ("<left>" . org-tree-slide-move-previous-tree)
-              ("<right>" . org-tree-slide-move-next-tree)
-              ("S-SPC" . org-tree-slide-move-previous-tree)
-              ("SPC" . org-tree-slide-move-next-tree))
+         ("s-<f7>" . org-tree-slide-mode)
+         :map org-tree-slide-mode-map
+         ("<left>" . org-tree-slide-move-previous-tree)
+         ("<right>" . org-tree-slide-move-next-tree)
+         ("S-SPC" . org-tree-slide-move-previous-tree)
+         ("SPC" . org-tree-slide-move-next-tree))
   :hook ((org-tree-slide-play . (lambda ()
                                   (text-scale-increase 4)
                                   (org-display-inline-images)

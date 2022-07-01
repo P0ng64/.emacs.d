@@ -98,9 +98,14 @@
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
   :init
-  (setq doom-modeline-icon centaur-icon
-        doom-modeline-height 1
-        doom-modeline-minor-modes t)
+  (setq doom-modeline-icon nil
+        doom-modeline-height 32
+        doom-modeline-minor-modes nil
+        doom-modeline-irc nil
+        doom-modeline-checker-simple-format nil
+        doom-modeline-env-version nil
+        doom-modeline-buffer-file-name-style 'relative-from-project
+        doom-modeline-project-detection 'projectile)
   ;; Prevent flash of unstyled modeline at startup
   (unless after-init-time
     (setq-default mode-line-format nil))
@@ -487,12 +492,13 @@
                               `([,(cdr char-regexp) 0 font-shape-gstring]))))
     (set-char-table-parent composition-ligature-table composition-function-table)))
 
-;; fuck blink cursor
-(blink-cursor-mode 0)
-
 ;; improve CJK character performance when line truncating
 (when emacs/>=28p
   (setq word-wrap-by-category t))
+
+;; Fix compile escape codes
+(add-hook 'compilation-filter-hook
+          (lambda () (ansi-color-apply-on-region (point-min) (point-max))))
 
 (provide 'init-ui)
 

@@ -57,8 +57,7 @@
         company-dabbrev-ignore-case nil
         company-dabbrev-downcase nil
         company-global-modes '(not erc-mode message-mode help-mode
-                                   gud-mode eshell-mode shell-mode
-                                   org-mode)
+                                   gud-mode eshell-mode shell-mode)
         company-backends '((company-capf :with company-yasnippet)
                            (company-dabbrev-code company-keywords company-files)
                            company-dabbrev))
@@ -165,7 +164,7 @@
   (use-package company-box
     :diminish
     :bind (:map company-active-map
-           ([remap company-show-doc-buffer] . company-box-doc-manually))
+                ([remap company-show-doc-buffer] . company-box-doc-manually))
     :hook (company-mode . company-box-mode)
     :init (setq company-box-enable-icon centaur-icon
                 company-box-backends-colors nil

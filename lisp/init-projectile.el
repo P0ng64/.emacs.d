@@ -42,7 +42,9 @@
   :init
   (setq projectile-mode-line-prefix ""
         projectile-sort-order 'recentf
-        projectile-use-git-grep t)
+        projectile-use-git-grep t
+        projectile-project-search-path '("~/Developer" "~/Downloads")
+        projectile-ignored-projects '("~/"))
   :config
   ;; Use the faster searcher to handle project files: ripgrep `rg'.
   (when (and (not (executable-find "fd"))

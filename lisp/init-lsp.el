@@ -115,7 +115,7 @@
                  lsp-enable-on-type-formatting nil
 
                  ;; For `lsp-clients'
-                 lsp-clients-python-library-directories '("/usr/local/" "/usr/"))
+                 lsp-clients-python-library-directories '("/usr/local/" "/usr/" "/opt/homebrew/"))
      :config
      (with-no-warnings
        ;; Disable `lsp-mode' in `git-timemachine-mode'
@@ -594,7 +594,14 @@
 
    ;; Java
    (use-package lsp-java
-     :hook (java-mode . (lambda () (require 'lsp-java))))))
+     :hook (java-mode . (lambda () (require 'lsp-java))))
+
+   ;; Remote LSP clients
+   (lsp-register-client
+    (make-lsp-client :new-connection (lsp-tramp-connection "ccls")
+                     :major-modes '(c-mode c++-mode)
+                     :remote? t
+                     :server-id 'ccls-remote))))
 
 (when (memq centaur-lsp '(lsp-mode eglot))
   ;; Enable LSP in org babel
