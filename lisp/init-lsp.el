@@ -95,9 +95,9 @@
                             (add-hook 'before-save-hook #'lsp-format-buffer t t)
                             (add-hook 'before-save-hook #'lsp-organize-imports t t)))))
      :bind (:map lsp-mode-map
-                 ("C-c C-d" . lsp-describe-thing-at-point)
-                 ([remap xref-find-definitions] . lsp-find-definition)
-                 ([remap xref-find-references] . lsp-find-references))
+            ("C-c C-d" . lsp-describe-thing-at-point)
+            ([remap xref-find-definitions] . lsp-find-definition)
+            ([remap xref-find-references] . lsp-find-references))
      :init (setq lsp-keymap-prefix "C-c l"
                  lsp-keep-workspace-alive nil
                  lsp-signature-auto-activate nil
@@ -159,7 +159,7 @@
      (lsp-ui-sideline-code-action ((t (:inherit warning))))
      :pretty-hydra
      ((:title (pretty-hydra-title "LSP UI" 'faicon "rocket" :face 'all-the-icons-green)
-              :color amaranth :quit-key "q")
+       :color amaranth :quit-key "q")
       ("Doc"
        (("d e" (progn
                  (lsp-ui-doc-enable (not lsp-ui-doc-mode))
@@ -292,8 +292,8 @@
    (use-package lsp-ivy
      :after lsp-mode
      :bind (:map lsp-mode-map
-                 ([remap xref-find-apropos] . lsp-ivy-workspace-symbol)
-                 ("C-s-." . lsp-ivy-global-workspace-symbol))
+            ([remap xref-find-apropos] . lsp-ivy-workspace-symbol)
+            ("C-s-." . lsp-ivy-global-workspace-symbol))
      :config
      (with-no-warnings
        (when (icon-displayable-p)
@@ -331,7 +331,7 @@
            ((sym &as &SymbolInformation :kind :location (&Location :uri))
             project-root)
            "Convert the match returned by `lsp-mode` into a candidate string."
-           (let* ((sanitized-kind (if (< kind (length lsp-ivy-symbol-kind-icons)) kind 0))
+           (let* ((sanitized-kind (if (length> lsp-ivy-symbol-kind-icons kind) kind 0))
                   (type (elt lsp-ivy-symbol-kind-icons sanitized-kind))
                   (typestr (if lsp-ivy-show-symbol-kind (format "%s " type) ""))
                   (pathstr (if lsp-ivy-show-symbol-filename
@@ -347,21 +347,22 @@
      :functions dap-hydra/nil
      :diminish
      :bind (:map lsp-mode-map
-                 ("<f5>" . dap-debug)
-                 ("M-<f5>" . dap-hydra))
-     :hook ((after-init . dap-auto-configure-mode)
-            (dap-stopped . (lambda (_args) (dap-hydra)))
-            (dap-terminated . (lambda (_args) (dap-hydra/nil)))
+            ("<f5>" . dap-debug)
+            ("M-<f5>" . dap-hydra))
+     :hook ((after-init     . dap-auto-configure-mode)
+            (dap-stopped    . (lambda (_) (dap-hydra)))
+            (dap-terminated . (lambda (_) (dap-hydra/nil)))
 
-            (python-mode . (lambda () (require 'dap-python)))
-            (ruby-mode . (lambda () (require 'dap-ruby)))
-            (go-mode . (lambda () (require 'dap-go)))
-            (java-mode . (lambda () (require 'dap-java)))
-            ((c-mode c++-mode objc-mode swift-mode) . (lambda () (require 'dap-lldb)))
-            (php-mode . (lambda () (require 'dap-php)))
-            (elixir-mode . (lambda () (require 'dap-elixir)))
-            ((js-mode js2-mode) . (lambda () (require 'dap-chrome)))
-            (powershell-mode . (lambda () (require 'dap-pwsh))))
+            (python-mode            . (lambda () (require 'dap-python)))
+            (ruby-mode              . (lambda () (require 'dap-ruby)))
+            (go-mode                . (lambda () (require 'dap-go)))
+            (java-mode              . (lambda () (require 'dap-java)))
+            ((c-mode c++-mode)      . (lambda () (require 'dap-lldb)))
+            ((objc-mode swift-mode) . (lambda () (require 'dap-lldb)))
+            (php-mode               . (lambda () (require 'dap-php)))
+            (elixir-mode            . (lambda () (require 'dap-elixir)))
+            ((js-mode js2-mode)     . (lambda () (require 'dap-chrome)))
+            (powershell-mode        . (lambda () (require 'dap-pwsh))))
      :init
      (setq dap-auto-configure-features '(sessions locals breakpoints expressions controls))
      (when (executable-find "python3")
@@ -371,9 +372,9 @@
    (use-package lsp-treemacs
      :after lsp-mode
      :bind (:map lsp-mode-map
-                 ("C-<f8>" . lsp-treemacs-errors-list)
-                 ("M-<f8>" . lsp-treemacs-symbols)
-                 ("s-<f8>" . lsp-treemacs-java-deps-list))
+            ("C-<f8>" . lsp-treemacs-errors-list)
+            ("M-<f8>" . lsp-treemacs-symbols)
+            ("s-<f8>" . lsp-treemacs-java-deps-list))
      :init (lsp-treemacs-sync-mode 1)
      :config
      (with-eval-after-load 'ace-window
@@ -601,7 +602,7 @@
   ;; https://github.com/emacs-lsp/lsp-mode/issues/377
   (cl-defmacro lsp-org-babel-enable (lang)
     "Support LANG in org source code block."
-    (cl-check-type lang stringp)
+    (cl-check-type lang string)
     (let* ((edit-pre (intern (format "org-babel-edit-prep:%s" lang)))
            (intern-pre (intern (format "lsp--%s" (symbol-name edit-pre)))))
       `(progn

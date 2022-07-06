@@ -198,7 +198,10 @@
       "relative to project"
       :toggle (eq doom-modeline-buffer-file-name-style 'relative-to-project)))
     "Project Detection"
-    (("p f" (setq doom-modeline-project-detection 'ffip)
+    (("p a" (setq doom-modeline-project-detection 'auto)
+      "auto"
+      :toggle (eq doom-modeline-project-detection 'auto))
+     ("p f" (setq doom-modeline-project-detection 'ffip)
       "ffip"
       :toggle (eq doom-modeline-project-detection 'ffip))
      ("p t" (setq doom-modeline-project-detection 'projectile)
@@ -247,25 +250,12 @@
 ;; NOTE: Must run `M-x all-the-icons-install-fonts', and install fonts manually on Windows
 (when centaur-icon
   (use-package all-the-icons
+    :custom (all-the-icons-scale-factor 1.1)
     :init (unless (or sys/win32p
                       (daemonp)
                       (font-installed-p "all-the-icons"))
             (centaur-install-fonts))
     :config
-    (with-no-warnings
-      (defun all-the-icons-reset ()
-        "Reset the icons."
-        (interactive)
-        (dolist (func '(all-the-icons-icon-for-dir
-                        all-the-icons-icon-for-file
-                        all-the-icons-icon-for-mode
-                        all-the-icons-icon-for-url
-                        all-the-icons-icon-family-for-file
-                        all-the-icons-icon-family-for-mode
-                        all-the-icons-icon-family))
-          (all-the-icons-cache func))
-        (message "Reset all-the-icons")))
-
     ;; Support more icons
     (let ((extension-icon-alist
            '(("bat"  all-the-icons-alltheicon "terminal" :face all-the-icons-lsilver)
@@ -445,11 +435,10 @@
 (when (boundp 'x-gtk-use-system-tooltips)
   (setq x-gtk-use-system-tooltips nil))
 
-;; When `centaur-prettify-symbols-alist' is `nil' use font supported ligatures
-(when emacs/>=27p
+;; Ligatures support
+(when (and emacs/>=28p (not centaur-prettify-symbols-alist))
   (use-package composite
     :ensure nil
-    :unless centaur-prettify-symbols-alist
     :init (defvar composition-ligature-table (make-char-table nil))
     :hook (((prog-mode
              conf-mode nxml-mode markdown-mode help-mode
@@ -458,31 +447,31 @@
     :config
     ;; support ligatures, some toned down to prevent hang
     (let ((alist
-           '((33 . ".\\(?:\\(==\\|[!=]\\)[!=]?\\)")
-             (35 . ".\\(?:\\(###?\\|_(\\|[(:=?[_{]\\)[#(:=?[_{]?\\)")
-             (36 . ".\\(?:\\(>\\)>?\\)")
-             (37 . ".\\(?:\\(%\\)%?\\)")
-             (38 . ".\\(?:\\(&\\)&?\\)")
-             (42 . ".\\(?:\\(\\*\\*\\|[*>]\\)[*>]?\\)")
+           '((33  . ".\\(?:\\(==\\|[!=]\\)[!=]?\\)")
+             (35  . ".\\(?:\\(###?\\|_(\\|[(:=?[_{]\\)[#(:=?[_{]?\\)")
+             (36  . ".\\(?:\\(>\\)>?\\)")
+             (37  . ".\\(?:\\(%\\)%?\\)")
+             (38  . ".\\(?:\\(&\\)&?\\)")
+             (42  . ".\\(?:\\(\\*\\*\\|[*>]\\)[*>]?\\)")
              ;; (42 . ".\\(?:\\(\\*\\*\\|[*/>]\\).?\\)")
-             (43 . ".\\(?:\\([>]\\)>?\\)")
+             (43  . ".\\(?:\\([>]\\)>?\\)")
              ;; (43 . ".\\(?:\\(\\+\\+\\|[+>]\\).?\\)")
-             (45 . ".\\(?:\\(-[->]\\|<<\\|>>\\|[-<>|~]\\)[-<>|~]?\\)")
+             (45  . ".\\(?:\\(-[->]\\|<<\\|>>\\|[-<>|~]\\)[-<>|~]?\\)")
              ;; (46 . ".\\(?:\\(\\.[.<]\\|[-.=]\\)[-.<=]?\\)")
-             (46 . ".\\(?:\\(\\.<\\|[-=]\\)[-<=]?\\)")
-             (47 . ".\\(?:\\(//\\|==\\|[=>]\\)[/=>]?\\)")
+             (46  . ".\\(?:\\(\\.<\\|[-=]\\)[-<=]?\\)")
+             (47  . ".\\(?:\\(//\\|==\\|[=>]\\)[/=>]?\\)")
              ;; (47 . ".\\(?:\\(//\\|==\\|[*/=>]\\).?\\)")
-             (48 . ".\\(?:x[a-zA-Z]\\)")
-             (58 . ".\\(?:\\(::\\|[:<=>]\\)[:<=>]?\\)")
-             (59 . ".\\(?:\\(;\\);?\\)")
-             (60 . ".\\(?:\\(!--\\|\\$>\\|\\*>\\|\\+>\\|-[-<>|]\\|/>\\|<[-<=]\\|=[<>|]\\|==>?\\||>\\||||?\\|~[>~]\\|[$*+/:<=>|~-]\\)[$*+/:<=>|~-]?\\)")
-             (61 . ".\\(?:\\(!=\\|/=\\|:=\\|<<\\|=[=>]\\|>>\\|[=>]\\)[=<>]?\\)")
-             (62 . ".\\(?:\\(->\\|=>\\|>[-=>]\\|[-:=>]\\)[-:=>]?\\)")
-             (63 . ".\\(?:\\([.:=?]\\)[.:=?]?\\)")
-             (91 . ".\\(?:\\(|\\)[]|]?\\)")
+             (48  . ".\\(?:x[a-zA-Z]\\)")
+             (58  . ".\\(?:\\(::\\|[:<=>]\\)[:<=>]?\\)")
+             (59  . ".\\(?:\\(;\\);?\\)")
+             (60  . ".\\(?:\\(!--\\|\\$>\\|\\*>\\|\\+>\\|-[-<>|]\\|/>\\|<[-<=]\\|=[<>|]\\|==>?\\||>\\||||?\\|~[>~]\\|[$*+/:<=>|~-]\\)[$*+/:<=>|~-]?\\)")
+             (61  . ".\\(?:\\(!=\\|/=\\|:=\\|<<\\|=[=>]\\|>>\\|[=>]\\)[=<>]?\\)")
+             (62  . ".\\(?:\\(->\\|=>\\|>[-=>]\\|[-:=>]\\)[-:=>]?\\)")
+             (63  . ".\\(?:\\([.:=?]\\)[.:=?]?\\)")
+             (91  . ".\\(?:\\(|\\)[]|]?\\)")
              ;; (92 . ".\\(?:\\([\\n]\\)[\\]?\\)")
-             (94 . ".\\(?:\\(=\\)=?\\)")
-             (95 . ".\\(?:\\(|_\\|[_]\\)_?\\)")
+             (94  . ".\\(?:\\(=\\)=?\\)")
+             (95  . ".\\(?:\\(|_\\|[_]\\)_?\\)")
              (119 . ".\\(?:\\(ww\\)w?\\)")
              (123 . ".\\(?:\\(|\\)[|}]?\\)")
              (124 . ".\\(?:\\(->\\|=>\\||[-=>]\\||||*>\\|[]=>|}-]\\).?\\)")

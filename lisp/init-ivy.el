@@ -51,16 +51,16 @@
          ("C-c v ." . ivy-switch-view)
 
          :map counsel-mode-map
-         ([remap swiper] . counsel-grep-or-swiper)
-         ([remap swiper-backward] . counsel-grep-or-swiper-backward)
-         ([remap dired] . counsel-dired)
-         ([remap set-variable] . counsel-set-variable)
-         ([remap insert-char] . counsel-unicode-char)
+         ([remap swiper]             . counsel-grep-or-swiper)
+         ([remap swiper-backward]    . counsel-grep-or-swiper-backward)
+         ([remap dired]              . counsel-dired)
+         ([remap set-variable]       . counsel-set-variable)
+         ([remap insert-char]        . counsel-unicode-char)
          ([remap recentf-open-files] . counsel-recentf)
-         ([remap org-capture] . counsel-org-capture)
+         ([remap org-capture]        . counsel-org-capture)
 
-         ("C-x j"   . counsel-mark-ring)
-         ("C-h F"   . counsel-faces)
+         ("C-x j" . counsel-mark-ring)
+         ("C-h F" . counsel-faces)
 
          ("C-c B" . counsel-bookmarked-directory)
          ("C-c L" . counsel-load-library)
@@ -135,11 +135,11 @@
 
   ;; Set minibuffer height for different commands
   (setq ivy-height-alist '((counsel-evil-registers . 5)
-                           (counsel-yank-pop . 8)
-                           (counsel-git-log . 4)
-                           (swiper . 15)
-                           (counsel-projectile-ag . 15)
-                           (counsel-projectile-rg . 15)))
+                           (counsel-yank-pop       . 8)
+                           (counsel-git-log        . 4)
+                           (swiper                 . 15)
+                           (counsel-projectile-ag  . 15)
+                           (counsel-projectile-rg  . 15)))
 
   ;; Better performance on Windows
   (when sys/win32p
@@ -439,7 +439,7 @@
     :init
     (setq ivy-read-action-function 'ivy-hydra-read-action)
 
-    (when (childframe-workable-p)
+    (when (childframe-completion-workable-p)
       (setq hydra-hint-display-type 'posframe)
 
       (with-no-warnings
@@ -588,7 +588,7 @@
   (setq ivy-rich-parse-remote-buffer nil))
 
 ;; Display completion in child frame
-(when (childframe-workable-p)
+(when (childframe-completion-workable-p)
   (use-package ivy-posframe
     :custom-face
     (ivy-posframe ((t (:inherit tooltip))))

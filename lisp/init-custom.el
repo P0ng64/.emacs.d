@@ -83,9 +83,9 @@
   '((melpa    . (("gnu"    . "http://elpa.gnu.org/packages/")
                  ("nongnu" . "http://elpa.nongnu.org/nongnu/")
                  ("melpa"  . "http://melpa.org/packages/")))
-    (emacs-cn . (("gnu"    . "http://elpa.emacs-china.org/gnu/")
-                 ("nongnu" . "http://elpa.emacs-china.org/nongnu/")
-                 ("melpa"  . "http://elpa.emacs-china.org/melpa/")))
+    (emacs-cn . (("gnu"    . "http://1.15.88.122/gnu/")
+                 ("nongnu" . "http://1.15.88.122/nongnu/")
+                 ("melpa"  . "http://1.15.88.122/melpa/")))
     (bfsu     . (("gnu"    . "http://mirrors.bfsu.edu.cn/elpa/gnu/")
                  ("nongnu" . "http://mirrors.bfsu.edu.cn/elpa/nongnu/")
                  ("melpa"  . "http://mirrors.bfsu.edu.cn/elpa/melpa/")))
@@ -101,7 +101,7 @@
     (ustc     . (("gnu"    . "http://mirrors.ustc.edu.cn/elpa/gnu/")
                  ("nongnu" . "http://mirrors.ustc.edu.cn/elpa/nongnu/")
                  ("melpa"  . "http://mirrors.ustc.edu.cn/elpa/melpa/"))))
-  "The package archives group list."
+  "A list of the package archives."
   :group 'centaur
   :type '(alist :key-type (symbol :tag "Archive group name")
                 :value-type (alist :key-type (string :tag "Archive name")
@@ -146,7 +146,7 @@
 The keywords `:sunrise' and `:sunset' can be used for the time
 if `calendar-latitude' and `calendar-longitude' are set.
 For example:
-  '((:sunrise . doom-one-light)
+  \\='((:sunrise . doom-one-light)
     (:sunset  . doom-one))"
   :group 'centaur
   :type '(alist :key-type (string :tag "Time")
@@ -237,24 +237,24 @@ nil means disabled."
 
 (defcustom centaur-prettify-symbols-alist
   '(("lambda" . ?λ)
-    ("<-" . ?←)
-    ("->" . ?→)
-    ("->>" . ?↠)
-    ("=>" . ?⇒)
-    ("map" . ?↦)
-    ("/=" . ?≠)
-    ("!=" . ?≠)
-    ("==" . ?≡)
-    ("<=" . ?≤)
-    (">=" . ?≥)
-    ("=<<" . (?= (Br . Bl) ?≪))
-    (">>=" . (?≫ (Br . Bl) ?=))
-    ("<=<" . ?↢)
-    (">=>" . ?↣)
-    ("&&" . ?∧)
-    ("||" . ?∨)
-    ("not" . ?¬))
-  "Alist of symbol prettifications.
+    ("<-"     . ?←)
+    ("->"     . ?→)
+    ("->>"    . ?↠)
+    ("=>"     . ?⇒)
+    ("map"    . ?↦)
+    ("/="     . ?≠)
+    ("!="     . ?≠)
+    ("=="     . ?≡)
+    ("<="     . ?≤)
+    (">="     . ?≥)
+    ("=<<"    . (?= (Br . Bl) ?≪))
+    (">>="    . (?≫ (Br . Bl) ?=))
+    ("<=<"    . ?↢)
+    (">=>"    . ?↣)
+    ("&&"     . ?∧)
+    ("||"     . ?∨)
+    ("not"    . ?¬))
+  "A list of symbol prettifications.
 Nil to use font supports ligatures."
   :group 'centaur
   :type '(alist :key-type string :value-type (choice character sexp)))
@@ -264,24 +264,24 @@ Nil to use font supports ligatures."
     ("[X]" . ?☑)
     ("[-]" . ?⛝)
 
-    ("#+ARCHIVE:" . ?📦)
-    ("#+AUTHOR:" . ?👤)
-    ("#+CREATOR:" . ?💁)
-    ("#+DATE:" . ?📆)
+    ("#+ARCHIVE:"     . ?📦)
+    ("#+AUTHOR:"      . ?👤)
+    ("#+CREATOR:"     . ?💁)
+    ("#+DATE:"        . ?📆)
     ("#+DESCRIPTION:" . ?⸙)
-    ("#+EMAIL:" . ?📧)
-    ("#+OPTIONS:" . ?⛭)
-    ("#+SETUPFILE:" . ?⛮)
-    ("#+TAGS:" . ?🏷)
-    ("#+TITLE:" . ?📓)
+    ("#+EMAIL:"       . ?📧)
+    ("#+OPTIONS:"     . ?⛭)
+    ("#+SETUPFILE:"   . ?⛮)
+    ("#+TAGS:"        . ?🏷)
+    ("#+TITLE:"       . ?📓)
 
-    ("#+BEGIN_SRC" . ?✎)
-    ("#+END_SRC" . ?□)
+    ("#+BEGIN_SRC"   . ?✎)
+    ("#+END_SRC"     . ?□)
     ("#+BEGIN_QUOTE" . ?»)
-    ("#+END_QUOTE" . ?«)
-    ("#+HEADERS" . ?☰)
-    ("#+RESULTS:" . ?💻))
-  "Alist of symbol prettifications for `org-mode'."
+    ("#+END_QUOTE"   . ?«)
+    ("#+HEADERS"     . ?☰)
+    ("#+RESULTS:"    . ?💻))
+  "A list of symbol prettifications for `org-mode'."
   :group 'centaur
   :type '(alist :key-type string :value-type (choice character sexp)))
 
