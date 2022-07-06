@@ -95,9 +95,9 @@
                             (add-hook 'before-save-hook #'lsp-format-buffer t t)
                             (add-hook 'before-save-hook #'lsp-organize-imports t t)))))
      :bind (:map lsp-mode-map
-            ("C-c C-d" . lsp-describe-thing-at-point)
-            ([remap xref-find-definitions] . lsp-find-definition)
-            ([remap xref-find-references] . lsp-find-references))
+                 ("C-c C-d" . lsp-describe-thing-at-point)
+                 ([remap xref-find-definitions] . lsp-find-definition)
+                 ([remap xref-find-references] . lsp-find-references))
      :init (setq lsp-keymap-prefix "C-c l"
                  lsp-keep-workspace-alive nil
                  lsp-signature-auto-activate nil
@@ -159,7 +159,7 @@
      (lsp-ui-sideline-code-action ((t (:inherit warning))))
      :pretty-hydra
      ((:title (pretty-hydra-title "LSP UI" 'faicon "rocket" :face 'all-the-icons-green)
-       :color amaranth :quit-key "q")
+              :color amaranth :quit-key "q")
       ("Doc"
        (("d e" (progn
                  (lsp-ui-doc-enable (not lsp-ui-doc-mode))
@@ -292,8 +292,8 @@
    (use-package lsp-ivy
      :after lsp-mode
      :bind (:map lsp-mode-map
-            ([remap xref-find-apropos] . lsp-ivy-workspace-symbol)
-            ("C-s-." . lsp-ivy-global-workspace-symbol))
+                 ([remap xref-find-apropos] . lsp-ivy-workspace-symbol)
+                 ("C-s-." . lsp-ivy-global-workspace-symbol))
      :config
      (with-no-warnings
        (when (icon-displayable-p)
@@ -347,8 +347,8 @@
      :functions dap-hydra/nil
      :diminish
      :bind (:map lsp-mode-map
-            ("<f5>" . dap-debug)
-            ("M-<f5>" . dap-hydra))
+                 ("<f5>" . dap-debug)
+                 ("M-<f5>" . dap-hydra))
      :hook ((after-init . dap-auto-configure-mode)
             (dap-stopped . (lambda (_args) (dap-hydra)))
             (dap-terminated . (lambda (_args) (dap-hydra/nil)))
@@ -371,9 +371,9 @@
    (use-package lsp-treemacs
      :after lsp-mode
      :bind (:map lsp-mode-map
-            ("C-<f8>" . lsp-treemacs-errors-list)
-            ("M-<f8>" . lsp-treemacs-symbols)
-            ("s-<f8>" . lsp-treemacs-java-deps-list))
+                 ("C-<f8>" . lsp-treemacs-errors-list)
+                 ("M-<f8>" . lsp-treemacs-symbols)
+                 ("s-<f8>" . lsp-treemacs-java-deps-list))
      :init (lsp-treemacs-sync-mode 1)
      :config
      (with-eval-after-load 'ace-window
@@ -594,14 +594,7 @@
 
    ;; Java
    (use-package lsp-java
-     :hook (java-mode . (lambda () (require 'lsp-java))))
-
-   ;; Remote LSP clients
-   (lsp-register-client
-    (make-lsp-client :new-connection (lsp-tramp-connection "ccls")
-                     :major-modes '(c-mode c++-mode)
-                     :remote? t
-                     :server-id 'ccls-remote))))
+     :hook (java-mode . (lambda () (require 'lsp-java))))))
 
 (when (memq centaur-lsp '(lsp-mode eglot))
   ;; Enable LSP in org babel

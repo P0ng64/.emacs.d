@@ -94,7 +94,11 @@
 ;; Environment
 (when (or sys/mac-x-p sys/linux-x-p (daemonp))
   (use-package exec-path-from-shell
-    :init (exec-path-from-shell-initialize)))
+    :init
+    (setq exec-path-from-shell-arguments '("-l"))
+    (exec-path-from-shell-initialize)
+    (setq exec-path-from-shell-variables
+          '("GOPATH" "GO111MODULE" "GOPROXY" "PYTHONPATH"))))
 
 ;; Start server
 (use-package server
