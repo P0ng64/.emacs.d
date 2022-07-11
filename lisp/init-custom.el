@@ -155,7 +155,9 @@ For example:
 (when (boundp 'ns-system-appearance-change-functions)
   (defcustom centaur-system-themes '((light . doom-nord-light)
 				                     (dark  . doom-nord))
-    "List of themes related the system appearance. It's only available on macOS."
+    "List of themes related the system appearance.
+
+     It's only available on macOS currently."
     :group 'centaur
     :type '(alist :key-type (symbol :tag "Appearance")
                   :value-type (symbol :tag "Theme"))))

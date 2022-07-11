@@ -234,7 +234,7 @@ prepended to the element after the #+HEADER: tag."
   ;; Use racket sicp environment: raco pkg install sicp
   (use-package ob-racket
     :load-path "~/.emacs.d/site-lisp/emacs-ob-racket"
-    :init (cl-pushnew '(racket . t) load-language-list)
+    :init (cl-pushnew '(racket . t) load-language-alist)
     :config
     (add-hook 'ob-racket-pre-runtime-library-load-hook
               #'ob-racket-raco-make-runtime-library))
@@ -243,13 +243,13 @@ prepended to the element after the #+HEADER: tag."
   (use-package ob-plantuml
     :load-path "~/.emacs.d/site-lisp/emacs-ob-plantuml/ob-plantuml.el"
     :init
-    (cl-pushnew '(plantuml . t) load-language-list)
+    (cl-pushnew '(plantuml . t) load-language-alist)
     (setq org-plantuml-executable-path "/opt/homebrew/bin/plantuml"
           org-plantuml-exec-mode 'plantuml))
 
   (use-package ob-latex-as-png
     :init
-    (cl-pushnew '(latex-as-png . t) load-language-list)
+    (cl-pushnew '(latex-as-png . t) load-language-alist)
     :ensure t)
 
   (org-babel-do-load-languages 'org-babel-load-languages
