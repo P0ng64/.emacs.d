@@ -36,9 +36,6 @@
 (use-package company
   :diminish
   :defines (company-dabbrev-ignore-case company-dabbrev-downcase)
-  :custom-face
-  (company-tooltip-annotation ((t (:inherit completions-annotations :foreground nil))))
-  (company-box-selection ((t (:inherit company-tooltip :weight semibold :extend t))))
   :bind (("M-/"       . company-complete)
          ("C-M-i"     . company-complete)
          :map company-mode-map
@@ -168,13 +165,12 @@
     :hook (company-mode . company-box-mode)
     :init (setq company-box-enable-icon centaur-icon
                 company-box-backends-colors nil
-                company-box-doc-delay 0.1
-                company-box-scrollbar 'right)
+                company-box-doc-delay 0.1)
     :config
     (with-no-warnings
       ;; Prettify icons
       (defun my-company-box-icons--elisp (candidate)
-        (when (or (derived-mode-p 'emacs-lisp-mode) (derived-mode-p 'lisp-mode))
+        (when (derived-mode-p 'emacs-lisp-mode 'lisp-mode)
           (let ((sym (intern candidate)))
             (cond ((fboundp sym) 'Function)
                   ((featurep sym) 'Module)

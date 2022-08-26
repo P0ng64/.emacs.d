@@ -86,6 +86,24 @@
         ;; Enable flashing mode-line on errors
         (doom-themes-visual-bell-config)
 
+        ;; WORKAROUND: Visual bell on 29
+        ;; @see https://github.com/doomemacs/themes/issues/733
+        (with-no-warnings
+          (defun my-doom-themes-visual-bell-fn ()
+            "Blink the mode-line red briefly. Set `ring-bell-function' to this to use it."
+            (let* ((buf (current-buffer))
+                   (cookies `(,(face-remap-add-relative 'mode-line-active
+                                                        'doom-themes-visual-bell)
+                              ,(face-remap-add-relative 'mode-line
+                                                        'doom-themes-visual-bell))))
+              (force-mode-line-update)
+              (run-with-timer 0.15 nil
+                              (lambda ()
+                                (with-current-buffer buf
+                                  (mapc #'face-remap-remove-relative cookies)
+                                  (force-mode-line-update))))))
+          (advice-add #'doom-themes-visual-bell-fn :override #'my-doom-themes-visual-bell-fn))
+
         ;; Enable customized theme
         ;; FIXME: https://github.com/emacs-lsp/lsp-treemacs/issues/89
         (with-eval-after-load 'lsp-treemacs
@@ -281,8 +299,7 @@
              ("\\.zshenv$"                     all-the-icons-alltheicon "script"   :height 0.9 :face all-the-icons-dred)
              ("Cask\\'"                        all-the-icons-fileicon "elisp"      :height 1.0 :v-adjust -0.2 :face all-the-icons-blue)
              ("NEWS$"                          all-the-icons-faicon "newspaper-o"  :height 0.9 :v-adjust -0.2)
-             ("^Rakefile$"                     all-the-icons-alltheicon "ruby-alt" :face all-the-icons-red)
-             ("^go.\\(sum\\|mod\\)$"           all-the-icons-fileicon "go"         :face all-the-icons-dpurple))))
+             ("^Rakefile$"                     all-the-icons-alltheicon "ruby-alt" :face all-the-icons-red))))
       (dolist (icon regexp-icon-alist)
         (add-to-list 'all-the-icons-regexp-icon-alist icon)))
 
@@ -290,14 +307,13 @@
            '((xwidget-webkit-mode           all-the-icons-faicon "chrome"          :v-adjust -0.1 :face all-the-icons-blue)
              (bongo-playlist-mode           all-the-icons-material "queue_music"   :height 1.2 :face all-the-icons-green)
              (bongo-library-mode            all-the-icons-material "library_music" :height 1.1 :face all-the-icons-green)
+             (simple-mpc-mode               all-the-icons-faicon "music"           :v-adjust -0.1 :face all-the-icons-green)
              (gnus-group-mode               all-the-icons-fileicon "gnu"           :face all-the-icons-silver)
              (gnus-summary-mode             all-the-icons-octicon "inbox"          :height 1.0 :v-adjust 0.0 :face all-the-icons-orange)
              (gnus-article-mode             all-the-icons-octicon "mail"           :height 1.1 :v-adjust 0.0 :face all-the-icons-lblue)
              (message-mode                  all-the-icons-octicon "mail"           :height 1.1 :v-adjust 0.0 :face all-the-icons-lblue)
              (diff-mode                     all-the-icons-octicon "git-compare"    :v-adjust 0.0 :face all-the-icons-lred)
              (flycheck-error-list-mode      all-the-icons-octicon "checklist"      :height 1.1 :v-adjust 0.0 :face all-the-icons-lred)
-             (elfeed-search-mode            all-the-icons-faicon "rss-square"      :v-adjust -0.1 :face all-the-icons-orange)
-             (elfeed-show-mode              all-the-icons-octicon "rss"            :height 1.1 :v-adjust 0.0 :face all-the-icons-lorange)
              (newsticker-mode               all-the-icons-faicon "rss-square"      :v-adjust -0.1 :face all-the-icons-orange)
              (newsticker-treeview-mode      all-the-icons-faicon "rss-square"      :v-adjust -0.1 :face all-the-icons-orange)
              (newsticker-treeview-list-mode all-the-icons-octicon "rss"            :height 1.1 :v-adjust 0.0 :face all-the-icons-orange)

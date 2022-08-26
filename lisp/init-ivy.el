@@ -35,7 +35,6 @@
 (use-package counsel
   :diminish ivy-mode counsel-mode
   :custom-face
-  (ivy-current-match ((t (:inherit region :distant-foreground nil :background nil))))
   (ivy-minibuffer-match-face-1 ((t (:foreground "dimgray" :distant-foreground nil :background nil))))
   (ivy-minibuffer-match-face-2 ((t (:distant-foreground nil :background nil))))
   (ivy-minibuffer-match-face-3 ((t (:distant-foreground nil :background nil))))
@@ -153,8 +152,13 @@
   (add-hook 'counsel-grep-post-action-hook #'recenter)
 
   ;; Use the faster search tools
-  (when (executable-find "rg")
-    (setq counsel-grep-base-command "rg -S --no-heading --line-number --color never '%s' '%s'"))
+  (cond
+   ((executable-find "ugrep")
+    (setq counsel-grep-base-command "ugrep --color=never -n -e '%s' '%s'")
+    (setq counsel-rg-base-command '("ugrep" "--color=never" "--ignore-files" "-rnEI" "%s")))
+   ((executable-find "rg")
+    (setq counsel-grep-base-command "rg -S --no-heading --line-number --color never '%s' '%s'")))
+
   (when (executable-find "fd")
     (setq counsel-fzf-cmd
           "fd --type f --hidden --follow --exclude .git --color never '%s'"))
@@ -485,11 +489,6 @@
         (hydra-set-posframe-show-params)
         (add-hook 'after-load-theme-hook #'hydra-set-posframe-show-params t))))
 
-  ;; Ivy integration for Projectile
-  (use-package counsel-projectile
-    :hook (counsel-mode . counsel-projectile-mode)
-    :init (setq counsel-projectile-grep-initial-input '(ivy-thing-at-point)))
-
   ;; Integrate yasnippet
   (use-package ivy-yasnippet
     :bind ("C-c C-y" . ivy-yasnippet))
@@ -553,13 +552,27 @@
       (advice-add #'ivy--regex-plus :around #'my-ivy--regex-pinyin)
       (advice-add #'ivy--regex-ignore-order :around #'my-ivy--regex-pinyin))))
 
-;; Ivy
+;; Use Ivy to open recent directories
 (use-package ivy-dired-history
   :demand t
-  :after (savehist dired)
+  :after dired
+  :defines (savehist-additional-variables desktop-globals-to-save)
   :bind (:map dired-mode-map
          ("," . dired))
-  :init (add-to-list 'savehist-additional-variables 'ivy-dired-history-variable))
+  :init
+  (with-eval-after-load 'savehist
+    (add-to-list 'savehist-additional-variables 'ivy-dired-history-variable))
+  (with-eval-after-load 'desktop
+    (add-to-list 'desktop-globals-to-save 'ivy-dired-history-variable)))
+
+
+;; `projectile' integration
+(use-package counsel-projectile
+  :hook (counsel-mode . counsel-projectile-mode)
+  :init
+  (setq counsel-projectile-grep-initial-input '(ivy-thing-at-point))
+  (when (executable-find "ugrep")
+    (setq counsel-projectile-grep-base-command "ugrep --color=never -rnEI %s")))
 
 ;; Better experience with icons
 ;; Enable it before`ivy-rich-mode' for better performance

@@ -126,10 +126,10 @@
 (defcustom centaur-theme-alist
   '((default . doom-one)
     (pro     . doom-monokai-pro)
-    (dark    . doom-dark+)
+    (dark    . doom-nord-aurora)
     (light   . doom-one-light)
     (warm    . doom-solarized-light)
-    (cold    . doom-city-lights)
+    (cold    . doom-palenight)
     (day     . doom-tomorrow-day)
     (night   . doom-tomorrow-night)
     (plain   . doom-plain)
@@ -262,9 +262,13 @@ Nil to use font supports ligatures."
   :type '(alist :key-type string :value-type (choice character sexp)))
 
 (defcustom centaur-prettify-org-symbols-alist
-  '(("[ ]" . ?☐)
-    ("[X]" . ?☑)
-    ("[-]" . ?⛝)
+  '(("[ ]"            . ?)
+    ("[-]"            . ?)
+    ("[X]"            . ?)
+
+    (":PROPERTIES:"   . ?)
+    (":ID:"           . ?🪪)
+    (":END:"          . ?🔚)
 
     ("#+ARCHIVE:"     . ?📦)
     ("#+AUTHOR:"      . ?👤)
@@ -272,17 +276,17 @@ Nil to use font supports ligatures."
     ("#+DATE:"        . ?📆)
     ("#+DESCRIPTION:" . ?⸙)
     ("#+EMAIL:"       . ?📧)
-    ("#+OPTIONS:"     . ?⛭)
-    ("#+SETUPFILE:"   . ?⛮)
+    ("#+HEADERS"      . ?☰)
+    ("#+OPTIONS:"     . ?⚙)
+    ("#+SETUPFILE:"   . ?⚒)
     ("#+TAGS:"        . ?🏷)
     ("#+TITLE:"       . ?📓)
 
-    ("#+BEGIN_SRC"   . ?✎)
-    ("#+END_SRC"     . ?□)
-    ("#+BEGIN_QUOTE" . ?»)
-    ("#+END_QUOTE"   . ?«)
-    ("#+HEADERS"     . ?☰)
-    ("#+RESULTS:"    . ?💻))
+    ("#+BEGIN_SRC"    . ?✎)
+    ("#+END_SRC"      . ?□)
+    ("#+BEGIN_QUOTE"  . ?«)
+    ("#+END_QUOTE"    . ?»)
+    ("#+RESULTS:"     . ?💻))
   "A list of symbol prettifications for `org-mode'."
   :group 'centaur
   :type '(alist :key-type string :value-type (choice character sexp)))

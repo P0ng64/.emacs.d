@@ -212,9 +212,11 @@ FACE defaults to inheriting from default and highlight."
               hl-todo-highlight-punctuation ":")
   :config
   (dolist (keyword '("BUG" "DEFECT" "ISSUE"))
-    (cl-pushnew `(,keyword . ,(face-foreground 'error)) hl-todo-keyword-faces))
-  (dolist (keyword '("WORKAROUND" "HACK" "TRICK"))
-    (cl-pushnew `(,keyword . ,(face-foreground 'warning)) hl-todo-keyword-faces)))
+    (add-to-list 'hl-todo-keyword-faces `(,keyword . "#e45649")))
+  (dolist (keyword '("TRICK" "WORKAROUND"))
+    (add-to-list 'hl-todo-keyword-faces `(,keyword . "#d0bf8f")))
+  (dolist (keyword '("DEBUG" "STUB"))
+    (add-to-list 'hl-todo-keyword-faces `(,keyword . "#7cb8bb"))))
 
 ;; Highlight uncommitted changes using VC
 (use-package diff-hl
@@ -277,12 +279,9 @@ FACE defaults to inheriting from default and highlight."
   :ensure nil
   :custom-face
   (pulse-highlight-start-face ((t (:inherit region))))
-  (pulse-highlight-face ((t (:inherit region))))
-  :hook (((dumb-jump-after-jump
-           imenu-after-jump) . my-recenter-and-pulse)
-         ((bookmark-after-jump
-           magit-diff-visit-file
-           next-error) . my-recenter-and-pulse-line))
+  (pulse-highlight-face ((t (:inherit region :extend t))))
+  :hook (((dumb-jump-after-jump imenu-after-jump) . my-recenter-and-pulse)
+         ((bookmark-after-jump magit-diff-visit-file next-error) . my-recenter-and-pulse-line))
   :init
   (with-no-warnings
     (defun my-pulse-momentary-line (&rest _)
