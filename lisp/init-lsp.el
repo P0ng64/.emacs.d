@@ -331,17 +331,17 @@
              ))
 
          (lsp-defun my-lsp-ivy--format-symbol-match
-           ((sym &as &SymbolInformation :kind :location (&Location :uri))
-            project-root)
-           "Convert the match returned by `lsp-mode` into a candidate string."
-           (let* ((sanitized-kind (if (length> lsp-ivy-symbol-kind-icons kind) kind 0))
-                  (type (elt lsp-ivy-symbol-kind-icons sanitized-kind))
-                  (typestr (if lsp-ivy-show-symbol-kind (format "%s " type) ""))
-                  (pathstr (if lsp-ivy-show-symbol-filename
-                               (propertize (format " · %s" (file-relative-name (lsp--uri-to-path uri) project-root))
-                                           'face font-lock-comment-face)
-                             "")))
-             (concat typestr (lsp-render-symbol-information sym ".") pathstr)))
+                    ((sym &as &SymbolInformation :kind :location (&Location :uri))
+                     project-root)
+                    "Convert the match returned by `lsp-mode` into a candidate string."
+                    (let* ((sanitized-kind (if (length> lsp-ivy-symbol-kind-icons kind) kind 0))
+                           (type (elt lsp-ivy-symbol-kind-icons sanitized-kind))
+                           (typestr (if lsp-ivy-show-symbol-kind (format "%s " type) ""))
+                           (pathstr (if lsp-ivy-show-symbol-filename
+                                        (propertize (format " · %s" (file-relative-name (lsp--uri-to-path uri) project-root))
+                                                    'face font-lock-comment-face)
+                                      "")))
+                      (concat typestr (lsp-render-symbol-information sym ".") pathstr)))
          (advice-add #'lsp-ivy--format-symbol-match :override #'my-lsp-ivy--format-symbol-match))))
 
    ;; Debug
