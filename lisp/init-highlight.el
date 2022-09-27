@@ -31,6 +31,7 @@
 ;;; Code:
 
 (require 'init-const)
+(require 'init-funcs)
 
 ;; Highlight the current line
 (use-package hl-line
@@ -95,7 +96,6 @@ FACE defaults to inheriting from default and highlight."
 (use-package symbol-overlay
   :diminish
   :functions (turn-off-symbol-overlay turn-on-symbol-overlay)
-  :custom-face (symbol-overlay-default-face ((t (:inherit (region bold)))))
   :bind (("M-i" . symbol-overlay-put)
          ("M-n" . symbol-overlay-jump-next)
          ("M-p" . symbol-overlay-jump-prev)
@@ -125,7 +125,10 @@ FACE defaults to inheriting from default and highlight."
 ;; Highlight indentions
 (use-package highlight-indent-guides
   :diminish
-  :hook ((prog-mode yaml-mode) . highlight-indent-guides-mode)
+  :hook ((prog-mode yaml-mode) . (lambda ()
+                                   "Highlight indentations in small files for better performance."
+                                   (unless (too-long-file-p)
+                                     (highlight-indent-guides-mode 1))))
   :init (setq highlight-indent-guides-method 'character
               highlight-indent-guides-responsive 'top
               highlight-indent-guides-suppress-auto-error t)
@@ -305,8 +308,9 @@ FACE defaults to inheriting from default and highlight."
       (my-pulse-momentary-line))
 
     (dolist (cmd '(recenter-top-bottom
-                   other-window windmove-do-window-select
-                   ace-window aw--select-window
+                   other-window switch-to-buffer
+                   aw-select toggle-window-split
+                   windmove-do-window-select
                    pager-page-down pager-page-up
                    treemacs-select-window
                    symbol-overlay-basic-jump))
