@@ -32,37 +32,51 @@
 
 (require 'init-funcs)
 
-(defun sis-enable ()
+(defun enable-sis-modes ()
   "Enable smart-input-source"
   (interactive)
   (sis-global-respect-mode t)
   (sis-global-context-mode t)
   (sis-global-inline-mode t))
 
-(defun sis-disable ()
+(defun disable-sis-modes ()
   "Disable smart-input-source"
   (interactive)
   (sis-global-respect-mode 0)
   (sis-global-context-mode 0)
   (sis-global-inline-mode 0))
 
-(defun note-with-light ()
+(defun enable-posframe-modes ()
+  "Enable posframe modes"
+  (interactive)
+  (ivy-posframe-mode 1)
+  (which-key-posframe-mode 1)
+  (transient-posframe-mode 1))
+
+(defun disable-posframe-modes ()
+  "Enable posframe modes"
+  (interactive)
+  (ivy-posframe-mode 0)
+  (which-key-posframe-mode 0)
+  (transient-posframe-mode 0))
+
+(defun load-note-profile ()
   "Set Emacs theme and font to a note-taking-friendly style."
   (interactive)
   (progn
     (load-theme 'doom-one-light t)
-    (sis-enable)
+    (enable-sis-modes)
     (set-face-attribute 'default nil
                         :font "CMU Typewriter Text")
     (set-fontset-font t 'unicode
                       (font-spec :family "Songti TC"))))
 
-(defun back-to-code ()
+(defun load-code-profile ()
   "Set Emacs theme and font to a programming-friendly style."
   (interactive)
   (progn
     (centaur-load-theme centaur-theme)
-    (sis-disable)
+    (disable-sis-modes)
     (set-face-attribute 'default nil
                         :font "Monaco")
     (set-fontset-font t 'unicode
@@ -83,11 +97,13 @@
                               (:else (buffer-file-name)))))))
 
   (defun refresh-chrome-tab ()
+    "By using Apple Script, refresh the active tab of chrome"
+    (interactive)
     (do-applescript "tell application \"Chrome\" to tell the active tab \
                     of its first window to reload")))
 
 (defun pandoc-convert-to-docx ()
-  "Use pandoc to convert current file to Microsoft Word docx."
+  "Use pandoc to convert current file type to Microsoft Word docx."
   (interactive)
   (shell-command (concat "pandoc "
                          (buffer-name)
