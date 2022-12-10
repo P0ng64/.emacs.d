@@ -126,13 +126,13 @@
 (defcustom centaur-theme-alist
   '((default . doom-one)
     (pro     . doom-monokai-pro)
-    (dark    . doom-nord-aurora)
+    (dark    . doom-vibrant)
     (light   . doom-one-light)
     (warm    . doom-solarized-light)
     (cold    . doom-palenight)
     (day     . doom-tomorrow-day)
     (night   . doom-tomorrow-night)
-    (plain   . doom-plain)
+    (note    . doom-flatwhite)
     (ice     . doom-nord-light))
   "List of themes mapped to internal themes."
   :group 'centaur
@@ -154,7 +154,7 @@ For example:
 
 (when (boundp 'ns-system-appearance-change-functions)
   (defcustom centaur-system-themes '((light . doom-nord-light)
-				                     (dark  . doom-nord))
+				                     (dark  . doom-nord-aurora))
     "List of themes related the system appearance.
 
      It's only available on macOS currently."
