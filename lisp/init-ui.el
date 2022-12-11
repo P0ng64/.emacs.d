@@ -351,13 +351,6 @@
   :hook ((prog-mode yaml-mode conf-mode) . display-line-numbers-mode)
   :init (setq display-line-numbers-width-start t))
 
-;; Show whitespace characters
-(use-package whitespace
-  :hook ((prog-mode yaml-mode conf-mode) . whitespace-mode)
-  :init (setq whitespace-style '(face tabs spaces trailing space-before-tab
-                                      newline indentation empty space-after-tab
-                                      space-mark tab-mark newline-mark missing-newline-at-eof)))
-
 ;; Suppress GUI features
 (setq use-file-dialog nil
       use-dialog-box nil

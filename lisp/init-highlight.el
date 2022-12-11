@@ -332,6 +332,11 @@ FACE defaults to inheriting from default and highlight."
                    goto-last-change))
       (advice-add cmd :after #'my-recenter-and-pulse))))
 
+;; Show whitespace characters
+;; (use-package whitespace
+;;   :hook ((prog-mode yaml-mode conf-mode) . whitespace-mode)
+;;   :init (setq whitespace-style '(face tabs spaces newline space-mark tab-mark newline-mark)))
+
 (provide 'init-highlight)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
