@@ -1,6 +1,6 @@
 ;;; init-ivy.el --- Initialize ivy configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2022 Vincent Zhang
+;; Copyright (C) 2016-2023 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -35,10 +35,10 @@
 (use-package counsel
   :diminish ivy-mode counsel-mode
   :custom-face
-  (ivy-minibuffer-match-face-1 ((t (:foreground "dimgray" :distant-foreground nil :background nil))))
-  (ivy-minibuffer-match-face-2 ((t (:distant-foreground nil :background nil))))
-  (ivy-minibuffer-match-face-3 ((t (:distant-foreground nil :background nil))))
-  (ivy-minibuffer-match-face-4 ((t (:distant-foreground nil :background nil))))
+  (ivy-minibuffer-match-face-1 ((t (:foreground "dimgray" :distant-foreground unspecified :background unspecified))))
+  (ivy-minibuffer-match-face-2 ((t (:distant-foreground unspecified :background unspecified))))
+  (ivy-minibuffer-match-face-3 ((t (:distant-foreground unspecified :background unspecified))))
+  (ivy-minibuffer-match-face-4 ((t (:distant-foreground unspecified :background unspecified))))
   :bind (("C-s"   . swiper-isearch)
          ("C-r"   . swiper-isearch-backward)
          ("s-f"   . swiper)
@@ -124,8 +124,9 @@
         ivy-use-virtual-buffers t    ; Enable bookmarks and recentf
         ivy-fixed-height-minibuffer t
         ivy-count-format "(%d/%d) "
-        ivy-ignore-buffers '("\\` " "\\`\\*tramp/" "\\`\\*xref" "\\`\\*helpful "
-                             "\\`\\*.+-posframe-buffer\\*" "\\` ?\\*company-.+\\*")
+        ivy-ignore-buffers '("\\` " "\\`\\*tramp/" "\\`\\*xref" "\\`\\*helpful .+\\*"
+                             "\\`\\*.+-posframe-buffer\\*" "\\` ?\\*company-.+\\*"
+                             "\\`flycheck_.+")
         ivy-on-del-error-function #'ignore
         ivy-initial-inputs-alist nil)
 
@@ -136,9 +137,7 @@
   (setq ivy-height-alist '((counsel-evil-registers . 5)
                            (counsel-yank-pop       . 8)
                            (counsel-git-log        . 4)
-                           (swiper                 . 15)
-                           (counsel-projectile-ag  . 15)
-                           (counsel-projectile-rg  . 15)))
+                           (swiper                 . 15)))
 
   ;; Better performance on Windows
   (when sys/win32p
@@ -172,14 +171,6 @@
     ;; persist views
     (with-eval-after-load 'savehist
       (add-to-list 'savehist-additional-variables 'ivy-views))
-
-    ;; Highlight the selected item
-    (defun my-ivy-format-function (cands)
-      "Transform CANDS into a string for minibuffer."
-      (if (display-graphic-p)
-          (ivy-format-function-line cands)
-        (ivy-format-function-arrow cands)))
-    (setf (alist-get 't ivy-format-functions-alist) #'my-ivy-format-function)
 
     ;; Pre-fill search keywords
     ;; @see https://www.reddit.com/r/emacs/comments/b7g1px/withemacs_execute_commands_like_marty_mcfly/
@@ -243,39 +234,40 @@
     ;;
     (defun my-ivy-switch-to-swiper (&rest _)
       "Switch to `swiper' with the current input."
-      (swiper ivy-text))
+      (ivy-quit-and-run (swiper ivy-text)))
 
     (defun my-ivy-switch-to-swiper-isearch (&rest _)
       "Switch to `swiper-isearch' with the current input."
-      (swiper-isearch ivy-text))
+      (ivy-quit-and-run (swiper-isearch ivy-text)))
 
     (defun my-ivy-switch-to-swiper-all (&rest _)
       "Switch to `swiper-all' with the current input."
-      (swiper-all ivy-text))
+      (ivy-quit-and-run (swiper-all ivy-text)))
 
     (defun my-ivy-switch-to-rg-dwim (&rest _)
       "Switch to `rg-dwim' with the current input."
-      (ivy-quit-and-run (rg-dwim default-directory)))
+      (interactive)
+      (ivy-exit-with-action #'rg-dwim))
 
     (defun my-ivy-switch-to-counsel-rg (&rest _)
       "Switch to `counsel-rg' with the current input."
-      (counsel-rg ivy-text default-directory))
+      (ivy-quit-and-run (counsel-rg ivy-text default-directory)))
 
     (defun my-ivy-switch-to-counsel-git-grep (&rest _)
       "Switch to `counsel-git-grep' with the current input."
-      (counsel-git-grep ivy-text default-directory))
+      (ivy-quit-and-run (counsel-git-grep ivy-text default-directory)))
 
     (defun my-ivy-switch-to-counsel-find-file (&rest _)
       "Switch to `counsel-find-file' with the current input."
-      (counsel-find-file ivy-text))
+      (ivy-quit-and-run (counsel-find-file ivy-text)))
 
     (defun my-ivy-switch-to-counsel-fzf (&rest _)
       "Switch to `counsel-fzf' with the current input."
-      (counsel-fzf ivy-text default-directory))
+      (ivy-quit-and-run (counsel-fzf ivy-text default-directory)))
 
     (defun my-ivy-switch-to-counsel-git (&rest _)
       "Switch to `counsel-git' with the current input."
-      (counsel-git ivy-text))
+      (ivy-quit-and-run (counsel-git ivy-text)))
 
     (defun my-ivy-switch-to-list-bookmarks (&rest _)
       "Switch to `list-bookmarks'."
@@ -303,21 +295,15 @@
     (defun my-swiper-toggle-counsel-rg ()
       "Toggle `counsel-rg' and `swiper'/`swiper-isearch' with the current input."
       (interactive)
-      (ivy-quit-and-run
-        (if (memq (ivy-state-caller ivy-last) '(swiper swiper-isearch))
-            (my-ivy-switch-to-counsel-rg)
-          (my-ivy-switch-to-swiper-isearch))))
+      (if (memq (ivy-state-caller ivy-last) '(swiper swiper-isearch))
+          (my-ivy-switch-to-counsel-rg)
+        (my-ivy-switch-to-swiper-isearch)))
     (bind-key "<C-return>" #'my-swiper-toggle-counsel-rg swiper-map)
     (bind-key "<C-return>" #'my-swiper-toggle-counsel-rg counsel-ag-map)
 
     (with-eval-after-load 'rg
-      (defun my-swiper-toggle-rg-dwim ()
-        "Toggle `rg-dwim' with the current input."
-        (interactive)
-        (ivy-quit-and-run
-          (rg-dwim default-directory)))
-      (bind-key "<M-return>" #'my-swiper-toggle-rg-dwim swiper-map)
-      (bind-key "<M-return>" #'my-swiper-toggle-rg-dwim counsel-ag-map))
+      (bind-key "<M-return>" #'my-ivy-switch-to-rg-dwim swiper-map)
+      (bind-key "<M-return>" #'my-ivy-switch-to-rg-dwim counsel-ag-map))
 
     (defun my-swiper-toggle-swiper-isearch ()
       "Toggle `swiper' and `swiper-isearch' with the current input."
@@ -516,7 +502,7 @@
   ;; Refer to  https://github.com/abo-abo/swiper/issues/919 and
   ;; https://github.com/pengpengxp/swiper/wiki/ivy-support-chinese-pinyin
   (use-package pinyinlib
-    :commands pinyinlib-build-regexp-string
+    :autoload pinyinlib-build-regexp-string
     :init
     (with-no-warnings
       (defun my-pinyinlib-build-regexp-string (str)
@@ -564,32 +550,11 @@
   (with-eval-after-load 'desktop
     (add-to-list 'desktop-globals-to-save 'ivy-dired-history-variable)))
 
-
-;; `projectile' integration
-(use-package counsel-projectile
-  :hook (counsel-mode . counsel-projectile-mode)
-  :init
-  (setq counsel-projectile-grep-initial-input '(ivy-thing-at-point))
-  (when (executable-find "ugrep")
-    (setq counsel-projectile-grep-base-command "ugrep --color=never -rnEI %s")))
-
-;; Better experience with icons
-;; Enable it before`ivy-rich-mode' for better performance
-(use-package all-the-icons-ivy-rich
-  :hook (ivy-mode . all-the-icons-ivy-rich-mode)
-  :init (setq all-the-icons-ivy-rich-icon centaur-icon)
-  :config
-  (plist-put all-the-icons-ivy-rich-display-transformers-list
-             'centaur-load-theme
-             '(:columns
-               ((all-the-icons-ivy-rich-theme-icon)
-                (ivy-rich-candidate))
-               :delimiter "\t"))
-  (all-the-icons-ivy-rich-reload))
-
 ;; More friendly display transformer for Ivy
-(use-package ivy-rich
-  :hook ((counsel-projectile-mode . ivy-rich-mode) ; MUST after `counsel-projectile'
+;; Enable before`ivy-rich-mode' for better performance
+(use-package nerd-icons-ivy-rich
+  :hook ((ivy-mode      . nerd-icons-ivy-rich-mode)
+         (counsel-mode  . ivy-rich-mode)
          (ivy-rich-mode . ivy-rich-project-root-cache-mode)
          (ivy-rich-mode . (lambda ()
                             "Use abbreviate in `ivy-rich-mode'."
@@ -597,11 +562,21 @@
                                   (or (and ivy-rich-mode 'abbreviate) 'name)))))
   :init
   ;; For better performance
-  (setq ivy-rich-parse-remote-buffer nil))
+  (setq ivy-rich-parse-remote-buffer nil)
+  (setq nerd-icons-ivy-rich-icon centaur-icon)
+  :config
+  (plist-put nerd-icons-ivy-rich-display-transformers-list
+             'centaur-load-theme
+             '(:columns
+               ((nerd-icons-ivy-rich-theme-icon)
+                (ivy-rich-candidate))
+               :delimiter "\t"))
+  (nerd-icons-ivy-rich-reload))
 
 ;; Display completion in child frame
 (when (childframe-completion-workable-p)
   (use-package ivy-posframe
+    :diminish
     :custom-face
     (ivy-posframe-border ((t (:inherit posframe-border))))
     :hook (ivy-mode . ivy-posframe-mode)
@@ -626,7 +601,8 @@
               (overlay-put ov 'window (selected-window))
               (overlay-put ov 'ivy-posframe t)
               (overlay-put ov 'face
-                           (let* ((face (if (facep 'solaire-default-face)
+                           (let* ((face (if (or (bound-and-true-p solaire-global-mode)
+                                                (bound-and-true-p solaire-mode))
                                             'solaire-default-face
                                           'default))
                                   (bg-color (face-background face nil t)))

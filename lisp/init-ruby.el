@@ -1,6 +1,6 @@
 ;; init-ruby.el --- Initialize ruby configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2022 Vincent Zhang
+;; Copyright (C) 2010-2023 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -33,8 +33,7 @@
 ;; Integrate rbenv
 (use-package rbenv
   :hook (after-init . global-rbenv-mode)
-  :init (setq rbenv-show-active-ruby-in-modeline nil
-              rbenv-executable "rbenv"))
+  :init (setq rbenv-show-active-ruby-in-modeline nil))
 
 ;; YAML mode
 (use-package yaml-mode)
@@ -61,15 +60,10 @@
 ;; RSpec
 (use-package rspec-mode
   :diminish
-  :commands rspec-install-snippets
+  :autoload rspec-install-snippets
   :hook (dired-mode . rspec-dired-mode)
   :config (with-eval-after-load 'yasnippet
             (rspec-install-snippets)))
-
-;; Rails
-(use-package projectile-rails
-  :diminish
-  :hook (projectile-mode . projectile-rails-global-mode))
 
 (provide 'init-ruby)
 

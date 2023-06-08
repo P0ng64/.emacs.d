@@ -1,6 +1,6 @@
 ;;; init-package.el --- Initialize package configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2022 Vincent Zhang
+;; Copyright (C) 2006-2023 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -59,7 +59,7 @@
 ;; HACK: DO NOT save package-selected-packages to `custom-file'.
 ;; https://github.com/jwiegley/use-package/issues/383#issuecomment-247801751
 (defun my-package--save-selected-packages (&optional value)
-  "Set `package-selected-packages' to VALUE but don't save to `custom-file'."
+  "Set `package-selected-packages' to VALUE but don't save to variable `custom-file'."
   (when value
     (setq package-selected-packages value))
   (unless after-init-time
@@ -89,9 +89,8 @@
 (eval-when-compile
   (require 'use-package))
 
-;; Required by `use-package'
+;; Don't display minor modes
 (use-package diminish)
-(use-package bind-key)
 
 ;; Update GPG keyring for GNU ELPA
 (use-package gnu-elpa-keyring-update)
@@ -101,7 +100,7 @@
   :custom-face
   (paradox-archive-face ((t (:inherit font-lock-doc-face))))
   (paradox-description-face ((t (:inherit completions-annotations))))
-  :hook (after-init . paradox-enable)
+  :hook (emacs-startup . paradox-enable)
   :init (setq paradox-execute-asynchronously t
               paradox-github-token t
               paradox-display-star-count nil
@@ -129,12 +128,13 @@
                       (page-break-lines-mode 1))))))
             t))
 
-;; Auto update packages
-(use-package auto-package-update
-  :init
-  (setq auto-package-update-delete-old-versions t
-        auto-package-update-hide-results t)
-  (defalias 'upgrade-packages #'auto-package-update-now))
+;; Update packages
+(unless (fboundp 'package-upgrade-all)
+  (use-package auto-package-update
+    :init
+    (setq auto-package-update-delete-old-versions t
+          auto-package-update-hide-results t)
+    (defalias 'package-upgrade-all #'auto-package-update-now)))
 
 (provide 'init-package)
 

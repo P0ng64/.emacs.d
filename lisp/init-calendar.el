@@ -1,6 +1,6 @@
 ;; init-calendar.el --- Initialize calendar configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2022 Vincent Zhang
+;; Copyright (C) 2006-2023 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -37,7 +37,7 @@
 (when centaur-chinese-calendar
   (use-package cal-china-x
     :after calendar
-    :commands cal-china-x-setup
+    :autoload cal-china-x-setup
     :init (cal-china-x-setup)
     :config
     ;; Holidays

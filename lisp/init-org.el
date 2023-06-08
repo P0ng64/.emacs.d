@@ -1,6 +1,6 @@
 ;; init-org.el --- Initialize Org configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2022 Vincent Zhang
+;; Copyright (C) 2006-2023 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -36,11 +36,11 @@
 
 (use-package org
   :ensure nil
-  :commands (org-dynamic-block-define)
-  :custom-face (org-ellipsis ((t (:foreground nil))))
+  :custom-face (org-ellipsis ((t (:foreground unspecified))))
   :pretty-hydra
-  ((:title (pretty-hydra-title "Org Template" 'fileicon "org" :face 'all-the-icons-green :height 1.1 :v-adjust 0.0)
-           :color blue :quit-key "q")
+  ;; See `org-structure-template-alist'
+  ((:title (pretty-hydra-title "Org Template" 'sucicon "nf-custom-orgmode" :face 'nerd-icons-green)
+    :color blue :quit-key ("q" "C-g"))
    ("Basic"
     (("a" (hot-expand "<a") "ascii")
      ("c" (hot-expand "<c") "center")
@@ -64,6 +64,7 @@
      ("R" (hot-expand "<s" "racket :lang sicp") "sicp")
      ("y" (hot-expand "<s" "python :results output") "python")
      ("p" (hot-expand "<s" "perl") "perl")
+     ("w" (hot-expand "<s" "powershell") "powershell")
      ("r" (hot-expand "<s" "ruby") "ruby")
      ("S" (hot-expand "<s" "sh") "sh")
      ("g" (hot-expand "<s" "go :imports '\(\"fmt\"\)") "golang"))
@@ -148,7 +149,7 @@ prepended to the element after the #+HEADER: tag."
                              (?D . all-the-icons-purple))
 
         ;; Agenda styling
-        org-agenda-files `(,centaur-org-directory)
+        org-agenda-files (list centaur-org-directory)
         org-agenda-block-separator ?─
         org-agenda-time-grid
         '((daily today require-timed)
@@ -177,9 +178,10 @@ prepended to the element after the #+HEADER: tag."
               (centaur-webkit-browse-url (concat "file://" file) t)))
           org-file-apps))
 
-  ;; Add gfm/md backends
-  (use-package ox-gfm)
+  ;; Add md/gfm backends
   (add-to-list 'org-export-backends 'md)
+  (use-package ox-gfm
+    :init (add-to-list 'org-export-backends 'gfm))
 
   (with-eval-after-load 'counsel
     (bind-key [remap org-set-tags-command] #'counsel-org-tag org-mode-map))
@@ -226,6 +228,9 @@ prepended to the element after the #+HEADER: tag."
   (use-package ob-go
     :init (cl-pushnew '(go . t) load-language-alist))
 
+  (use-package ob-powershell
+    :init (cl-pushnew '(powershell . t) load-language-alist))
+
   (use-package ob-rust
     :init (cl-pushnew '(rust . t) load-language-alist))
 
@@ -260,7 +265,7 @@ prepended to the element after the #+HEADER: tag."
   ;; Rich text clipboard
   (use-package org-rich-yank
     :bind (:map org-mode-map
-                ("C-M-y" . org-rich-yank)))
+           ("C-M-y" . org-rich-yank)))
 
   ;; Table of contents
   (use-package toc-org
@@ -269,9 +274,9 @@ prepended to the element after the #+HEADER: tag."
   ;; Export text/html MIME emails
   (use-package org-mime
     :bind (:map message-mode-map
-                ("C-c M-o" . org-mime-htmlize)
-                :map org-mode-map
-                ("C-c M-o" . org-mime-org-buffer-htmlize)))
+           ("C-c M-o" . org-mime-htmlize)
+           :map org-mode-map
+           ("C-c M-o" . org-mime-org-buffer-htmlize)))
 
   ;; Add graphical view of agenda
   (use-package org-timeline
@@ -346,27 +351,33 @@ prepended to the element after the #+HEADER: tag."
               org-tree-slide-skip-outline-level 3))
 
 ;; Roam
-(when (executable-find "cc")
-  (use-package org-roam
-    :diminish
-    :hook (after-init . org-roam-db-autosync-enable)
-    :bind (("C-c n l" . org-roam-buffer-toggle)
-           ("C-c n f" . org-roam-node-find)
-           ("C-c n g" . org-roam-graph)
-           ("C-c n i" . org-roam-node-insert)
-           ("C-c n c" . org-roam-capture)
-           ("C-c n j" . org-roam-dailies-capture-today))
-    :init
-    (setq org-roam-directory (file-truename centaur-org-directory))
-    :config
-    (unless (file-exists-p org-roam-directory)
-      (make-directory org-roam-directory))
+(use-package org-roam
+  :diminish
+  :defines org-roam-graph-viewer
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n g" . org-roam-graph)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n c" . org-roam-capture)
+         ("C-c n j" . org-roam-dailies-capture-today))
+  :init
+  (setq org-roam-directory (file-truename centaur-org-directory)
+        org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag))
+        org-roam-graph-viewer (if (featurep 'xwidget-internal)
+                                  #'xwidget-webkit-browse-url
+                                #'browse-url))
+  :config
+  (unless (file-exists-p org-roam-directory)
+    (make-directory org-roam-directory))
+  (add-to-list 'org-agenda-files (format "%s/%s" org-roam-directory "roam"))
 
-    (when emacs/>=27p
-      (use-package org-roam-ui
-        :init
-        (when (featurep 'xwidget-internal)
-          (setq org-roam-ui-browser-function #'xwidget-webkit-browse-url))))))
+  (org-roam-db-autosync-enable))
+
+(when emacs/>=27p
+  (use-package org-roam-ui
+    :bind ("C-c n u" . org-roam-ui-mode)
+    :init (when (featurep 'xwidget-internal)
+            (setq org-roam-ui-browser-function #'xwidget-webkit-browse-url))))
 
 ;; Image drag-and-drop in org-mode and dired-mode
 (use-package org-download

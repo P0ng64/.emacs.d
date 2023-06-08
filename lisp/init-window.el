@@ -1,6 +1,6 @@
 ;; init-window.el --- Initialize window configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2022 Vincent Zhang
+;; Copyright (C) 2006-2023 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -57,8 +57,8 @@
 ;; Quickly switch windows
 (use-package ace-window
   :pretty-hydra
-  ((:title (pretty-hydra-title "Window Management" 'faicon "th" :height 1.1 :v-adjust -0.1)
-    :foreign-keys warn :quit-key "q")
+  ((:title (pretty-hydra-title "Window Management" 'faicon "nf-fa-th")
+    :foreign-keys warn :quit-key ("q" "C-g"))
    ("Actions"
     (("TAB" other-window "switch")
      ("x" ace-delete-window "delete" :exit t)
@@ -88,7 +88,7 @@
     (("F" set-frame-font "font")
      ("T" centaur-load-theme "theme"))))
   :custom-face
-  (aw-leading-char-face ((t (:inherit font-lock-keyword-face :bold t :height 3.0))))
+  (aw-leading-char-face ((t (:inherit font-lock-keyword-face :foreground unspecified :bold t :height 3.0))))
   (aw-minibuffer-leading-char-face ((t (:inherit font-lock-keyword-face :bold t :height 1.0))))
   (aw-mode-line-face ((t (:inherit mode-line-emphasis :bold t))))
   :bind (([remap other-window] . ace-window)
@@ -147,13 +147,14 @@
 ;; Enforce rules for popups
 (use-package popper
   :defines popper-echo-dispatch-actions
-  :commands popper-group-by-projectile
+  :autoload popper-group-by-directory
   :bind (:map popper-mode-map
          ("C-h z"     . popper-toggle-latest)
          ("C-<tab>"   . popper-cycle)
          ("C-M-<tab>" . popper-toggle-type))
   :hook (emacs-startup . popper-mode)
   :init
+  (setq popper-group-function #'popper-group-by-directory)
   (setq popper-reference-buffers
         '("\\*Messages\\*"
           "Output\\*$" "\\*Pp Eval Output\\*$"
@@ -202,7 +203,6 @@
           "\\*quickrun\\*$"
           "\\*tldr\\*$"
           "\\*vc-.*\\*$"
-          "^\\*elfeed-entry\\*$"
           "^\\*macro expansion\\**"
 
           "\\*Agenda Commands\\*" "\\*Org Select\\*" "\\*Capture\\*" "^CAPTURE-.*\\.org*"
@@ -212,17 +212,16 @@
           "\\*rustfmt\\*$" rustic-compilation-mode rustic-cargo-clippy-mode
           rustic-cargo-outdated-mode rustic-cargo-run-mode rustic-cargo-test-mode))
 
-  (with-eval-after-load 'projectile
-    (setq popper-group-function #'popper-group-by-projectile))
-
-  (when (display-grayscale-p)
+  (with-eval-after-load 'doom-modeline
     (setq popper-mode-line
-          '(:eval (format " %s "
-                          (all-the-icons-octicon
-                           "pin"
-                           :height 0.9
-                           :v-adjust 0.0
-                           :face 'mode-line-emphasis)))))
+          '(:eval (let ((face (if (doom-modeline--active)
+                                  'mode-line-emphasis
+                                'mode-line-inactive)))
+                    (if (and (icons-displayable-p)
+                             (bound-and-true-p doom-modeline-mode))
+                        (format " %s "
+                                (nerd-icons-octicon "nf-oct-pin" :face face))
+                      (propertize " POP" 'face face))))))
 
   (setq popper-echo-dispatch-actions t)
   :config

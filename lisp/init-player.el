@@ -1,6 +1,6 @@
 ;; init-player.el --- Initialize player configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2022 Vincent Zhang
+;; Copyright (C) 2006-2023 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -69,56 +69,7 @@
 
   ;; MPD Interface
   (use-package mingus
-    :bind ("s-<f8>" . mingus)
-    :config
-    (add-to-list 'global-mode-string mingus-mode-line-object)
-    (with-no-warnings
-      ;; FIXME: Remove once https://github.com/pft/mingus/pull/44 is merged.
-      ;; Redefine major modes
-      (define-derived-mode mingus-help-mode special-mode "Mingus-help"
-        "Help screen for `mingus'.
-
-\\{mingus-help-map}"
-        (set (make-local-variable 'font-lock-defaults)
-             '(mingus-help-font-lock-keywords))
-        (setq buffer-undo-list t)
-        (font-lock-mode t)
-        (use-local-map mingus-help-map)
-        (setq buffer-read-only t))
-
-      (define-derived-mode mingus-playlist-mode special-mode "Mingus-playlist"
-        "Mingus playlist mode.
-
-See function `mingus-help' for instructions.
-\\{mingus-playlist-map}"
-        (use-local-map mingus-playlist-map)
-        (setq buffer-undo-list t)
-        (delete-all-overlays)
-        (font-lock-mode -1)
-        (setq buffer-read-only t)
-        (setq left-fringe-width 16)
-        (run-hooks 'mingus-playlist-hooks))
-
-      (define-derived-mode mingus-browse-mode special-mode "Mingus-browse"
-        "Mingus browse mode.
-
-\\{mingus-browse-map}"
-        (let ((res mingus-last-query-results))
-          (use-local-map mingus-browse-map)
-          (setq buffer-undo-list t)
-          (delete-all-overlays)
-          (run-hooks 'mingus-browse-hook)
-          (set (make-local-variable '*mingus-positions*) nil)
-          (setq buffer-read-only t)
-          (setq mingus-last-query-results res)))
-
-      (define-derived-mode mingus-burn-mode special-mode "Mingus-burns"
-        "Mingus burning mode.
-
-\\{mingus-burnin-mode-map}"
-        (setq buffer-undo-list t)
-        (use-local-map mingus-burnin-map)
-        (setq buffer-read-only t))))
+    :bind ("M-<f8>" . mingus))
 
   ;; Simple mpd client
   (when (executable-find "mpc")
@@ -127,7 +78,7 @@ See function `mingus-help' for instructions.
       (simple-mpc-main-name ((t (:inherit font-lock-string-face :bold t :height 1.3))))
       (simple-mpc-main-headers ((t (:inherit font-lock-keyword-face :bold t :height 1.1))))
       (simple-mpc-current-track-face ((t (:inherit font-lock-keyword-face))))
-      :bind (("M-<f8>" . simple-mpc+)
+      :bind (("s-<f8>" . simple-mpc+)
              :map simple-mpc-mode-map
              ("P" . simple-mpc-play)
              ("O" . simple-mpc-stop)
@@ -210,14 +161,20 @@ IGNORE-AUTO and NOCONFIRM are passed by `revert-buffer'."
                                   (info-strs (split-string info))
                                   (state (nth 0 info-strs))
                                   (time (nth 2 info-strs)))
-                        (propertize (format " %s%s [%s] "
-                                            (when (icon-displayable-p)
-                                              (pcase state
-                                                ("[playing]" " ")
-                                                ("[paused]" " ")
-                                                (_ "")))
-                                            title time)
-                                    'face 'font-lock-comment-face))))))
+                        (concat
+                         (when (icons-displayable-p)
+                           (pcase state
+                             ("[playing]"
+                              (concat
+                               " "
+                               (nerd-icons-mdicon "nf-md-play_circle_outline" :face font-lock-comment-face)))
+                             ("[paused]"
+                              (concat
+                               " "
+                               (nerd-icons-mdicon "nf-md-pause_circle_outline" :face font-lock-comment-face)))
+                             (_ "")))
+                         (propertize (format " %s [%s] " title time)
+                                     'face '(:inherit 'font-lock-comment-face :height 0.9))))))))
           (force-mode-line-update))
 
         (defvar simple-mpc--timer nil)

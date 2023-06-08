@@ -1,6 +1,6 @@
 ;; init-edit.el --- Initialize editing configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2022 Vincent Zhang
+;; Copyright (C) 2006-2023 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -53,7 +53,7 @@
   (with-eval-after-load 'wdired
     (bind-key "<C-return>" #'rect-hydra/body wdired-mode-map))
   :pretty-hydra
-  ((:title (pretty-hydra-title "Rectangle" 'material "border_all" :height 1.2 :v-adjust -0.225)
+  ((:title (pretty-hydra-title "Rectangle" 'mdicon "nf-md-border_all")
     :color amaranth :body-pre (rectangle-mark-mode) :post (deactivate-mark) :quit-key ("q" "C-g"))
    ("Move"
     (("h" backward-char "←")
@@ -202,14 +202,10 @@
                   (diminish (cdr pair)))
                 beginend-modes))
 
-;; An all-in-one comment command to rule them all
-(use-package comment-dwim-2
-  :bind ([remap comment-dwim] . comment-dwim-2)) ;
-
 ;; Drag stuff (lines, words, region, etc...) around
 (use-package drag-stuff
   :diminish
-  :commands drag-stuff-define-keys
+  :autoload drag-stuff-define-keys
   :hook (after-init . drag-stuff-global-mode)
   :config
   (add-to-list 'drag-stuff-except-modes 'org-mode)
@@ -256,7 +252,8 @@
 
 ;; Multiple cursors
 (use-package multiple-cursors
-  :bind (("C-S-c C-S-c"   . mc/edit-lines)
+  :bind (("C-c m" . multiple-cursors-hydra/body)
+         ("C-S-c C-S-c"   . mc/edit-lines)
          ("C->"           . mc/mark-next-like-this)
          ("C-<"           . mc/mark-previous-like-this)
          ("C-c C-<"       . mc/mark-all-like-this)
@@ -265,7 +262,27 @@
          ("s-<mouse-1>"   . mc/add-cursor-on-click)
          ("C-S-<mouse-1>" . mc/add-cursor-on-click)
          :map mc/keymap
-         ("C-|" . mc/vertical-align-with-space)))
+         ("C-|" . mc/vertical-align-with-space))
+  :pretty-hydra
+  ((:title (pretty-hydra-title "Multiple Cursors" 'mdicon "nf-md-border_all")
+    :color amaranth :quit-key ("q" "C-g"))
+   ("Up"
+	(("p" mc/mark-previous-like-this "prev")
+	 ("P" mc/skip-to-previous-like-this "skip")
+	 ("M-p" mc/unmark-previous-like-this "unmark")
+	 ("|" mc/vertical-align "align with input CHAR"))
+    "Down"
+    (("n" mc/mark-next-like-this "next")
+	 ("N" mc/skip-to-next-like-this "skip")
+	 ("M-n" mc/unmark-next-like-this "unmark"))
+    "Misc"
+    (("l" mc/edit-lines "edit lines" :exit t)
+	 ("a" mc/mark-all-like-this "mark all" :exit t)
+	 ("s" mc/mark-all-in-region-regexp "search" :exit t)
+     ("<mouse-1>" mc/add-cursor-on-click "click"))
+    "% 2(mc/num-cursors) cursor%s(if (> (mc/num-cursors) 1) \"s\" \"\")"
+	(("0" mc/insert-numbers "insert numbers" :exit t)
+	 ("A" mc/insert-letters "insert letters" :exit t)))))
 
 ;; Smartly select region, rectangle, multi cursors
 (use-package smart-region
@@ -277,7 +294,7 @@
   :diminish
   :if (executable-find "aspell")
   :hook (((text-mode outline-mode) . flyspell-mode)
-         (prog-mode . flyspell-prog-mode)
+         ;; (prog-mode . flyspell-prog-mode)
          (flyspell-mode . (lambda ()
                             (dolist (key '("C-;" "C-," "C-."))
                               (unbind-key key flyspell-mode-map)))))
@@ -322,18 +339,17 @@
          ([M-kp-2] . pager-row-down)))
 
 ;; Treat undo history as a tree
-(use-package undo-tree
-  :diminish
-  :hook (after-init . global-undo-tree-mode)
-  :init
-  (setq undo-tree-visualizer-timestamps t
-        undo-tree-enable-undo-in-region nil
-        undo-tree-auto-save-history nil)
-
-  ;; HACK: keep the diff window
-  (with-no-warnings
-    (make-variable-buffer-local 'undo-tree-visualizer-diff)
-    (setq-default undo-tree-visualizer-diff t)))
+(if emacs/>=28p
+    (use-package vundo
+      :bind ("C-x u" . vundo)
+      :config (setq vundo-glyph-alist vundo-unicode-symbols))
+  (use-package undo-tree
+    :diminish
+    :hook (after-init . global-undo-tree-mode)
+    :init (setq undo-tree-visualizer-timestamps t
+                undo-tree-visualizer-diff t
+                undo-tree-enable-undo-in-region nil
+                undo-tree-auto-save-history nil)))
 
 ;; Goto last change
 (use-package goto-chg
@@ -359,8 +375,8 @@
   :ensure nil
   :diminish hs-minor-mode
   :pretty-hydra
-  ((:title (pretty-hydra-title "HideShow" 'octicon "fold" :height 1.1 :v-adjust -0.05)
-    :color amaranth :quit-key "q")
+  ((:title (pretty-hydra-title "HideShow" 'octicon "nf-oct-fold")
+    :color amaranth :quit-key ("q" "C-g"))
    ("Fold"
     (("t" hs-toggle-all "toggle all")
      ("a" hs-show-all "show all")
@@ -460,6 +476,10 @@
   :load-path "~/.emacs.d/site-lisp/jieba/jieba.el"
   :commands jieba-mode
   :hook (after-init . jieba-mode))
+
+;; Hanlde minified code
+(use-package so-long
+  :hook (after-init . global-so-long-mode))
 
 (provide 'init-edit)
 

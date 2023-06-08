@@ -1,6 +1,6 @@
 ;; init-highlight.el --- Initialize highlighting configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2022 Vincent Zhang
+;; Copyright (C) 2006-2023 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -95,17 +95,16 @@ FACE defaults to inheriting from default and highlight."
 ;; Highlight symbols
 (use-package symbol-overlay
   :diminish
-  :functions (turn-off-symbol-overlay turn-on-symbol-overlay)
   :custom-face
-  (symbol-overlay-default-face ((t (:background ,(doom-color 'region)))))
-  (symbol-overlay-face-1 ((t (:background ,(doom-blend 'blue 'bg 0.5)    :foreground ,(doom-color 'fg)))))
-  (symbol-overlay-face-2 ((t (:background ,(doom-blend 'violet 'bg 0.5)  :foreground ,(doom-color 'fg)))))
-  (symbol-overlay-face-3 ((t (:background ,(doom-blend 'yellow 'bg 0.5)  :foreground ,(doom-color 'fg)))))
-  (symbol-overlay-face-4 ((t (:background ,(doom-blend 'orange 'bg 0.5)  :foreground ,(doom-color 'fg)))))
-  (symbol-overlay-face-5 ((t (:background ,(doom-blend 'red 'bg 0.5)     :foreground ,(doom-color 'fg)))))
-  (symbol-overlay-face-6 ((t (:background ,(doom-blend 'magenta 'bg 0.5) :foreground ,(doom-color 'fg)))))
-  (symbol-overlay-face-7 ((t (:background ,(doom-blend 'green 'bg 0.5)   :foreground ,(doom-color 'fg)))))
-  (symbol-overlay-face-8 ((t (:background ,(doom-blend 'cyan 'bg 0.5)    :foreground ,(doom-color 'fg)))))
+  (symbol-overlay-default-face ((t (:inherit region :background unspecified :foreground unspecified))))
+  (symbol-overlay-face-1 ((t (:inherit nerd-icons-blue :background unspecified :foreground unspecified :inverse-video t))))
+  (symbol-overlay-face-2 ((t (:inherit nerd-icons-pink :background unspecified :foreground unspecified :inverse-video t))))
+  (symbol-overlay-face-3 ((t (:inherit nerd-icons-yellow :background unspecified :foreground unspecified :inverse-video t))))
+  (symbol-overlay-face-4 ((t (:inherit nerd-icons-orange :background unspecified :foreground unspecified :inverse-video t))))
+  (symbol-overlay-face-5 ((t (:inherit nerd-icons-red :background unspecified :foreground unspecified :inverse-video t))))
+  (symbol-overlay-face-6 ((t (:inherit nerd-icons-purple :background unspecified :foreground unspecified :inverse-video t))))
+  (symbol-overlay-face-7 ((t (:inherit nerd-icons-green :background unspecified :foreground unspecified :inverse-video t))))
+  (symbol-overlay-face-8 ((t (:inherit nerd-icons-cyan :background unspecified :foreground unspecified :inverse-video t))))
   :bind (("M-i" . symbol-overlay-put)
          ("M-n" . symbol-overlay-jump-next)
          ("M-p" . symbol-overlay-jump-prev)
@@ -118,19 +117,20 @@ FACE defaults to inheriting from default and highlight."
          (iedit-mode-end        . turn-on-symbol-overlay))
   :init (setq symbol-overlay-idle-time 0.1)
   :config
-  ;; Disable symbol highlighting while selecting
-  (defun turn-off-symbol-overlay (&rest _)
-    "Turn off symbol highlighting."
-    (interactive)
-    (symbol-overlay-mode -1))
-  (advice-add #'set-mark :after #'turn-off-symbol-overlay)
+  (with-no-warnings
+    ;; Disable symbol highlighting while selecting
+    (defun turn-off-symbol-overlay (&rest _)
+      "Turn off symbol highlighting."
+      (interactive)
+      (symbol-overlay-mode -1))
+    (advice-add #'set-mark :after #'turn-off-symbol-overlay)
 
-  (defun turn-on-symbol-overlay (&rest _)
-    "Turn on symbol highlighting."
-    (interactive)
-    (when (derived-mode-p 'prog-mode 'yaml-mode)
-      (symbol-overlay-mode 1)))
-  (advice-add #'deactivate-mark :after #'turn-on-symbol-overlay))
+    (defun turn-on-symbol-overlay (&rest _)
+      "Turn on symbol highlighting."
+      (interactive)
+      (when (derived-mode-p 'prog-mode 'yaml-mode)
+        (symbol-overlay-mode 1)))
+    (advice-add #'deactivate-mark :after #'turn-on-symbol-overlay)))
 
 ;; Highlight indentions
 (use-package highlight-indent-guides
@@ -233,12 +233,15 @@ FACE defaults to inheriting from default and highlight."
 
 ;; Highlight uncommitted changes using VC
 (use-package diff-hl
+  :custom-face
+  (diff-hl-change ((t (:inherit custom-changed :foreground unspecified :background unspecified))))
+  (diff-hl-insert ((t (:inherit diff-added :background unspecified))))
+  (diff-hl-delete ((t (:inherit diff-removed :background unspecified))))
   :bind (:map diff-hl-command-map
          ("SPC" . diff-hl-mark-hunk))
   :hook ((after-init . global-diff-hl-mode)
          (after-init . global-diff-hl-show-hunk-mouse-mode)
-         (dired-mode . diff-hl-dired-mode)
-         ((after-init after-load-theme server-after-make-frame) . my-set-diff-hl-faces))
+         (dired-mode . diff-hl-dired-mode))
   :init (setq diff-hl-draw-borders nil)
   :config
   ;; Highlight on-the-fly
@@ -246,13 +249,6 @@ FACE defaults to inheriting from default and highlight."
 
   ;; Set fringe style
   (setq-default fringes-outside-margins t)
-
-  (defun my-set-diff-hl-faces ()
-    "Set `diff-hl' faces."
-    (custom-set-faces
-     `(diff-hl-change ((t (:foreground ,(face-foreground 'custom-changed) :background nil))))
-     '(diff-hl-insert ((t (:inherit diff-added :background nil))))
-     '(diff-hl-delete ((t (:inherit diff-removed :background nil))))))
 
   (with-no-warnings
     (defun my-diff-hl-fringe-bmp-function (_type _pos)
@@ -276,24 +272,12 @@ FACE defaults to inheriting from default and highlight."
       (add-hook 'magit-pre-refresh-hook #'diff-hl-magit-pre-refresh)
       (add-hook 'magit-post-refresh-hook #'diff-hl-magit-post-refresh))))
 
-;; Highlight some operations
-(use-package volatile-highlights
-  :diminish
-  :hook (after-init . volatile-highlights-mode)
-  :config
-  (with-no-warnings
-    (when (fboundp 'pulse-momentary-highlight-region)
-      (defun my-vhl-pulse (beg end &optional _buf face)
-        "Pulse the changes."
-        (pulse-momentary-highlight-region beg end face))
-      (advice-add #'vhl/.make-hl :override #'my-vhl-pulse))))
-
 ;; Pulse current line
 (use-package pulse
   :ensure nil
   :custom-face
-  (pulse-highlight-start-face ((t (:inherit region))))
-  (pulse-highlight-face ((t (:inherit region :extend t))))
+  (pulse-highlight-start-face ((t (:inherit region :background unspecified))))
+  (pulse-highlight-face ((t (:inherit region :background unspecified :extend t))))
   :hook (((dumb-jump-after-jump imenu-after-jump) . my-recenter-and-pulse)
          ((bookmark-after-jump magit-diff-visit-file next-error) . my-recenter-and-pulse-line))
   :init
@@ -332,10 +316,14 @@ FACE defaults to inheriting from default and highlight."
                    goto-last-change))
       (advice-add cmd :after #'my-recenter-and-pulse))))
 
-;; Show whitespace characters
-;; (use-package whitespace
-;;   :hook ((prog-mode yaml-mode conf-mode) . whitespace-mode)
-;;   :init (setq whitespace-style '(face tabs spaces newline space-mark tab-mark newline-mark)))
+;; Pulse modified region
+(if emacs/>=27p
+    (use-package goggles
+      :diminish
+      :hook ((prog-mode text-mode) . goggles-mode))
+  (use-package volatile-highlights
+    :diminish
+    :hook (after-init . volatile-highlights-mode)))
 
 (provide 'init-highlight)
 

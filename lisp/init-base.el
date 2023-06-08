@@ -1,6 +1,6 @@
-;; init-basic.el --- Better default configurations.	-*- lexical-binding: t -*-
+;; init-base.el --- Better default configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2022 Vincent Zhang
+;; Copyright (C) 2006-2023 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -35,6 +35,9 @@
 (require 'init-custom)
 (require 'init-funcs)
 
+;; Compatibility
+(use-package compat :demand t)
+
 ;; Personal information
 (setq user-full-name centaur-full-name
       user-mail-address centaur-mail-address)
@@ -59,6 +62,7 @@
   ;; Optimization
   (when sys/win32p
     (setq w32-get-true-file-attributes nil   ; decrease file IO workload
+          w32-use-native-image-API t         ; use native w32 API
           w32-pipe-read-delay 0              ; faster IPC
           w32-pipe-buffer-size (* 64 1024))) ; read more at a time (was 4K)
   (unless sys/macp
@@ -98,10 +102,6 @@
     (exec-path-from-shell-initialize)
     (setq exec-path-from-shell-variables
           '("GOPATH" "GO111MODULE" "GOPROXY" "PYTHONPATH"))))
-
-;; Compatibility
-(use-package compat
-  :demand t)
 
 ;; Start server
 (use-package server
@@ -171,7 +171,7 @@
     (add-hook 'process-menu-mode-hook
               (lambda ()
                 (setq tabulated-list-format
-                      (vconcat `(("" ,(if (icon-displayable-p) 2 0)))
+                      (vconcat `(("" ,(if (icons-displayable-p) 2 0)))
                                tabulated-list-format))))
 
     (defun my-list-processes--prettify ()
@@ -180,12 +180,10 @@
         (setq tabulated-list-entries nil)
         (dolist (p (process-list))
           (when-let* ((val (cadr (assoc p entries)))
-                      (icon (if (icon-displayable-p)
+                      (icon (if (icons-displayable-p)
                                 (concat
                                  " "
-                                 (all-the-icons-faicon "bolt"
-                                                       :height 1.0 :v-adjust -0.05
-                                                       :face 'all-the-icons-lblue))
+                                 (nerd-icons-faicon "nf-fa-bolt" :face 'nerd-icons-lblue))
                               " x"))
                       (name (aref val 0))
                       (pid (aref val 1))
@@ -204,14 +202,6 @@
                             (vector icon name pid status buf-label tty cmd)))
 		          tabulated-list-entries)))))
     (advice-add #'list-processes--refresh :after #'my-list-processes--prettify)))
-
-(use-package time
-  :ensure nil
-  :init (setq display-time-24hr-format t
-              display-time-day-and-date t))
-
-(use-package so-long
-  :hook (after-init . global-so-long-mode))
 
 ;; Misc
 (if (boundp 'use-short-answers)
@@ -255,7 +245,11 @@
            ("C-x K"   . delete-this-file)
            ("C-c C-l" . reload-init-file))
 
-(provide 'init-basic)
+;; Sqlite
+(when (fboundp 'sqlite-open)
+  (use-package emacsql-sqlite-builtin))
+
+(provide 'init-base)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; init-basic.el ends here
+;;; init-base.el ends here

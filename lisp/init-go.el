@@ -1,6 +1,6 @@
 ;; init-go.el --- Initialize Golang configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2022 Vincent Zhang
+;; Copyright (C) 2018-2023 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -32,18 +32,14 @@
 
 ;; Golang
 (use-package go-mode
-  :functions go-update-tools
-  :commands godoc-gogetdoc
+  :functions go-install-tools
+  :autoload godoc-gogetdoc
   :bind (:map go-mode-map
-         ("C-c R" . go-remove-unused-imports)
-         ("<f1>"  . godoc-at-point))
-  :init (setq godoc-at-point-function #'godoc-gogetdoc)
-  :config
-  ;; Env vars
-  (with-eval-after-load 'exec-path-from-shell
-    (exec-path-from-shell-copy-envs '("GOPATH" "GO111MODULE" "GOPROXY")))
+         ("<f1>" . godoc))
+  :init
+  (setq godoc-at-point-function #'godoc-gogetdoc)
 
-  ;; Install or update tools
+  ;; Install tools
   (defconst go--tools
     '("golang.org/x/tools/gopls"
       "golang.org/x/tools/cmd/goimports"
@@ -56,7 +52,7 @@
       "github.com/davidrjenni/reftools/cmd/fillstruct")
     "All necessary go tools.")
 
-  (defun go-update-tools ()
+  (defun go-install-tools ()
     "Install or update go tools."
     (interactive)
     (unless (executable-find "go")
@@ -71,30 +67,19 @@
            (if (= 0 status)
                (message "Installed %s" pkg)
              (message "Failed to install %s: %d" pkg status)))))))
+  :config
+  ;; Env vars
+  (with-eval-after-load 'exec-path-from-shell
+    (exec-path-from-shell-copy-envs '("GOPATH" "GO111MODULE" "GOPROXY")))
 
   ;; Try to install go tools if `gopls' is not found
   (unless (executable-find "gopls")
-    (go-update-tools))
+    (go-install-tools))
 
   ;; Misc
   (use-package go-dlv)
   (use-package go-fill-struct)
   (use-package go-impl)
-
-  ;; Install: See https://github.com/golangci/golangci-lint#install
-  (use-package flycheck-golangci-lint
-    :if (executable-find "golangci-lint")
-    :after flycheck
-    :defines flycheck-disabled-checkers
-    :hook (go-mode . (lambda ()
-                       "Enable golangci-lint."
-                       (setq flycheck-disabled-checkers '(go-gofmt
-                                                          go-golint
-                                                          go-vet
-                                                          go-build
-                                                          go-test
-                                                          go-errcheck))
-                       (flycheck-golangci-lint-setup))))
 
   (use-package go-tag
     :bind (:map go-mode-map
@@ -118,7 +103,7 @@
 ;; Local Golang playground for short snippets
 (use-package go-playground
   :diminish
-  :commands (go-playground-mode))
+  :commands go-playground-mode)
 
 (provide 'init-go)
 
