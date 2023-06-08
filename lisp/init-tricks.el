@@ -78,7 +78,7 @@
     (centaur-load-theme centaur-theme)
     (disable-sis-modes)
     (set-face-attribute 'default nil
-                        :font "Monaco")
+                        :font "Cascadia Code")
     (set-fontset-font t 'unicode
                       (font-spec :family "PingFang SC"))))
 
