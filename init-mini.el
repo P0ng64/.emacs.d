@@ -172,7 +172,6 @@
           mac-command-modifier 'super))))
 
 ;; Keybindings
-(global-set-key (kbd "C-.") #'imenu)
 (global-set-key (kbd "<C-return>") #'rectangle-mark-mode)
 
 (add-hook 'emacs-lisp-mode-hook
