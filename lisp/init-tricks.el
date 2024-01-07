@@ -32,20 +32,6 @@
 
 (require 'init-funcs)
 
-(defun enable-sis-modes ()
-  "Enable smart-input-source"
-  (interactive)
-  (sis-global-respect-mode t)
-  (sis-global-context-mode t)
-  (sis-global-inline-mode t))
-
-(defun disable-sis-modes ()
-  "Disable smart-input-source"
-  (interactive)
-  (sis-global-respect-mode 0)
-  (sis-global-context-mode 0)
-  (sis-global-inline-mode 0))
-
 (defun enable-posframe-modes ()
   "Enable posframe modes"
   (interactive)
@@ -61,7 +47,7 @@
   (transient-posframe-mode 0))
 
 (defun load-note-profile ()
-  "Set Emacs theme and font to a note-taking-friendly style."
+  "Set Emacs theme and font to a note-taking friendly style."
   (interactive)
   (progn
     (load-theme 'doom-one-light t)
@@ -72,7 +58,7 @@
                       (font-spec :family "Songti TC"))))
 
 (defun load-code-profile ()
-  "Set Emacs theme and font to a programming-friendly style."
+  "Set Emacs theme and font to a programming friendly style."
   (interactive)
   (progn
     (centaur-load-theme centaur-theme)

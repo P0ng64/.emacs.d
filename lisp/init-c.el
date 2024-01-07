@@ -37,7 +37,7 @@
 (use-package cc-mode
   :ensure nil
   :bind (:map c-mode-base-map
-         ("<f12>" . compile))
+              ("<f12>" . compile))
   :init (setq c-default-style "gnu"))
 
 (when (and centaur-tree-sitter (centaur-treesit-available-p))

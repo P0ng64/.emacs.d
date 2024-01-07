@@ -450,6 +450,9 @@
   :hook (after-init . fancy-narrow-mode))
 
 (use-package sis
+  :hook
+  ;; (after-init . sis-global-respect-mode)
+  (org-mode . sis-inline-mode)
   :config
   (setq sis-english-source "com.apple.keylayout.ABC")
   (sis-ism-lazyman-config
