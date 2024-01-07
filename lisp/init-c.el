@@ -41,7 +41,8 @@
   :init (setq c-default-style "gnu"))
 
 (when (and centaur-tree-sitter (centaur-treesit-available-p))
-  (use-package c-ts-mode)
+  (use-package c-ts-mode
+    :init (setq c-ts-mode-indent-offset 4)))
 
 (provide 'init-c)
 

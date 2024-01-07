@@ -200,6 +200,20 @@ Same as '`replace-string' `C-q' `C-m' `RET' `RET''."
   (interactive)
   (save-buffer-as-utf8 'gbk))
 
+(defun remove-dos-eol ()
+  "Remove  in current region or buffer."
+  (interactive)
+  (save-excursion
+    (when (region-active-p)
+      (narrow-to-region (region-beginning) (region-end)))
+    (goto-char (point-min))
+    (let ((count 0))
+      (while (search-forward "" nil t)
+        (replace-match "" nil t)
+        (setq count (1+ count)))
+      (message "Removed %d " count))
+    (widen)))
+
 (defun byte-compile-elpa ()
   "Compile packages in elpa directory. Useful if you switch Emacs versions."
   (interactive)
@@ -236,8 +250,9 @@ Same as '`replace-string' `C-q' `C-m' `RET' `RET''."
 
 (defun centaur-treesit-available-p ()
   "Check whether tree-sitter is available.
-Native tree-sitter is introduced since 29."
-  (and (fboundp 'treesit-available-p)
+  Native tree-sitter is introduced since 29."
+  (and centaur-tree-sitter
+       (fboundp 'treesit-available-p)
        (treesit-available-p)))
 
 (defun centaur-set-variable (variable value &optional no-save)
@@ -254,14 +269,14 @@ Native tree-sitter is introduced since 29."
               (format "^[\t ]*[;]*[\t ]*(setq %s .*)" variable)
                                nil t)
   (replace-match (format "(setq %s '%s)" variable value) nil nil))
-      (write-region nil nil custom-file)
-      (message "Saved %s (%s) to %s" variable value custom-file))))
+  (write-region nil nil custom-file)
+  (message "Saved %s (%s) to %s" variable value custom-file))))
 
 (defun too-long-file-p ()
   "Check whether the file is too long."
-  (if (fboundp 'buffer-line-statistics)
-      (> (car (buffer-line-statistics)) 10000)
-    (> (buffer-size) 100000)))
+  (or (> (buffer-size) 100000)
+      (and (fboundp 'buffer-line-statistics)
+           (> (car (buffer-line-statistics)) 10000))))
 
 (define-minor-mode centaur-read-mode
   "Minor Mode for better reading experience."
@@ -466,7 +481,6 @@ This issue has been addressed in 28."
 
 (defun centaur--load-system-theme (appearance)
   "Load theme, taking current system APPEARANCE into consideration."
-  (mapc #'disable-theme custom-enabled-themes)
   (centaur--load-theme (alist-get appearance centaur-system-themes)))
 
 (defun centaur-load-random-theme ()

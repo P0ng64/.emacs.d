@@ -216,6 +216,7 @@ prepended to the element after the #+HEADER: tag."
       (sass       . t)
       (C          . t)
       (java       . t)
+      (shell      . t)
       (plantuml   . t))
     "Alist of org ob languages.")
 
