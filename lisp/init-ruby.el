@@ -1,6 +1,6 @@
 ;; init-ruby.el --- Initialize ruby configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2023 Vincent Zhang
+;; Copyright (C) 2010-2024 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -29,9 +29,6 @@
 ;;
 
 ;;; Code:
-
-;; YAML mode
-(use-package yaml-mode)
 
 ;; Run a Ruby process in a buffer
 (use-package inf-ruby

@@ -1,6 +1,6 @@
 ;; init-prog.el --- Initialize programming configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2023 Vincent Zhang
+;; Copyright (C) 2006-2024 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -194,6 +194,7 @@ Install the doc if it's not installed."
 (use-package swift-mode)
 (use-package v-mode)
 (use-package vimrc-mode)
+(use-package yaml-mode)
 
 (use-package protobuf-mode
   :hook (protobuf-mode . (lambda ()
