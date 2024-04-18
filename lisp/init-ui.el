@@ -119,7 +119,7 @@
   :hook (after-init . doom-modeline-mode)
   :init
   (setq doom-modeline-icon nil
-        doom-modeline-height 32
+        doom-modeline-height 64
         doom-modeline-window-width-limit 110
         doom-modeline-minor-modes nil
         doom-modeline-irc nil

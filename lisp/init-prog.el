@@ -46,7 +46,8 @@
 (when (centaur-treesit-available-p)
   (use-package treesit-auto
     :hook (after-init . global-treesit-auto-mode)
-    :init (setq treesit-auto-install 'prompt)))
+    :init (setq treesit-auto-install 'prompt
+                treesit-font-lock-level 4)))
 
 ;; Show function arglist or variable docstring
 (use-package eldoc

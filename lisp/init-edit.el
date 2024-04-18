@@ -246,7 +246,8 @@
                   node-end (treesit-node-end node))))
         (set-mark node-end)
         (goto-char node-start)))
-    (add-to-list 'er/try-expand-list 'treesit-mark-bigger-node)))
+    (add-to-list 'er/try-expand-list 'treesit-mark-bigger-node))
+  )
 
 ;; Multiple cursors
 (use-package multiple-cursors
@@ -453,11 +454,6 @@
   :bind (("M-》" . end-of-buffer)
          ("M-《" . beginning-of-buffer)
          ("s-；" . (lambda () (interactive) (insert "……")))))
-
-(use-package jieba
-  :load-path "~/.emacs.d/site-lisp/jieba/jieba.el"
-  :commands jieba-mode
-  :hook (after-init . jieba-mode))
 
 ;; Hanlde minified code
 (use-package so-long
