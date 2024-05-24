@@ -1,6 +1,6 @@
 ;; init-funcs.el --- Define functions.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2023 Vincent Zhang
+;; Copyright (C) 2018-2024 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -25,7 +25,7 @@
 
 ;;; Commentary:
 ;;
-;; Define functions.
+;; Define some useful functions.
 ;;
 
 ;;; Code:
@@ -40,12 +40,12 @@
 (defvar socks-noproxy)
 (defvar socks-server)
 
-(declare-function browse-url-interactive-arg 'browse-url)
-(declare-function chart-bar-quickie 'chart)
-(declare-function circadian-activate-latest-theme 'xwidget)
-(declare-function nerd-icons-install-fonts 'nerd-icons)
-(declare-function xwidget-buffer 'xwidget)
-(declare-function xwidget-webkit-current-session 'xwidget)
+(declare-function browse-url-interactive-arg "browse-url")
+(declare-function chart-bar-quickie "chart")
+(declare-function consult-theme "ext:consult")
+(declare-function nerd-icons-install-fonts "ext:nerd-icons")
+(declare-function xwidget-buffer "xwidget")
+(declare-function xwidget-webkit-current-session "xwidget")
 
 
 
@@ -65,14 +65,20 @@
   (interactive)
   (set-buffer-file-coding-system 'undecided-dos nil))
 
-(defun delete-carrage-returns ()
-  "Delete `^M' characters in the buffer.
+(defun delete-dos-eol ()
+  "Delete `' characters in current region or buffer.
 Same as '`replace-string' `C-q' `C-m' `RET' `RET''."
   (interactive)
   (save-excursion
-    (goto-char 0)
-    (while (search-forward "\r" nil :noerror)
-      (replace-match ""))))
+    (when (region-active-p)
+      (narrow-to-region (region-beginning) (region-end)))
+    (goto-char (point-min))
+    (let ((count 0))
+      (while (search-forward "\r" nil t)
+        (replace-match "" nil t)
+        (setq count (1+ count)))
+      (message "Removed %d " count))
+    (widen)))
 
 ;; File and buffer
 (defun revert-this-buffer ()
@@ -200,20 +206,6 @@ Same as '`replace-string' `C-q' `C-m' `RET' `RET''."
   (interactive)
   (save-buffer-as-utf8 'gbk))
 
-(defun remove-dos-eol ()
-  "Remove  in current region or buffer."
-  (interactive)
-  (save-excursion
-    (when (region-active-p)
-      (narrow-to-region (region-beginning) (region-end)))
-    (goto-char (point-min))
-    (let ((count 0))
-      (while (search-forward "" nil t)
-        (replace-match "" nil t)
-        (setq count (1+ count)))
-      (message "Removed %d " count))
-    (widen)))
-
 (defun byte-compile-elpa ()
   "Compile packages in elpa directory. Useful if you switch Emacs versions."
   (interactive)
@@ -250,7 +242,7 @@ Same as '`replace-string' `C-q' `C-m' `RET' `RET''."
 
 (defun centaur-treesit-available-p ()
   "Check whether tree-sitter is available.
-  Native tree-sitter is introduced since 29."
+Native tree-sitter is introduced since 29.1."
   (and centaur-tree-sitter
        (fboundp 'treesit-available-p)
        (treesit-available-p)))
@@ -267,14 +259,14 @@ Same as '`replace-string' `C-q' `C-m' `RET' `RET''."
       (goto-char (point-min))
       (while (re-search-forward
               (format "^[\t ]*[;]*[\t ]*(setq %s .*)" variable)
-                               nil t)
-  (replace-match (format "(setq %s '%s)" variable value) nil nil))
-  (write-region nil nil custom-file)
-  (message "Saved %s (%s) to %s" variable value custom-file))))
+              nil t)
+        (replace-match (format "(setq %s '%s)" variable value) nil nil))
+      (write-region nil nil custom-file)
+      (message "Saved %s (%s) to %s" variable value custom-file))))
 
 (defun too-long-file-p ()
   "Check whether the file is too long."
-  (or (> (buffer-size) 100000)
+  (or (> (buffer-size) 500000)
       (and (fboundp 'buffer-line-statistics)
            (> (car (buffer-line-statistics)) 10000))))
 
@@ -349,6 +341,30 @@ Return the fastest package archive."
 
     ;; Return the fastest
     fastest))
+
+(defun set-from-minibuffer (sym)
+  "Set SYM value from minibuffer."
+  (eval-expression
+   (minibuffer-with-setup-hook
+       (lambda ()
+         (add-function :before-until (local 'eldoc-documentation-function)
+           #'elisp-eldoc-documentation-function)
+         (run-hooks 'eval-expression-minibuffer-setup-hook)
+         (goto-char (minibuffer-prompt-end))
+         (forward-char (length (format "(setq %S " sym))))
+     (read-from-minibuffer
+      "Eval: "
+      (let ((sym-value (symbol-value sym)))
+        (format
+         (if (or (consp sym-value)
+                 (and (symbolp sym-value)
+                      (not (null sym-value))
+                      (not (keywordp sym-value))))
+             "(setq %s '%S)"
+           "(setq %s %S)")
+         sym sym-value))
+      read-expression-map t
+      'read-expression-history))))
 
 ;; WORKAROUND: fix blank screen issue on macOS.
 (defun fix-fullscreen-cocoa ()
@@ -517,7 +533,7 @@ This issue has been addressed in 28."
      ;; Time-switching themes
      (use-package circadian
        :ensure t
-       :functions circadian-setup
+       :commands circadian-setup circadian-activate-latest-theme
        :custom (circadian-themes centaur-auto-themes)
        :init (circadian-setup)))
     ('system
@@ -525,6 +541,7 @@ This issue has been addressed in 28."
      (use-package auto-dark
        :ensure t
        :diminish
+       :commands auto-dark-mode
        :init
        (setq auto-dark-light-theme (alist-get 'light centaur-system-themes)
              auto-dark-dark-theme (alist-get 'dark centaur-system-themes))
@@ -538,6 +555,11 @@ This issue has been addressed in 28."
 
   ;; Set option
   (centaur-set-variable 'centaur-theme theme no-save))
+
+(advice-add #'consult-theme :after
+            (lambda (theme)
+              "Save theme."
+              (centaur-set-variable 'centaur-theme theme)))
 
 
 

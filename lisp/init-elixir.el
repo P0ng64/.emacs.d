@@ -1,6 +1,6 @@
 ;; init-elixir.el --- Initialize elixir configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2023 N.Ahmet BASTUG
+;; Copyright (C) 2019-2024 N.Ahmet BASTUG
 
 ;; Author: N.Ahmet BASTUG <bastugn@itu.edu.tr>
 ;; URL: https://github.com/kosantosbik/.emacs.d
@@ -34,8 +34,8 @@
   :config
   (use-package alchemist
     :diminish (alchemist-mode alchemist-phoenix-mode)
-    :hook ((elixir-mode . alchemist-mode)
-           (elixir-mode . alchemist-phoenix-mode))))
+    :hook (((elixir-mode elixir-ts-mode) . alchemist-mode)
+           (alchemist-mode . alchemist-phoenix-mode))))
 
 (provide 'init-elixir)
 

@@ -1,6 +1,6 @@
 ;; init-ui.el --- Better lookings and appearances.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2023 Vincent Zhang
+;; Copyright (C) 2006-2024 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -84,6 +84,9 @@
 
       ;; Excellent themes
       (use-package doom-themes
+        :custom
+        (doom-themes-enable-bold t)
+        (doom-themes-enable-italic t)
         :init (centaur-load-theme centaur-theme t)
         :config
         ;; Enable flashing mode-line on errors
@@ -173,9 +176,9 @@
      ("g f" (setq doom-modeline-irc-buffers (not doom-modeline-irc-buffers))
       "irc buffers" :toggle doom-modeline-irc-buffers)
      ("g s" (progn
-              (setq doom-modeline-checker-simple-format (not doom-modeline-checker-simple-format))
+              (setq doom-modeline-check-simple-format (not doom-modeline-check-simple-format))
               (and (bound-and-true-p flycheck-mode) (flycheck-buffer)))
-      "simple checker" :toggle doom-modeline-checker-simple-format)
+      "simple check format" :toggle doom-modeline-check-simple-format)
      ("g t" (setq doom-modeline-time (not doom-modeline-time))
       "time" :toggle doom-modeline-time)
      ("g v" (setq doom-modeline-env-version (not doom-modeline-env-version))
@@ -190,6 +193,9 @@
      ("f" (setq doom-modeline-buffer-file-name-style 'file-name)
       "file name"
       :toggle (eq doom-modeline-buffer-file-name-style 'file-name))
+     ("F" (setq doom-modeline-buffer-file-name-style 'file-name-with-project)
+      "file name with project"
+      :toggle (eq doom-modeline-buffer-file-name-style 'file-name-with-project))
      ("t u" (setq doom-modeline-buffer-file-name-style 'truncate-upto-project)
       "truncate upto project"
       :toggle (eq doom-modeline-buffer-file-name-style 'truncate-upto-project))
@@ -248,29 +254,13 @@
               (grip-browse-preview)
             (message "Not in preview"))
       "browse preview" :exit t)
-     ("z h" (read-from-minibuffer
-             "Eval: "
-             (format "(setq %s %s)"
-                     'doom-modeline-height
-                     (symbol-value 'doom-modeline-height)))
+     ("z h" (set-from-minibuffer 'doom-modeline-height)
       "set height" :exit t)
-     ("z w" (read-from-minibuffer
-             "Eval: "
-             (format "(setq %s %s)"
-                     'doom-modeline-bar-width
-                     (symbol-value 'doom-modeline-bar-width)))
+     ("z w" (set-from-minibuffer 'doom-modeline-bar-width)
       "set bar width" :exit t)
-     ("z g" (read-from-minibuffer
-             "Eval: "
-             (format "(setq %s %s)"
-                     'doom-modeline-github-interval
-                     (symbol-value 'doom-modeline-github-interval)))
+     ("z g" (set-from-minibuffer 'doom-modeline-github-interval)
       "set github interval" :exit t)
-     ("z n" (read-from-minibuffer
-             "Eval: "
-             (format "(setq %s %s)"
-                     'doom-modeline-gnus-timer
-                     (symbol-value 'doom-modeline-gnus-timer)))
+     ("z n" (set-from-minibuffer 'doom-modeline-gnus-timer)
       "set gnus interval" :exit t)))))
 
 (use-package hide-mode-line
@@ -407,13 +397,51 @@
 (when (boundp 'x-gtk-use-system-tooltips)
   (setq x-gtk-use-system-tooltips nil))
 
-;; improve CJK character performance when line truncating
-(when emacs/>=28p
-  (setq word-wrap-by-category t))
-
-;; Fix compile escape codes
-(add-hook 'compilation-filter-hook
-          (lambda () (ansi-color-apply-on-region (point-min) (point-max))))
+;; Ligatures support
+(when (and emacs/>=28p (not centaur-prettify-symbols-alist))
+  (use-package composite
+    :ensure nil
+    :init (defvar composition-ligature-table (make-char-table nil))
+    :hook (((prog-mode
+             conf-mode nxml-mode markdown-mode help-mode
+             shell-mode eshell-mode term-mode vterm-mode)
+            . (lambda () (setq-local composition-function-table composition-ligature-table))))
+    :config
+    ;; support ligatures, some toned down to prevent hang
+    (let ((alist
+           '((33  . ".\\(?:\\(==\\|[!=]\\)[!=]?\\)")
+             (35  . ".\\(?:\\(###?\\|_(\\|[(:=?[_{]\\)[#(:=?[_{]?\\)")
+             (36  . ".\\(?:\\(>\\)>?\\)")
+             (37  . ".\\(?:\\(%\\)%?\\)")
+             (38  . ".\\(?:\\(&\\)&?\\)")
+             (42  . ".\\(?:\\(\\*\\*\\|[*>]\\)[*>]?\\)")
+             ;; (42 . ".\\(?:\\(\\*\\*\\|[*/>]\\).?\\)")
+             (43  . ".\\(?:\\([>]\\)>?\\)")
+             ;; (43 . ".\\(?:\\(\\+\\+\\|[+>]\\).?\\)")
+             (45  . ".\\(?:\\(-[->]\\|<<\\|>>\\|[-<>|~]\\)[-<>|~]?\\)")
+             ;; (46 . ".\\(?:\\(\\.[.<]\\|[-.=]\\)[-.<=]?\\)")
+             (46  . ".\\(?:\\(\\.<\\|[-=]\\)[-<=]?\\)")
+             (47  . ".\\(?:\\(//\\|==\\|[=>]\\)[/=>]?\\)")
+             ;; (47 . ".\\(?:\\(//\\|==\\|[*/=>]\\).?\\)")
+             (48  . ".\\(?:x[a-zA-Z]\\)")
+             (58  . ".\\(?:\\(::\\|[:<=>]\\)[:<=>]?\\)")
+             (59  . ".\\(?:\\(;\\);?\\)")
+             (60  . ".\\(?:\\(!--\\|\\$>\\|\\*>\\|\\+>\\|-[-<>|]\\|/>\\|<[-<=]\\|=[<>|]\\|==>?\\||>\\||||?\\|~[>~]\\|[$*+/:<=>|~-]\\)[$*+/:<=>|~-]?\\)")
+             (61  . ".\\(?:\\(!=\\|/=\\|:=\\|<<\\|=[=>]\\|>>\\|[=>]\\)[=<>]?\\)")
+             (62  . ".\\(?:\\(->\\|=>\\|>[-=>]\\|[-:=>]\\)[-:=>]?\\)")
+             (63  . ".\\(?:\\([.:=?]\\)[.:=?]?\\)")
+             (91  . ".\\(?:\\(|\\)[]|]?\\)")
+             ;; (92 . ".\\(?:\\([\\n]\\)[\\]?\\)")
+             (94  . ".\\(?:\\(=\\)=?\\)")
+             (95  . ".\\(?:\\(|_\\|[_]\\)_?\\)")
+             (119 . ".\\(?:\\(ww\\)w?\\)")
+             (123 . ".\\(?:\\(|\\)[|}]?\\)")
+             (124 . ".\\(?:\\(->\\|=>\\||[-=>]\\||||*>\\|[]=>|}-]\\).?\\)")
+             (126 . ".\\(?:\\(~>\\|[-=>@~]\\)[-=>@~]?\\)"))))
+      (dolist (char-regexp alist)
+        (set-char-table-range composition-ligature-table (car char-regexp)
+                              `([,(cdr char-regexp) 0 font-shape-gstring]))))
+    (set-char-table-parent composition-ligature-table composition-function-table)))
 
 (provide 'init-ui)
 

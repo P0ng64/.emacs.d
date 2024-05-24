@@ -1,6 +1,6 @@
 ;;; init-workspace.el --- Initialize workspace configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2023 Vincent Zhang
+;; Copyright (C) 2018-2024 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -38,7 +38,7 @@
   (tabspaces-use-filtered-buffers-as-default t)
   (tabspaces-default-tab "Default")
   (tabspaces-remove-to-default t)
-  (tabspaces-include-buffers '("*scratch*"))
+  (tabspaces-include-buffers '("*scratch*" "*Messages*"))
   ;; sessions
   (tabspaces-session t)
   (tabspaces-session-auto-restore t)
@@ -59,9 +59,9 @@
                              :predicate #'tabspaces--local-buffer-p
                              :sort 'visibility
                              :as #'buffer-name)))
-
       "Set workspace buffer list for consult-buffer.")
     (add-to-list 'consult-buffer-sources 'consult--source-workspace)))
+
 
 (provide 'init-workspace)
 
