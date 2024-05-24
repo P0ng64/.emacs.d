@@ -449,10 +449,10 @@
          ("M-《" . beginning-of-buffer)
          ("s-；" . (lambda () (interactive) (insert "……")))))
 
-(use-package jieba
-  :load-path "~/.emacs.d/site-lisp/jieba/jieba.el"
-  :commands jieba-mode
-  :hook (after-init . jieba-mode))
+;; (use-package jieba
+;;   :load-path "~/.emacs.d/site-lisp/jieba/jieba.el"
+;;   :commands jieba-mode
+;;   :hook (after-init . jieba-mode))
 
 ;; Hanlde minified code
 (use-package so-long

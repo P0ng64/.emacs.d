@@ -39,7 +39,7 @@
 (use-package prog-mode
   :ensure nil
   :init
-  (setq-default prettify-symbols-alist centaur-prettify-symbols-alist)
+  (setq-default prettify-symbols-alist nil)
   (setq prettify-symbols-unprettify-at-point 'right-edge))
 
 ;; Tree-sitter support
