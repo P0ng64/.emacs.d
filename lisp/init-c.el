@@ -37,12 +37,12 @@
 (use-package cc-mode
   :ensure nil
   :bind (:map c-mode-base-map
-              ("<f12>" . compile))
+         ("<f12>" . compile))
   :init (setq c-default-style "gnu"))
 
 (when (and centaur-tree-sitter (centaur-treesit-available-p))
   (use-package c-ts-mode
-    :init (setq c-ts-mode-indent-offset 4)))
+    :init (setq c-ts-mode-indent-offset 2)))
 
 (provide 'init-c)
 

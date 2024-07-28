@@ -44,10 +44,12 @@
      (setq read-process-output-max (* 1024 1024)) ; 1MB
      (setq eglot-autoshutdown t
            eglot-send-changes-idle-time 0.5)
+     :bind (:map eglot-mode-map
+            ("M-RET" eglot-code-action-quickfix))
      :config
      (use-package consult-eglot
        :bind (:map eglot-mode-map
-                   ("C-M-." . consult-eglot-symbols)))))
+              ("C-M-." . consult-eglot-symbols)))))
   ('lsp-mode
    ;; Performace tuning
    ;; @see https://emacs-lsp.github.io/lsp-mode/page/performance/
@@ -75,9 +77,9 @@
                             (add-hook 'before-save-hook #'lsp-format-buffer t t)
                             (add-hook 'before-save-hook #'lsp-organize-imports t t)))))
      :bind (:map lsp-mode-map
-                 ("C-c C-d" . lsp-describe-thing-at-point)
-                 ([remap xref-find-definitions] . lsp-find-definition)
-                 ([remap xref-find-references] . lsp-find-references))
+            ("C-c C-d" . lsp-describe-thing-at-point)
+            ([remap xref-find-definitions] . lsp-find-definition)
+            ([remap xref-find-references] . lsp-find-references))
      :init (setq lsp-keymap-prefix "C-c l"
                  lsp-keep-workspace-alive nil
                  lsp-signature-auto-activate nil
@@ -104,7 +106,7 @@
      :config
      (use-package consult-lsp
        :bind (:map lsp-mode-map
-                   ("C-M-." . consult-lsp-symbols)))
+              ("C-M-." . consult-lsp-symbols)))
 
      (with-no-warnings
        ;; Disable `lsp-mode' in `git-timemachine-mode'
@@ -175,7 +177,7 @@
      (lsp-ui-sideline-code-action ((t (:inherit warning))))
      :pretty-hydra
      ((:title (pretty-hydra-title "LSP UI" 'faicon "nf-fa-rocket" :face 'nerd-icons-green)
-              :color amaranth :quit-key ("q" "C-g"))
+       :color amaranth :quit-key ("q" "C-g"))
       ("Doc"
        (("d e" (progn
                  (lsp-ui-doc-enable (not lsp-ui-doc-mode))
@@ -310,9 +312,9 @@
    (use-package lsp-treemacs
      :after lsp-mode
      :bind (:map lsp-mode-map
-                 ("C-<f8>" . lsp-treemacs-errors-list)
-                 ("M-<f8>" . lsp-treemacs-symbols)
-                 ("s-<f8>" . lsp-treemacs-java-deps-list))
+            ("C-<f8>" . lsp-treemacs-errors-list)
+            ("M-<f8>" . lsp-treemacs-symbols)
+            ("s-<f8>" . lsp-treemacs-java-deps-list))
      :init (lsp-treemacs-sync-mode 1)
      :config
      (with-eval-after-load 'ace-window

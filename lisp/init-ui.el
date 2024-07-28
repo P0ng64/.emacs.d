@@ -421,6 +421,8 @@
 (add-hook 'compilation-filter-hook
           (lambda () (ansi-color-apply-on-region (point-min) (point-max))))
 
+(blink-cursor-mode -1)
+
 (provide 'init-ui)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

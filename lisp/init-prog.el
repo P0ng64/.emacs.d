@@ -64,7 +64,8 @@
       :custom-face
       (eldoc-box-border ((t (:inherit posframe-border :background unspecified))))
       (eldoc-box-body ((t (:inherit tooltip))))
-      :hook ((eglot-managed-mode . eldoc-box-hover-at-point-mode))
+      ;; :hook ((eglot-managed-mode . eldoc-box-hover-at-point-mode))
+
       :config
       ;; Prettify `eldoc-box' frame
       (setf (alist-get 'left-fringe eldoc-box-frame-parameters) 8
@@ -137,7 +138,7 @@
   (defconst devdocs-major-mode-docs-alist
     '((c-mode          . ("c"))
       (c++-mode        . ("cpp"))
-      (python-mode     . ("python~3.10" "python~2.7"))
+      (python-mode     . ("python~3.11" "python~2.7"))
       (ruby-mode       . ("ruby~3.1"))
 
       (rustic-mode     . ("rust"))
@@ -182,18 +183,18 @@ Install the doc if it's not installed."
 
 ;; Misc. programming modes
 (use-package csv-mode)
-(unless emacs/>=29p
-  (use-package csharp-mode))
-(use-package cask-mode)
+;; (unless emacs/>=29p
+;;   (use-package csharp-mode))
+;; (use-package cask-mode)
 (use-package cmake-mode)
-(use-package dart-mode)
-(use-package julia-mode)
-(use-package lua-mode)
-(use-package mermaid-mode)
-(use-package powershell)
-(use-package scala-mode)
-(use-package swift-mode)
-(use-package v-mode)
+;; (use-package dart-mode)
+;; (use-package julia-mode)
+;; (use-package lua-mode)
+;; (use-package mermaid-mode)
+;; (use-package powershell)
+;; (use-package scala-mode)
+;; (use-package swift-mode)
+;; (use-package v-mode)
 (use-package vimrc-mode)
 (use-package yaml-mode)
 
