@@ -131,7 +131,17 @@
 (use-package link-hint
   :bind (("M-o" . link-hint-open-link)
          ("C-c l o" . link-hint-open-link)
-         ("C-c l c" . link-hint-copy-link)))
+         ("C-c l c" . link-hint-copy-link))
+  :init
+  (with-eval-after-load 'embark
+    (setq link-hint-action-fallback-commands
+          (list :open (lambda ()
+                        (condition-case _
+                            (progn
+                              (embark-dwim)
+                              t)
+                          (error
+                           nil)))))))
 
 ;; Jump to Chinese characters
 (use-package ace-pinyin
@@ -150,8 +160,11 @@
   :config
   ;; Disable in some modes
   (dolist (mode '(gitconfig-mode
-                  asm-mode web-mode html-mode css-mode
-                  go-mode scala-mode
+                  asm-mode web-mode html-mode
+                  css-mode css-ts-mode
+                  go-mode go-ts-mode
+                  python-ts-mode yaml-ts-mode
+                  scala-mode
                   shell-mode term-mode vterm-mode
                   prolog-inferior-mode))
     (add-to-list 'aggressive-indent-excluded-modes mode))
@@ -426,6 +439,10 @@
   (use-package xclip
     :hook (after-init . xclip-mode)
     :config
+    ;; HACK: fix bug in xclip-mode on WSL
+    (when (eq xclip-method 'powershell)
+      (setq xclip-program "powershell.exe"))
+
     ;; @see https://github.com/microsoft/wslg/issues/15#issuecomment-1796195663
     (when (eq xclip-method 'wl-copy)
       (set-clipboard-coding-system 'gbk) ; for wsl
