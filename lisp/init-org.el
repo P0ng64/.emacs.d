@@ -163,7 +163,7 @@ prepended to the element after the #+HEADER: tag."
   (add-to-list 'org-structure-template-alist '("n" . "note"))
 
   ;; Use embedded webkit browser if possible
-  (when (featurep 'xwidget-internal)
+  (when (and (featurep 'xwidget-internal) (display-graphic-p))
     (push '("\\.\\(x?html?\\|pdf\\)\\'"
             .
             (lambda (file _link)
@@ -307,8 +307,8 @@ prepended to the element after the #+HEADER: tag."
     :diminish
     :bind (:map org-mode-map
            ("C-c C-h" . org-preview-html-mode))
-    :init (when (featurep 'xwidget-internal)
-            (setq org-preview-html-viewer 'xwidget))))
+    :init (when (and (featurep 'xwidget-internal) (display-graphic-p))
+            (setq org-preview-html-viewer 'xwidget)))
 
 ;; Presentation
 (use-package org-tree-slide
@@ -350,6 +350,7 @@ prepended to the element after the #+HEADER: tag."
 ;; Roam
 (use-package org-roam
   :diminish
+  :functions centaur-browse-url
   :defines org-roam-graph-viewer
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
@@ -360,9 +361,7 @@ prepended to the element after the #+HEADER: tag."
   :init
   (setq org-roam-directory (file-truename centaur-org-directory)
         org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag))
-        org-roam-graph-viewer (if (featurep 'xwidget-internal)
-                                  #'xwidget-webkit-browse-url
-                                #'browse-url))
+        org-roam-graph-viewer #'centaur-browse-url)
   :config
   (unless (file-exists-p org-roam-directory)
     (make-directory org-roam-directory))
@@ -372,8 +371,7 @@ prepended to the element after the #+HEADER: tag."
 
 (use-package org-roam-ui
   :bind ("C-c n u" . org-roam-ui-mode)
-  :init (when (featurep 'xwidget-internal)
-          (setq org-roam-ui-browser-function #'xwidget-webkit-browse-url)))
+  :init (setq org-roam-ui-browser-function #'centaur-browse-url))
 
 ;; Image drag-and-drop in org-mode and dired-mode
 (use-package org-download
