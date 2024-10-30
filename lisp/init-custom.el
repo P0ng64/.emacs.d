@@ -157,8 +157,8 @@ For example:
                 :value-type (symbol :tag "Theme")))
 
 (when (boundp 'ns-system-appearance-change-functions)
-  (defcustom centaur-system-themes '((light . doom-nord-light)
-				                     (dark  . doom-nord-aurora))
+  (defcustom centaur-system-themes '((light . doom-one-light)
+				                     (dark  . doom-peacock))
     "List of themes related the system appearance.
 
      It's only available on macOS currently."

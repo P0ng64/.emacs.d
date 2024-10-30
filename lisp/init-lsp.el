@@ -45,7 +45,7 @@
      (setq eglot-autoshutdown t
            eglot-send-changes-idle-time 0.5)
      :bind (:map eglot-mode-map
-            ("M-RET" eglot-code-action-quickfix))
+            ("M-RET" . eglot-code-action-quickfix))
      :config
      (use-package consult-eglot
        :bind (:map eglot-mode-map
