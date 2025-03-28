@@ -1,6 +1,6 @@
 ;; init-lsp.el --- Initialize LSP configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2024 Vincent Zhang
+;; Copyright (C) 2018-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -45,23 +45,20 @@
      (setq read-process-output-max (* 1024 1024)) ; 1MB
      (setq eglot-autoshutdown t
            eglot-events-buffer-size 0
-           eglot-send-changes-idle-time 0.5)
-     :bind (:map eglot-mode-map
-            ("M-RET" . eglot-code-action-quickfix))
-     :config
-     (use-package consult-eglot
-       :bind (:map eglot-mode-map
-              ("C-M-." . consult-eglot-symbols)))
+           eglot-send-changes-idle-time 0.5))
 
-     ;; Emacs LSP booster
-     (when (and emacs/>=29p (executable-find "emacs-lsp-booster"))
-       (unless (package-installed-p 'eglot-booster)
-         (and (fboundp #'package-vc-install)
-              (package-vc-install "https://github.com/jdtsmith/eglot-booster")))
-       (use-package eglot-booster
-         :ensure nil
-         :autoload eglot-booster-mode
-         :init (eglot-booster-mode 1)))))
+   (use-package consult-eglot
+     :after consult eglot
+     :bind (:map eglot-mode-map
+            ("C-M-." . consult-eglot-symbols)))
+
+   ;; Emacs LSP booster
+   (use-package eglot-booster
+     :when (and emacs/>=29p (executable-find "emacs-lsp-booster"))
+     :ensure nil
+     :init (unless (package-installed-p 'eglot-booster)
+             (package-vc-install "https://github.com/jdtsmith/eglot-booster"))
+     :hook (after-init . eglot-booster-mode)))
   ('lsp-mode
    ;; Emacs client for the Language Server Protocol
    ;; https://github.com/emacs-lsp/lsp-mode#supported-languages
@@ -124,7 +121,7 @@
 
      (with-no-warnings
        ;; Emacs LSP booster
-       ;; @seee https://github.com/blahgeek/emacs-lsp-booster
+       ;; @see https://github.com/blahgeek/emacs-lsp-booster
        (when (executable-find "emacs-lsp-booster")
          (defun lsp-booster--advice-json-parse (old-fn &rest args)
            "Try to parse bytecode instead of json."
@@ -541,16 +538,18 @@
    ;; Python
    (use-package lsp-pyright
      :preface
-     ;; Use yapf to format
-     (defun lsp-pyright-format-buffer ()
-       (interactive)
-       (when (and (executable-find "yapf") buffer-file-name)
-         (call-process "yapf" nil nil nil "-i" buffer-file-name)))
      :hook (((python-mode python-ts-mode) . (lambda ()
                                               (require 'lsp-pyright)
                                               (add-hook 'after-save-hook #'lsp-pyright-format-buffer t t))))
-     :init (when (executable-find "python3")
-             (setq lsp-pyright-python-executable-cmd "python3")))
+     :init
+     (when (executable-find "python3")
+       (setq lsp-pyright-python-executable-cmd "python3"))
+
+     (defun lsp-pyright-format-buffer ()
+       "Use `yapf' to format the buffer."
+       (interactive)
+       (when (and (executable-find "yapf") buffer-file-name)
+         (call-process "yapf" nil nil nil "-i" buffer-file-name))))
 
    ;; C/C++/Objective-C
    (use-package ccls
@@ -561,8 +560,8 @@
        ;; @see https://github.com/emacs-lsp/emacs-ccls/issues/109
        (cl-defmethod my-lsp-execute-command
          ((_server (eql ccls)) (command (eql ccls.xref)) arguments)
-         (when-let ((xrefs (lsp--locations-to-xref-items
-                            (lsp--send-execute-command (symbol-name command) arguments))))
+         (when-let* ((xrefs (lsp--locations-to-xref-items
+                             (lsp--send-execute-command (symbol-name command) arguments))))
            (xref--show-xrefs xrefs nil)))
        (advice-add #'lsp-execute-command :override #'my-lsp-execute-command)))
 

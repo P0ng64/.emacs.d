@@ -1,6 +1,6 @@
 ;; init-custom.el --- Define customizations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2024 Vincent Zhang
+;; Copyright (C) 2006-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -60,12 +60,12 @@
   :group 'centaur
   :type 'string)
 
-(defcustom centaur-proxy "127.0.0.1:1087"
+(defcustom centaur-proxy "127.0.0.1:7897"
   "Set HTTP/HTTPS proxy."
   :group 'centaur
   :type 'string)
 
-(defcustom centaur-socks-proxy "127.0.0.1:1086"
+(defcustom centaur-socks-proxy "127.0.0.1:7897"
   "Set SOCKS proxy."
   :group 'centaur
   :type 'string)
@@ -156,10 +156,9 @@ For example:
   :type '(alist :key-type (string :tag "Time")
                 :value-type (symbol :tag "Theme")))
 
-(when (boundp 'ns-system-appearance-change-functions)
-  (defcustom centaur-system-themes '((light . doom-one-light)
-				                     (dark  . doom-peacock))
-    "List of themes related the system appearance.
+(defcustom centaur-system-themes '((dark  . doom-peacock)
+                                   (light . doom-one-light))
+  "List of themes related the system appearance.
 
      It's only available on macOS currently."
     :group 'centaur
@@ -186,6 +185,11 @@ For example:
   :group 'centaur
   :type '(choice (const :tag "Minibuffer" minibuffer)
                  (const :tag "Child Frame" childframe)))
+
+(defcustom centaur-frame-maximized-on-startup nil
+  "Maximize frame on startup or not."
+  :group 'centaur
+  :type 'boolean)
 
 (defcustom centaur-dashboard (not (daemonp))
   "Display dashboard at startup or not.
