@@ -39,7 +39,7 @@
   :pretty-hydra
   ;; See `org-structure-template-alist'
   ((:title (pretty-hydra-title "Org Template" 'sucicon "nf-custom-orgmode" :face 'nerd-icons-green)
-    :color blue :quit-key ("q" "C-g"))
+           :color blue :quit-key ("q" "C-g"))
    ("Basic"
     (("a" (hot-expand "<a") "ascii")
      ("c" (hot-expand "<c") "center")
@@ -249,7 +249,7 @@ prepended to the element after the #+HEADER: tag."
 
   (use-package org-rich-yank
     :bind (:map org-mode-map
-           ("C-M-y" . org-rich-yank)))
+                ("C-M-y" . org-rich-yank)))
 
   ;; Table of contents
   (use-package toc-org
@@ -258,9 +258,9 @@ prepended to the element after the #+HEADER: tag."
   ;; Export text/html MIME emails
   (use-package org-mime
     :bind (:map message-mode-map
-           ("C-c M-o" . org-mime-htmlize)
-           :map org-mode-map
-           ("C-c M-o" . org-mime-org-buffer-htmlize)))
+                ("C-c M-o" . org-mime-htmlize)
+                :map org-mode-map
+                ("C-c M-o" . org-mime-org-buffer-htmlize)))
 
   ;; Add graphical view of agenda
   (use-package org-timeline
@@ -284,7 +284,7 @@ prepended to the element after the #+HEADER: tag."
   (use-package org-preview-html
     :diminish
     :bind (:map org-mode-map
-           ("C-c C-h" . org-preview-html-mode))
+                ("C-c C-h" . org-preview-html-mode))
     :init (when (featurep 'xwidget-internal)
             (setq org-preview-html-viewer 'xwidget)))
 
@@ -296,25 +296,19 @@ prepended to the element after the #+HEADER: tag."
         org-latex-listings 'minted
         org-latex-packages-alist '(("" "minted"))))
 
-(when emacs/>=27p
-  ;; Auto-toggle Org LaTeX fragments
-  (use-package org-fragtog
-    :diminish
-    :hook (org-mode . org-fragtog-mode))
-
-  ;; Preview
-  (use-package org-preview-html
-    :diminish
-    :bind (:map org-mode-map
-           ("C-c C-h" . org-preview-html-mode))
-    :init (when (and (featurep 'xwidget-internal) (display-graphic-p))
-            (setq org-preview-html-viewer 'xwidget)))
+;; Preview
+(use-package org-preview-html
+  :diminish
+  :bind (:map org-mode-map
+              ("C-c C-h" . org-preview-html-mode))
+  :init (when (and (featurep 'xwidget-internal) (display-graphic-p))
+          (setq org-preview-html-viewer 'xwidget)))
 
 ;; Presentation
 (use-package org-tree-slide
   :diminish
   :bind (:map org-mode-map
-         ("C-c C-h" . org-preview-html-mode))
+              ("C-c C-h" . org-preview-html-mode))
   :init (when (featurep 'xwidget-internal)
           (setq org-preview-html-viewer 'xwidget)))
 

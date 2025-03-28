@@ -53,12 +53,6 @@
   (with-eval-after-load 'exec-path-from-shell
     (exec-path-from-shell-copy-env "PYTHONPATH")))
 
-(use-package conda
-  :after python
-  :config
-  (setq conda-anaconda-home "/opt/homebrew/Caskroom/miniforge/base"
-        conda-env-home-directory (expand-file-name "~/.conda")))
-
 (provide 'init-python)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

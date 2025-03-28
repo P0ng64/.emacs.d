@@ -454,11 +454,6 @@
 (unless sys/win32p
   (use-package sudo-edit))
 
-;; Narrow/Widen
-(use-package fancy-narrow
-  :diminish
-  :hook (after-init . fancy-narrow-mode))
-
 (use-package sis
   :hook
   ;; (after-init . sis-global-respect-mode)
