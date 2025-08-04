@@ -1,6 +1,6 @@
 ;; init-utils.el --- Initialize ultilities.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2024 Vincent Zhang
+;; Copyright (C) 2006-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -30,18 +30,26 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'init-const))
+
 ;; Display available keybindings in popup
 (use-package which-key
   :diminish
+  :autoload which-key-posframe-mode
+  :functions childframe-completion-workable-p
   :bind ("C-h M-m" . which-key-show-major-mode)
   :hook (after-init . which-key-mode)
   :init (setq which-key-max-description-length 30
               which-key-lighter nil
               which-key-show-remaining-keys t)
   :config
-  (which-key-add-key-based-replacements "C-c !" "flycheck")
+  (which-key-add-key-based-replacements "M-s h" "highlight")
+  (which-key-add-key-based-replacements "M-s s" "symbol-overlay")
+
   (which-key-add-key-based-replacements "C-c &" "yasnippet")
   (which-key-add-key-based-replacements "C-c @" "hideshow")
+  (which-key-add-key-based-replacements "C-c c" "consult")
   (which-key-add-key-based-replacements "C-c d" "dict")
   (which-key-add-key-based-replacements "C-c l" "link-hint")
   (which-key-add-key-based-replacements "C-c n" "org-roam")
@@ -52,8 +60,9 @@
   (which-key-add-key-based-replacements "C-x 8 e" "emoji")
   (which-key-add-key-based-replacements "C-x @" "modifior")
   (which-key-add-key-based-replacements "C-x a" "abbrev")
-  (which-key-add-key-based-replacements "C-x c" "citre")
+  (which-key-add-key-based-replacements "C-x c" "colorful")
   (which-key-add-key-based-replacements "C-x n" "narrow")
+  (which-key-add-key-based-replacements "C-x p" "project")
   (which-key-add-key-based-replacements "C-x r" "rect & bookmark")
   (which-key-add-key-based-replacements "C-x t" "tab & treemacs")
   (which-key-add-key-based-replacements "C-x x" "buffer")
@@ -98,6 +107,7 @@
   (when (childframe-completion-workable-p)
     (use-package which-key-posframe
       :diminish
+      :defines posframe-border-width
       :functions posframe-poshandler-frame-center-near-bottom
       :custom-face
       (which-key-posframe ((t (:inherit tooltip))))
@@ -117,7 +127,7 @@
                                   (interactive)
                                   (user-error "Scratch buffer cannot be killed")))
          ([remap revert-buffer] . persistent-scratch-restore)
-         ([remap revert-this-buffer] . persistent-scratch-restore))
+         ([remap revert-buffer-quick] . persistent-scratch-restore))
   :hook ((after-init . persistent-scratch-autosave-mode)
          (lisp-interaction-mode . persistent-scratch-mode))
   :init (setq persistent-scratch-backup-file-name-format "%Y-%m-%d"
@@ -125,6 +135,20 @@
               (expand-file-name "persistent-scratch" user-emacs-directory)))
 
 ;; Search tools
+(use-package grep
+  :ensure nil
+  :autoload grep-apply-setting
+  :init
+  (when (executable-find "rg")
+    (grep-apply-setting
+     'grep-command "rg --color=auto --null -nH --no-heading -e ")
+    (grep-apply-setting
+     'grep-template "rg --color=auto --null --no-heading -g '!*/' -e <R> <D>")
+    (grep-apply-setting
+     'grep-find-command '("rg --color=auto --null -nH --no-heading -e ''" . 38))
+    (grep-apply-setting
+     'grep-find-template "rg --color=auto --null -nH --no-heading -e <R> <D>")))
+
 ;; Writable `grep' buffer
 (use-package wgrep
   :init
@@ -138,10 +162,8 @@
          ("c" . rg-dwim-current-dir)
          ("f" . rg-dwim-current-file)
          ("m" . rg-menu))
-  :init (setq rg-group-result t
-              rg-show-columns t)
-  :config
-  (cl-pushnew '("tmpl" . "*.tmpl") rg-custom-type-aliases))
+  :init (setq rg-show-columns t)
+  :config (add-to-list 'rg-custom-type-aliases '("tmpl" . "*.tmpl")))
 
 ;; Nice writing
 (use-package olivetti
@@ -160,7 +182,7 @@
   (when (fboundp 'gfm-mode)
     (setq atomic-chrome-url-major-mode-alist
           '(("github\\.com" . gfm-mode)
-            ("gitlab\\.com" . gfm-mode)))))
+            ("gitlab\\.*"   . gfm-mode)))))
 
 ;; Process
 (use-package proced
@@ -168,12 +190,13 @@
   :init
   (setq-default proced-format 'verbose)
   (setq proced-auto-update-flag t
-        proced-auto-update-interval 3))
+        proced-auto-update-interval 3
+        proced-enable-color-flag t))
 
 ;; IRC
 (use-package erc
   :ensure nil
-  :defines erc-autojoin-channels-alist
+  :defines erc-interpret-mirc-color erc-autojoin-channels-alist
   :init (setq erc-interpret-mirc-color t
               erc-lurker-hide-list '("JOIN" "PART" "QUIT")
               erc-autojoin-channels-alist '(("freenode.net" "#emacs"))))
@@ -219,6 +242,7 @@
 ;; Misc
 (use-package disk-usage)
 (use-package memory-usage)
+(use-package reveal-in-folder)
 
 (use-package list-environment
   :init
@@ -234,10 +258,6 @@
                              `(,val face font-lock-string-face)))))
               process-environment))
     (advice-add #'list-environment-entries :override #'my-list-environment-entries)))
-
-(unless sys/win32p
-  (use-package daemons)                 ; system services/daemons
-  (use-package tldr))
 
 (provide 'init-utils)
 

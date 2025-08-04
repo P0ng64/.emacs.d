@@ -1,6 +1,6 @@
 # Centaur Emacs
 
-[![Build Status](https://github.com/seagle0128/.emacs.d/workflows/CI/badge.svg?branch=master)](https://github.com/seagle0128/.emacs.d/actions)
+[![CI](https://github.com/seagle0128/.emacs.d/actions/workflows/ci.yml/badge.svg)](https://github.com/seagle0128/.emacs.d/actions/workflows/ci.yml)
 [![Release Tag](https://img.shields.io/github/tag/seagle0128/.emacs.d.svg?label=Release)](https://github.com/seagle0128/.emacs.d/releases)
 [![License](http://img.shields.io/:License-GPL3-blue.svg)](License)
 [![Windows](https://img.shields.io/badge/-Windows-lightblue?logo=windows&style=flat&logoColor=blue)](Windows)
@@ -39,8 +39,8 @@ an easy to use Emacs configuration for Emacs newcomers and lots of additional
 power for Emacs power users.
 
 It's able to run on Windows, GNU Linux and macOS. It is compatible **ONLY with
-GNU Emacs 27.1 and above**. In general you're advised to always run with the
-latest stable release - currently **29.2**.
+GNU Emacs 28.1 and above**. In general you're advised to always run with the
+latest stable release - currently **30.1**.
 
 ## Features
 
@@ -169,9 +169,10 @@ For Example:
 (setq centaur-socks-proxy "127.0.0.1:1086")    ; SOCKS proxy
 (setq centaur-server t)                        ; Enable `server-mode' or not: t or nil
 (setq centaur-icon t)                          ; Display icons or not: t or nil
-(setq centaur-package-archives 'melpa)         ; Package repo: melpa, emacs-cn, bfsu, netease, sjtu, tencent, tuna or ustc
+(setq centaur-package-archives 'melpa)         ; Package repo: melpa, bfsu, iscas, netease, sjtu, tencent, tuna or ustc
 (setq centaur-theme 'auto)                     ; Color theme: auto, random, system, default, pro, dark, light, warm, cold, day or night
 (setq centaur-completion-style 'minibuffer)    ; Completion display style: minibuffer or childframe
+(setq centaur-frame-maximized-on-startup t)    ; Maximize frame on startup or not
 (setq centaur-dashboard nil)                   ; Display dashboard at startup or not: t or nil
 (setq centaur-lsp 'lsp-mode)                   ; Set LSP client: lsp-mode, eglot or nil
 (setq centaur-lsp-format-on-save t)            ; Auto format buffers on save: t or nil
@@ -192,11 +193,11 @@ or`~/.emacs.d/custom-post.el`.
 ## Hydra
 
 | Name                     | Scope                 | Keybinding        | Description                          |
-| ------------------------ | --------------------- | ----------------- | ------------------------------------ |
+|--------------------------|-----------------------|-------------------|--------------------------------------|
 | `toggles-hydra`          | global                | `<f6>`            | Global option toggles                |
 | `window-hydra`           | global                | `C-c w`/`C-x o w` | Window management                    |
 | `doom-modeline-hydra`    | doom-modeline-mode    | `C-<f6>`          | Mode-line options and actions        |
-| `hydra-dired-qick-sort`  | dired                 | `S`               | Options for `dired-quick-sort`       |
+| `hydra-dired-qick-sort`  | dired-mode            | `S`               | Options for `dired-quick-sort`       |
 | `org-hydra`              | org-mode              | `<`               | Org template                         |
 | `dashboard-hydra`        | dashboard-mode        | `h`/`?`           | Actions for the dashboard            |
 | `dumb-jump-hydra`        | global                | `C-M-j`           | Jump to definition                   |
@@ -209,7 +210,7 @@ or`~/.emacs.d/custom-post.el`.
 | `hideshow-hydra`         | prog-mode             | `C-~`             | Actions for `hideshow`               |
 | `lsp-ui-hydra`           | lsp-ui-mode           | `M-<f6>`          | Actions for `lsp-ui`                 |
 | `dap-hydra`              | dap-mode              | `M-<f5>`          | Actions for `dap-debug`              |
-| `elfeed-hydra`           | elfeed                | `?`               | Actions for RSS reader `elfeed`      |
+| `elfeed-hydra`           | elfeed-search-mode    | `?`               | Actions for RSS reader `elfeed`      |
 | `xwidget-hydra`          | xwidget-webkit-mode   | `?`               | Actions for embedded webkit browser  |
 
 ## Screenshots

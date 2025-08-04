@@ -1,6 +1,6 @@
 ;; init-edit.el --- Initialize editing configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2024 Vincent Zhang
+;; Copyright (C) 2006-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -29,6 +29,9 @@
 ;;
 
 ;;; Code:
+
+(eval-when-compile
+  (require 'init-const))
 
 ;; Delete selection if you insert
 (use-package delsel
@@ -129,9 +132,20 @@
 
 ;; Quickly follow links
 (use-package link-hint
+  :functions embark-dwim
   :bind (("M-o" . link-hint-open-link)
          ("C-c l o" . link-hint-open-link)
-         ("C-c l c" . link-hint-copy-link)))
+         ("C-c l c" . link-hint-copy-link))
+  :init
+  (with-eval-after-load 'embark
+    (setq link-hint-action-fallback-commands
+          (list :open (lambda ()
+                        (condition-case _
+                            (progn
+                              (embark-dwim)
+                              t)
+                          (error
+                           nil)))))))
 
 ;; Jump to Chinese characters
 (use-package ace-pinyin
@@ -141,6 +155,8 @@
 ;; Minor mode to aggressively keep your code always indented
 (use-package aggressive-indent
   :diminish
+  :autoload aggressive-indent-mode
+  :functions too-long-file-p
   :hook ((after-init . global-aggressive-indent-mode)
          ;; NOTE: Disable in large files due to the performance issues
          ;; https://github.com/Malabarba/aggressive-indent-mode/issues/73
@@ -182,6 +198,7 @@
 ;; Redefine M-< and M-> for some modes
 (use-package beginend
   :diminish beginend-global-mode
+  :functions diminish
   :hook (after-init . beginend-global-mode)
   :config (mapc (lambda (pair)
                   (diminish (cdr pair)))
@@ -233,6 +250,7 @@
 
 ;; Increase selected region by semantic units
 (use-package expand-region
+  :functions centaur-treesit-available-p treesit-buffer-root-node
   :bind ("C-=" . er/expand-region)
   :config
   (when (centaur-treesit-available-p)
@@ -244,7 +262,7 @@
              (node-end (treesit-node-end node)))
         ;; Node fits the region exactly. Try its parent node instead.
         (when (and (= (region-beginning) node-start) (= (region-end) node-end))
-          (when-let ((node (treesit-node-parent node)))
+          (when-let* ((node (treesit-node-parent node)))
             (setq node-start (treesit-node-start node)
                   node-end (treesit-node-end node))))
         (set-mark node-end)
@@ -295,11 +313,12 @@
   :diminish
   :if (executable-find "aspell")
   :hook (((text-mode outline-mode) . flyspell-mode)
-         ;; (prog-mode . flyspell-prog-mode)
+         (prog-mode . flyspell-prog-mode)
          (flyspell-mode . (lambda ()
                             (dolist (key '("C-;" "C-," "C-."))
                               (unbind-key key flyspell-mode-map)))))
   :init (setq flyspell-issue-message-flag nil
+              flyspell-issue-welcome-flag nil
               ispell-program-name "aspell"
               ispell-extra-args '("--sug-mode=ultra" "--lang=en_US" "--run-together")))
 
@@ -317,17 +336,9 @@
          ([remap move-end-of-line] . mwim-end)))
 
 ;; Treat undo history as a tree
-(if emacs/>=28p
-    (use-package vundo
-      :bind ("C-x u" . vundo)
-      :config (setq vundo-glyph-alist vundo-unicode-symbols))
-  (use-package undo-tree
-    :diminish
-    :hook (after-init . global-undo-tree-mode)
-    :init (setq undo-tree-visualizer-timestamps t
-                undo-tree-visualizer-diff t
-                undo-tree-enable-undo-in-region nil
-                undo-tree-auto-save-history nil)))
+(use-package vundo
+  :bind ("C-x u" . vundo)
+  :config (setq vundo-glyph-alist vundo-unicode-symbols))
 
 ;; Goto last change
 (use-package goto-chg
@@ -428,6 +439,10 @@
   (use-package xclip
     :hook (after-init . xclip-mode)
     :config
+    ;; HACK: fix bug in xclip-mode on WSL
+    (when (eq xclip-method 'powershell)
+      (setq xclip-program "powershell.exe"))
+
     ;; @see https://github.com/microsoft/wslg/issues/15#issuecomment-1796195663
     (when (eq xclip-method 'wl-copy)
       (set-clipboard-coding-system 'gbk) ; for wsl
@@ -438,11 +453,6 @@
 ;; Open files as another user
 (unless sys/win32p
   (use-package sudo-edit))
-
-;; Narrow/Widen
-(use-package fancy-narrow
-  :diminish
-  :hook (after-init . fancy-narrow-mode))
 
 (use-package sis
   :hook
@@ -456,11 +466,6 @@
   :bind (("M-》" . end-of-buffer)
          ("M-《" . beginning-of-buffer)
          ("s-；" . (lambda () (interactive) (insert "……")))))
-
-;; (use-package jieba
-;;   :load-path "~/.emacs.d/site-lisp/jieba/jieba.el"
-;;   :commands jieba-mode
-;;   :hook (after-init . jieba-mode))
 
 ;; Hanlde minified code
 (use-package so-long

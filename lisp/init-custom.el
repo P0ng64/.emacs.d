@@ -1,6 +1,6 @@
 ;; init-custom.el --- Define customizations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2024 Vincent Zhang
+;; Copyright (C) 2006-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -60,12 +60,12 @@
   :group 'centaur
   :type 'string)
 
-(defcustom centaur-proxy "127.0.0.1:1087"
+(defcustom centaur-proxy "127.0.0.1:7897"
   "Set HTTP/HTTPS proxy."
   :group 'centaur
   :type 'string)
 
-(defcustom centaur-socks-proxy "127.0.0.1:1086"
+(defcustom centaur-socks-proxy "127.0.0.1:7897"
   "Set SOCKS proxy."
   :group 'centaur
   :type 'string)
@@ -87,12 +87,12 @@
     `((melpa    . (("gnu"    . ,(format "%s://elpa.gnu.org/packages/" proto))
                    ("nongnu" . ,(format "%s://elpa.nongnu.org/nongnu/" proto))
                    ("melpa"  . ,(format "%s://melpa.org/packages/" proto))))
-      (emacs-cn . (("gnu"    . ,(format "%s://1.15.88.122/gnu/" proto))
-                   ("nongnu" . ,(format "%s://1.15.88.122/nongnu/" proto))
-                   ("melpa"  . ,(format "%s://1.15.88.122/melpa/" proto))))
       (bfsu     . (("gnu"    . ,(format "%s://mirrors.bfsu.edu.cn/elpa/gnu/" proto))
                    ("nongnu" . ,(format "%s://mirrors.bfsu.edu.cn/elpa/nongnu/" proto))
                    ("melpa"  . ,(format "%s://mirrors.bfsu.edu.cn/elpa/melpa/" proto))))
+      (iscas    . (("gnu"    . ,(format "%s://mirror.iscas.ac.cn/elpa/gnu/" proto))
+                   ("nongnu" . ,(format "%s://mirror.iscas.ac.cn/elpa/nongnu/" proto))
+                   ("melpa"  . ,(format "%s://mirror.iscas.ac.cn/elpa/melpa/" proto))))
       (netease  . (("gnu"    . ,(format "%s://mirrors.163.com/elpa/gnu/" proto))
                    ("nongnu" . ,(format "%s://mirrors.163.com/elpa/nongnu/" proto))
                    ("melpa"  . ,(format "%s://mirrors.163.com/elpa/melpa/" proto))))
@@ -156,10 +156,9 @@ For example:
   :type '(alist :key-type (string :tag "Time")
                 :value-type (symbol :tag "Theme")))
 
-(when (boundp 'ns-system-appearance-change-functions)
-  (defcustom centaur-system-themes '((light . doom-nord-light)
-				                     (dark  . doom-nord-aurora))
-    "List of themes related the system appearance.
+(defcustom centaur-system-themes '((dark  . doom-nord-light)
+                                   (light . doom-nord-aurora))
+  "List of themes related the system appearance.
 
      It's only available on macOS currently."
     :group 'centaur
@@ -186,6 +185,11 @@ For example:
   :group 'centaur
   :type '(choice (const :tag "Minibuffer" minibuffer)
                  (const :tag "Child Frame" childframe)))
+
+(defcustom centaur-frame-maximized-on-startup nil
+  "Maximize frame on startup or not."
+  :group 'centaur
+  :type 'boolean)
 
 (defcustom centaur-dashboard (not (daemonp))
   "Display dashboard at startup or not.

@@ -1,6 +1,6 @@
 ;; init-treemacs.el --- Initialize treemacs.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2024 Vincent Zhang
+;; Copyright (C) 2018-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -52,6 +52,7 @@
   :config
   (setq treemacs-collapse-dirs           (if treemacs-python-executable 3 0)
         treemacs-missing-project-action  'remove
+        treemacs-user-mode-line-format   'none
         treemacs-sorting                 'alphabetic-asc
         treemacs-follow-after-init       t
         treemacs-width                   30
@@ -68,10 +69,7 @@
 
   (use-package treemacs-nerd-icons
     :demand t
-    :when (icons-displayable-p)
-    :custom-face
-    (treemacs-nerd-icons-root-face ((t (:inherit nerd-icons-green :height 1.3))))
-    (treemacs-nerd-icons-file-face ((t (:inherit nerd-icons-dsilver))))
+    :functions treemacs-load-theme
     :config (treemacs-load-theme "nerd-icons"))
 
   (use-package treemacs-magit
@@ -83,6 +81,7 @@
 
   (use-package treemacs-tab-bar
     :demand t
+    :functions treemacs-set-scope-type
     :config (treemacs-set-scope-type 'Tabs)))
 
 (provide 'init-treemacs)

@@ -1,6 +1,6 @@
 ;; init-elisp.el --- Initialize Emacs Lisp configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2024 Vincent Zhang
+;; Copyright (C) 2006-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -33,15 +33,7 @@
 ;; Emacs lisp mode
 (use-package elisp-mode
   :ensure nil
-  :bind (:map emacs-lisp-mode-map
-         ("C-c C-x" . ielm)
-         ("C-c C-c" . eval-defun)
-         ("C-c C-b" . eval-buffer))
   :config
-  ;; Syntax highlighting of known Elisp symbols
-  (use-package highlight-defined
-    :hook ((emacs-lisp-mode inferior-emacs-lisp-mode) . highlight-defined-mode))
-
   (with-no-warnings
     ;; Align indent keywords
     ;; @see https://emacs.stackexchange.com/questions/10230/how-to-indent-keywords-aligned
@@ -180,7 +172,7 @@ Lisp function does not specify a special indentation."
 
       (let ((orig-point (point)))
         (save-excursion
-          (when-let
+          (when-let*
               ((hook (progn (goto-char (point-min)) (symbol-at-point)))
                (func (when (and
                             (or (re-search-forward (format "^Value:?[\s|\n]") nil t)
@@ -202,6 +194,10 @@ Lisp function does not specify a special indentation."
                   (helpful-update)
                 (revert-buffer nil t)))))))
     (bind-key "r" #'remove-hook-at-point help-mode-map)))
+
+;; Syntax highlighting of known Elisp symbols
+(use-package highlight-defined
+  :hook ((emacs-lisp-mode inferior-emacs-lisp-mode) . highlight-defined-mode))
 
 ;; Interactive macro expander
 (use-package macrostep
@@ -237,24 +233,7 @@ Lisp function does not specify a special indentation."
         (button-type-put
          var-bt 'action
          (lambda (button)
-           (helpful-variable (button-get button 'apropos-symbol)))))))
-  :config
-  (with-no-warnings
-    ;; Open the buffer in other window
-    (defun my-helpful--navigate (button)
-      "Navigate to the path this BUTTON represents."
-      (find-file-other-window (substring-no-properties (button-get button 'path)))
-      ;; We use `get-text-property' to work around an Emacs 25 bug:
-      ;; http://git.savannah.gnu.org/cgit/emacs.git/commit/?id=f7c4bad17d83297ee9a1b57552b1944020f23aea
-      (-when-let (pos (get-text-property button 'position
-                                         (marker-buffer button)))
-        (helpful--goto-char-widen pos)))
-    (advice-add #'helpful--navigate :override #'my-helpful--navigate)))
-
-;; Integrate Ert-runner
-(use-package overseer
-  :diminish
-  :hook (emacs-lisp-mode . overseer-mode))
+           (helpful-variable (button-get button 'apropos-symbol))))))))
 
 (provide 'init-elisp)
 

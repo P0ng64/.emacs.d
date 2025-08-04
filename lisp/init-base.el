@@ -1,6 +1,6 @@
 ;; init-base.el --- Better default configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2024 Vincent Zhang
+;; Copyright (C) 2006-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -30,7 +30,11 @@
 
 ;;; Code:
 
-(require 'subr-x)
+;; Suppress warnings
+(eval-when-compile
+  (require 'init-const)
+  (require 'init-custom))
+
 (require 'init-funcs)
 
 ;; Compatibility
@@ -86,15 +90,26 @@
 ;; Set UTF-8 as the default coding system
 (when (fboundp 'set-charset-priority)
   (set-charset-priority 'unicode))
-(prefer-coding-system 'utf-8)
+(set-language-environment "UTF-8")
+(set-default-coding-systems 'utf-8)
+(set-buffer-file-coding-system 'utf-8)
+(set-clipboard-coding-system 'utf-8)
+(set-file-name-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-next-selection-coding-system 'utf-8)
+(set-selection-coding-system 'utf-8)
+(set-terminal-coding-system 'utf-8)
 (setq locale-coding-system 'utf-8)
 (setq system-time-locale "C")
-(unless sys/win32p
+(if sys/win32p
+    (add-to-list 'process-coding-system-alist
+                 '("cmdproxy" utf-8 . gbk))
   (set-selection-coding-system 'utf-8))
 
 ;; Environment
 (when (or sys/mac-x-p sys/linux-x-p (daemonp))
   (use-package exec-path-from-shell
+    :commands exec-path-from-shell-initialize
     :custom (exec-path-from-shell-arguments '("-l"))
     :init
     (exec-path-from-shell-initialize)
@@ -145,7 +160,7 @@
   :init
   (setq column-number-mode t
         line-number-mode t
-        ;; kill-whole-line t               ; Kill line including '\n'
+        kill-whole-line t               ; Kill line including '\n'
         line-move-visual nil
         track-eol t                     ; Keep cursor at end of lines. Require line-move-visual is nil.
         set-mark-command-repeat-pop t)  ; Repeating C-SPC after popping mark pops it again
@@ -161,7 +176,7 @@
   (with-no-warnings
     (defun my-list-processes--prettify ()
       "Prettify process list."
-      (when-let ((entries tabulated-list-entries))
+      (when-let* ((entries tabulated-list-entries))
         (setq tabulated-list-entries nil)
         (dolist (p (process-list))
           (when-let* ((val (cadr (assoc p entries)))
@@ -203,10 +218,20 @@
       sentence-end-double-space nil
       word-wrap-by-category t)
 
+;; Async
+(use-package async
+  :functions (async-bytecomp-package-mode dired-async-mode)
+  :init
+  (async-bytecomp-package-mode 1)
+  (dired-async-mode 1))
+
 ;; Frame
 (when (display-graphic-p)
+  ;; Frame maximized on startup
+  (when centaur-frame-maximized-on-startup
+    (add-hook 'window-setup-hook #'centaur-frame-maximize))
+
   ;; Frame fullscreen
-  (add-hook 'window-setup-hook #'fix-fullscreen-cocoa)
   (bind-key "S-s-<return>" #'toggle-frame-fullscreen)
   (and sys/mac-x-p (bind-key "C-s-f" #'toggle-frame-fullscreen))
 
@@ -228,14 +253,34 @@
     (when sys/linux-x-p
       (setq transwin-parameter-alpha 'alpha-background))))
 
+;; Child frame
+(use-package posframe
+  :hook (after-load-theme . posframe-delete-all)
+  :init
+  (defface posframe-border
+    `((t (:inherit region)))
+    "Face used by the `posframe' border."
+    :group 'posframe)
+  (defvar posframe-border-width 2
+    "Default posframe border width.")
+  :config
+  (with-no-warnings
+    (defun my-posframe--prettify-frame (&rest _)
+      (set-face-background 'fringe nil posframe--frame))
+    (advice-add #'posframe--create-posframe :after #'my-posframe--prettify-frame)
+
+    (defun posframe-poshandler-frame-center-near-bottom (info)
+      (cons (/ (- (plist-get info :parent-frame-width)
+                  (plist-get info :posframe-width))
+               2)
+            (/ (+ (plist-get info :parent-frame-height)
+                  (* 2 (plist-get info :font-height)))
+               2)))))
+
 ;; Global keybindings
-(bind-keys ("s-r"     . revert-this-buffer)
+(bind-keys ("s-r"     . revert-buffer-quick)
            ("C-x K"   . delete-this-file)
            ("C-c C-l" . reload-init-file))
-
-;; Sqlite
-(when (fboundp 'sqlite-open)
-  (use-package emacsql-sqlite-builtin))
 
 (provide 'init-base)
 

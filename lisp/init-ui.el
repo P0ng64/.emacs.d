@@ -1,6 +1,6 @@
 ;; init-ui.el --- Better lookings and appearances.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2024 Vincent Zhang
+;; Copyright (C) 2006-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -34,6 +34,10 @@
   (require 'init-const)
   (require 'init-custom))
 
+(declare-function childframe-completion-workable-p "init-funcs")
+(declare-function centaur-compatible-theme-p "init-funcs")
+(declare-function refresh-ns-appearance "init-ui")
+
 ;; Optimization
 (setq idle-update-delay 1.0)
 
@@ -50,8 +54,8 @@
 ;; Initial frame
 (setq initial-frame-alist '((top . 0.5)
                             (left . 0.5)
-                            (width . 0.628)
-                            (height . 0.8)
+                            (width . 0.7)
+                            (height . 0.85)
                             (fullscreen)))
 
 ;; Logo
@@ -61,7 +65,7 @@
 (setq frame-title-format '("Emacs - %b"))
 (setq ns-use-proxy-icon nil)
 
-(when (and sys/mac-ns-p sys/mac-x-p)
+(when (or sys/mac-ns-p sys/mac-port-p)
   (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
   (add-to-list 'default-frame-alist '(ns-appearance . dark))
   (add-hook 'server-after-make-frame-hook
@@ -69,11 +73,16 @@
               (if (display-graphic-p)
                   (menu-bar-mode 1)
                 (menu-bar-mode -1))))
-  (add-hook 'after-load-theme-hook
-            (lambda ()
-              (let ((bg (frame-parameter nil 'background-mode)))
-                (set-frame-parameter nil 'ns-appearance bg)
-                (setcdr (assq 'ns-appearance default-frame-alist) bg)))))
+
+  (defun refresh-ns-appearance ()
+    "Refresh frame parameter ns-appearance."
+    (let ((bg (frame-parameter nil 'background-mode)))
+      (set-frame-parameter nil 'ns-appearance bg)
+      (setcdr (assq 'ns-appearance default-frame-alist) bg)))
+  (add-hook 'after-load-theme-hook #'refresh-ns-appearance)
+  (with-eval-after-load'auto-dark
+   (add-hook 'auto-dark-dark-mode-hook #'refresh-ns-appearance)
+   (add-hook 'auto-dark-light-mode-hook #'refresh-ns-appearance)))
 
 ;; Theme
 (if (centaur-compatible-theme-p centaur-theme)
@@ -84,6 +93,7 @@
 
       ;; Excellent themes
       (use-package doom-themes
+        :functions centaur-load-theme doom-themes-visual-bell-config
         :custom
         (doom-themes-enable-bold t)
         (doom-themes-enable-italic t)
@@ -264,31 +274,35 @@
       "set gnus interval" :exit t)))))
 
 (use-package hide-mode-line
-  :hook (((treemacs-mode
+  :autoload turn-off-hide-mode-line-mode
+  :hook (((eat-mode
            eshell-mode shell-mode
            term-mode vterm-mode
-           embark-collect-mode
-           lsp-ui-imenu-mode
-           pdf-annot-list-mode) . turn-on-hide-mode-line-mode)
-         (dired-mode . (lambda()
-                         (and (bound-and-true-p hide-mode-line-mode)
-                              (turn-off-hide-mode-line-mode))))))
+           embark-collect-mode lsp-ui-imenu-mode
+           pdf-annot-list-mode) . turn-on-hide-mode-line-mode)))
 
 ;; A minor-mode menu for mode-line
 (use-package minions
-  :hook (doom-modeline-mode . minions-mode))
+  :hook (after-init . minions-mode))
 
 ;; Icons
 (use-package nerd-icons
+  :commands nerd-icons-install-fonts
+  :functions font-available-p
   :config
+  ;; Install nerd fonts automatically only in GUI
+  ;; For macOS, may install via "brew install font-symbols-only-nerd-font"
   (when (and (display-graphic-p)
-             (not (font-installed-p nerd-icons-font-family)))
+             (not (font-available-p nerd-icons-font-family)))
     (nerd-icons-install-fonts t)))
 
 ;; Show line numbers
 (use-package display-line-numbers
   :ensure nil
-  :hook ((prog-mode yaml-mode conf-mode) . display-line-numbers-mode)
+  :hook ((prog-mode
+          conf-mode toml-ts-mode
+          yaml-mode yaml-ts-mode)
+         . display-line-numbers-mode)
   :init (setq display-line-numbers-width-start t))
 
 ;; Suppress GUI features
@@ -335,21 +349,10 @@
       auto-window-vscroll nil
       scroll-preserve-screen-position t)
 
-;; Good pixel line scrolling
-(if (fboundp 'pixel-scroll-precision-mode)
-    (pixel-scroll-precision-mode t)
-  (unless sys/macp
-    (use-package good-scroll
-      :diminish
-      :hook (after-init . good-scroll-mode)
-      :bind (([remap next] . good-scroll-up-full-screen)
-             ([remap prior] . good-scroll-down-full-screen)))))
-
-;; Smooth scrolling over images
-(unless emacs/>=30p
-  (use-package iscroll
-    :diminish
-    :hook (image-mode . iscroll-mode)))
+;; Smooth scrolling
+(when emacs/>=29p
+  (use-package ultra-scroll
+    :hook (after-init . ultra-scroll-mode)))
 
 ;; Use fixed pitch where it's sensible
 (use-package mixed-pitch
@@ -359,33 +362,27 @@
 ;; Display ugly ^L page breaks as tidy horizontal lines
 (use-package page-break-lines
   :diminish
-  :hook (after-init . global-page-break-lines-mode))
+  :hook (after-init . global-page-break-lines-mode)
+  :config (dolist (mode '(dashboard-mode emacs-news-mode))
+            (add-to-list 'page-break-lines-modes mode)))
 
-;; Child frame
-(when (childframe-workable-p)
-  (use-package posframe
-    :hook (after-load-theme . posframe-delete-all)
-    :init
-    (defface posframe-border
-      `((t (:inherit region)))
-      "Face used by the `posframe' border."
-      :group 'posframe)
-    (defvar posframe-border-width 2
-      "Default posframe border width.")
-    :config
-    (with-no-warnings
-      (defun my-posframe--prettify-frame (&rest _)
-        (set-face-background 'fringe nil posframe--frame))
-      (advice-add #'posframe--create-posframe :after #'my-posframe--prettify-frame)
+;; Transient
+(when (childframe-completion-workable-p)
+  ;; Display transient in child frame
+  (use-package transient-posframe
+    :diminish
+    :defines posframe-border-width
+    :custom-face
+    (transient-posframe ((t (:inherit tooltip))))
+    (transient-posframe-border ((t (:inherit posframe-border :background unspecified))))
+    :hook (after-init . transient-posframe-mode)
+    :init (setq transient-mode-line-format nil
+                transient-posframe-border-width posframe-border-width
+                transient-posframe-poshandler 'posframe-poshandler-frame-center
+                transient-posframe-parameters '((left-fringe . 8)
+                                                (right-fringe . 8)))))
 
-      (defun posframe-poshandler-frame-center-near-bottom (info)
-        (cons (/ (- (plist-get info :parent-frame-width)
-                    (plist-get info :posframe-width))
-                 2)
-              (/ (+ (plist-get info :parent-frame-height)
-                    (* 2 (plist-get info :font-height)))
-                 2))))))
-
+;; For macOS
 (with-no-warnings
   (when sys/macp
     ;; Render thinner fonts
@@ -398,7 +395,7 @@
   (setq x-gtk-use-system-tooltips nil))
 
 ;; Ligatures support
-(when (and emacs/>=28p (not centaur-prettify-symbols-alist))
+(unless centaur-prettify-symbols-alist
   (use-package composite
     :ensure nil
     :init (defvar composition-ligature-table (make-char-table nil))

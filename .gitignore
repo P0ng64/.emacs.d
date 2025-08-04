@@ -7,6 +7,7 @@
 *.tmp
 *bak/
 .DS_Store
+.aider*
 .cache/
 .cask/
 .dap-*
@@ -32,6 +33,7 @@
 /bookmarks
 /custom-post.el
 /custom.el
+/gt-known-words.txt
 /history
 /nov-places
 /package-quickstart.el

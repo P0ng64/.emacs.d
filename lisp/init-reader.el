@@ -1,6 +1,6 @@
 ;; init-reader.el --- Initialize readers.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2024 Vincent Zhang
+;; Copyright (C) 2019-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -43,6 +43,7 @@
                pdf-view-midnight-minor-mode
                pdf-view-printer-minor-mode)
     :defines pdf-annot-activate-created-annotations
+    :functions pdf-tools-install
     :hook ((pdf-tools-enabled . pdf-view-auto-slice-minor-mode)
            (pdf-tools-enabled . pdf-isearch-minor-mode))
     :mode ("\\.[pP][dD][fF]\\'" . pdf-view-mode)
@@ -58,6 +59,7 @@
 
     ;; Recover last viewed position
     (use-package saveplace-pdf-view
+      :functions pdf-info-check-epdfinfo
       :when (ignore-errors (pdf-info-check-epdfinfo) t)
       :autoload (saveplace-pdf-view-find-file-advice saveplace-pdf-view-to-alist-advice)
       :init
@@ -89,9 +91,8 @@
 
   ;; Fix encoding issue on Windows
   (when sys/win32p
-    (setq process-coding-system-alist
-          (cons `(,nov-unzip-program . (gbk . gbk))
-                process-coding-system-alist))))
+    (add-to-list 'process-coding-system-alist
+                 `(,nov-unzip-program . (gbk . gbk)))))
 
 ;; Atom/RSS reader
 (use-package elfeed
@@ -198,12 +199,9 @@ browser defined by `browse-url-generic-program'."
       (let ((link (elfeed-entry-link elfeed-show-entry)))
         (when link
           (message "Sent to browser: %s" link)
-          (cond
-           ((featurep 'xwidget-internal)
-            (centaur-webkit-browse-url link))
-           (use-generic-p
-            (browse-url-generic link))
-           (t (browse-url link))))))
+          (if use-generic-p
+              (browse-url-generic link)
+            (centaur-browse-url link)))))
     (advice-add #'elfeed-show-visit :override #'my-elfeed-show-visit)
 
     (defun my-elfeed-search-browse-url (&optional use-generic-p)
@@ -215,12 +213,9 @@ browser defined by `browse-url-generic-program'."
         (cl-loop for entry in entries
                  do (elfeed-untag entry 'unread)
                  when (elfeed-entry-link entry)
-                 do (cond
-                     ((featurep 'xwidget-internal)
-                      (centaur-webkit-browse-url it t))
-                     (use-generic-p
-                      (browse-url-generic it))
-                     (t (browse-url it))))
+                 do (if use-generic-p
+                        (browse-url-generic it)
+                      (centaur-browse-url it)))
         (mapc #'elfeed-search-update-entry entries)
         (unless (or elfeed-search-remain-on-entry (use-region-p))
           (forward-line))))

@@ -1,6 +1,6 @@
 ;; init-eshell.el --- Initialize eshell configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2024 Vincent Zhang
+;; Copyright (C) 2006-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -113,6 +113,7 @@
 
   ;; `eldoc' support
   (use-package esh-help
+    :commands setup-esh-help-eldoc
     :init (setup-esh-help-eldoc))
 
   ;; `cd' to frequent directory in `eshell'

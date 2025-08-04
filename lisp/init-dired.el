@@ -1,6 +1,6 @@
 ;; init-dired.el --- Initialize dired configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2024 Vincent Zhang
+;; Copyright (C) 2006-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -80,12 +80,9 @@
   (use-package diredfl
     :hook (dired-mode . diredfl-mode))
 
-  ;; Shows icons
+  ;; Shows icons in dired
   (use-package nerd-icons-dired
     :diminish
-    :when (icons-displayable-p)
-    :custom-face
-    (nerd-icons-dired-dir-face ((t (:inherit nerd-icons-dsilver :foreground unspecified))))
     :hook (dired-mode . nerd-icons-dired-mode))
 
   ;; Extra Dired functionality
@@ -114,10 +111,6 @@
     (setq dired-omit-files
           (concat dired-omit-files
                   "\\|^.DS_Store$\\|^.projectile$\\|^.git*\\|^.svn$\\|^.vscode$\\|\\.js\\.meta$\\|\\.meta$\\|\\.elc$\\|^.emacs.*"))))
-
-;; `find-dired' alternative using `fd'
-(when (executable-find "fd")
-  (use-package fd-dired))
 
 (provide 'init-dired)
 

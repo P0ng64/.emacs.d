@@ -1,6 +1,6 @@
 ;; init-dashboard.el --- Initialize dashboard configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2024 Vincent Zhang
+;; Copyright (C) 2018-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -75,12 +75,7 @@
            ("q" . quit-dashboard)
            ("h" . dashboard-hydra/body)
            ("?" . dashboard-hydra/body))
-    :hook (dashboard-mode . (lambda ()
-                              ;; No title
-                              (setq-local frame-title-format nil)
-                              ;; Enable `page-break-lines-mode'
-                              (when (fboundp 'page-break-lines-mode)
-                                (page-break-lines-mode 1))))
+    :hook (dashboard-mode . (lambda () (setq-local frame-title-format nil)))
     :init
     (setq dashboard-banner-logo-title "CENTAUR EMACS - Enjoy Programming & Writing"
           dashboard-startup-banner (or centaur-logo 'official)
@@ -159,11 +154,12 @@
       (interactive)
       (message "Restoring previous session...")
       (quit-window t)
-      (cond
-       ((bound-and-true-p tabspaces-mode)
+
+      (when (fboundp 'tabspaces-mode)
+        (unless tabspaces-mode
+          (tabspaces-mode t))
         (tabspaces-restore-session))
-       ((bound-and-true-p desktop-save-mode)
-        (desktop-read)))
+
       (message "Restoring previous session...done"))
 
     (defun dashboard-goto-recent-files ()
@@ -212,6 +208,14 @@
       "Quit dashboard window."
       (interactive)
       (quit-window t)
+
+      ;; Create workspace
+      (when (fboundp 'tabspaces-mode)
+        (unless tabspaces-mode
+          (tabspaces-mode t)
+          (tabspaces-switch-or-create-workspace tabspaces-default-tab)))
+
+      ;; Recover layout
       (and dashboard-recover-layout-p
            (and (bound-and-true-p winner-mode) (winner-undo))
            (setq dashboard-recover-layout-p nil)))))

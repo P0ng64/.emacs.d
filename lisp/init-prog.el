@@ -1,6 +1,6 @@
 ;; init-prog.el --- Initialize programming configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2024 Vincent Zhang
+;; Copyright (C) 2006-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -34,8 +34,14 @@
   (require 'init-const)
   (require 'init-custom))
 
-;; Prettify Symbols
-;; e.g. display “lambda” as “λ”
+(declare-function centaur-treesit-available-p "init-funcs")
+(declare-function childframe-workable-p "init-funcs")
+
+;; ---------------------------------------------------------------------------
+;; Code Display & Utilities
+;; ---------------------------------------------------------------------------
+
+;; Prettify Symbols (e.g., display “lambda” as “λ”)
 (use-package prog-mode
   :ensure nil
   :init
@@ -44,9 +50,16 @@
 
 ;; Tree-sitter support
 (when (centaur-treesit-available-p)
+  ;; Automatic Tree-sitter grammar management
   (use-package treesit-auto
     :hook (after-init . global-treesit-auto-mode)
-    :init (setq treesit-auto-install 'prompt)))
+    :init (setq treesit-auto-install 'prompt))
+
+  ;; Code folding indicators using Tree-sitter
+  (use-package treesit-fold-indicators
+    :ensure treesit-fold
+    :hook (after-init . global-treesit-fold-indicators-mode)
+    :init (setq treesit-fold-indicators-priority -1)))
 
 ;; Show function arglist or variable docstring
 (use-package eldoc
@@ -69,23 +82,9 @@
       (setf (alist-get 'left-fringe eldoc-box-frame-parameters) 8
             (alist-get 'right-fringe eldoc-box-frame-parameters) 8))))
 
-;; Search tool
-(use-package grep
-  :ensure nil
-  :autoload grep-apply-setting
-  :init
-  (when (executable-find "rg")
-    (grep-apply-setting
-     'grep-command "rg --color=auto --null -nH --no-heading -e ")
-    (grep-apply-setting
-     'grep-template "rg --color=auto --null --no-heading -g '!*/' -e <R> <D>")
-    (grep-apply-setting
-     'grep-find-command '("rg --color=auto --null -nH --no-heading -e ''" . 38))
-    (grep-apply-setting
-     'grep-find-template "rg --color=auto --null -nH --no-heading -e <R> <D>")))
-
 ;; Cross-referencing commands
 (use-package xref
+  :autoload xref-show-definitions-completing-read
   :bind (("M-g ." . xref-find-definitions)
          ("M-g ," . xref-go-back))
   :init
@@ -96,25 +95,6 @@
   ;; Select from xref candidates in minibuffer
   (setq xref-show-definitions-function #'xref-show-definitions-completing-read
         xref-show-xrefs-function #'xref-show-definitions-completing-read))
-
-;; Jump to definition
-(use-package dumb-jump
-  :pretty-hydra
-  ((:title (pretty-hydra-title "Dump Jump" 'faicon "nf-fa-anchor")
-    :color blue :quit-key ("q" "C-g"))
-   ("Jump"
-    (("j" dumb-jump-go "Go")
-     ("o" dumb-jump-go-other-window "Go other window")
-     ("e" dumb-jump-go-prefer-external "Go external")
-     ("x" dumb-jump-go-prefer-external-other-window "Go external other window"))
-    "Other"
-    (("i" dumb-jump-go-prompt "Prompt")
-     ("l" dumb-jump-quick-look "Quick look")
-     ("b" dumb-jump-back "Back"))))
-  :bind (("C-M-j" . dumb-jump-hydra/body))
-  :init
-  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
-  (setq dumb-jump-selector 'completing-read))
 
 ;; Code styles
 (use-package editorconfig
@@ -129,6 +109,7 @@
 ;; Browse devdocs.io documents using EWW
 (use-package devdocs
   :autoload (devdocs--installed-docs devdocs--available-docs)
+  :commands (devdocs-install devdocs-lookup)
   :bind (:map prog-mode-map
          ("M-<f1>" . devdocs-dwim)
          ("C-h D"  . devdocs-dwim))
@@ -144,7 +125,6 @@
       (html-mode       . ("html"))
       (julia-mode      . ("julia~1.8"))
       (js-mode         . ("javascript" "jquery"))
-      (js2-mode        . ("javascript" "jquery"))
       (emacs-lisp-mode . ("elisp")))
     "Alist of major-mode and docs.")
 
@@ -179,12 +159,13 @@ Install the doc if it's not installed."
     ;; Lookup the symbol at point
     (devdocs-lookup nil (thing-at-point 'symbol t))))
 
-;; Misc. programming modes
-(use-package csv-mode)
-(unless emacs/>=29p
-  (use-package csharp-mode))
+;; ---------------------------------------------------------------------------
+;; Miscellaneous Programming Modes
+;; ---------------------------------------------------------------------------
 (use-package cask-mode)
 (use-package cmake-mode)
+(use-package csv-mode)
+(use-package cue-sheet-mode)
 (use-package dart-mode)
 (use-package julia-mode)
 (use-package lua-mode)
@@ -196,20 +177,29 @@ Install the doc if it's not installed."
 (use-package vimrc-mode)
 (use-package yaml-mode)
 
+;; Protobuf mode configuration
 (use-package protobuf-mode
   :hook (protobuf-mode . (lambda ()
+                           "Set up Protobuf's imenu generic expressions."
                            (setq imenu-generic-expression
                                  '((nil "^[[:space:]]*\\(message\\|service\\|enum\\)[[:space:]]+\\([[:alnum:]]+\\)" 2))))))
 
+;; nXML mode for special file types
 (use-package nxml-mode
   :ensure nil
-  :mode (("\\.xaml$" . xml-mode)))
+  :mode (("\\.xaml\\'" . xml-mode)))
 
-;; Fish shell
+;; Fish shell mode and auto-formatting
 (use-package fish-mode
+  :commands fish_indent-before-save
+  :defines eglot-server-programs
   :hook (fish-mode . (lambda ()
-                       (add-hook 'before-save-hook
-                                 #'fish_indent-before-save))))
+                       "Integrate `fish_indent` formatting with Fish shell mode."
+                       (add-hook 'before-save-hook #'fish_indent-before-save)))
+  :config
+  (with-eval-after-load 'eglot
+    (add-to-list 'eglot-server-programs
+                 '(fish-mode . ("fish-lsp" "start")))))
 
 (provide 'init-prog)
 

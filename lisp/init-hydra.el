@@ -1,6 +1,6 @@
 ;; init-hydra.el --- Initialize hydra configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2024 Vincent Zhang
+;; Copyright (C) 2019-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -31,18 +31,19 @@
 ;;; Code:
 
 (use-package hydra
+  :defines posframe-border-width
+  :functions childframe-completion-workable-p
   :hook (emacs-lisp-mode . hydra-add-imenu)
   :init
   (when (childframe-completion-workable-p)
     (setq hydra-hint-display-type 'posframe)
-
-    (with-eval-after-load 'posframe
+    (with-no-warnings
       (defun hydra-set-posframe-show-params ()
         "Set hydra-posframe style."
         (setq hydra-posframe-show-params
               `(:left-fringe 8
                 :right-fringe 8
-                :internal-border-width 2
+                :internal-border-width ,posframe-border-width
                 :internal-border-color ,(face-background 'posframe-border nil t)
                 :background-color ,(face-background 'tooltip nil t)
                 :foreground-color ,(face-foreground 'tooltip nil t)
@@ -52,7 +53,7 @@
       (add-hook 'after-load-theme-hook #'hydra-set-posframe-show-params t))))
 
 (use-package pretty-hydra
-  :custom (pretty-hydra-default-title-body-format-spec " %s%s")
+  :functions icons-displayable-p
   :bind ("<f6>" . toggles-hydra/body)
   :hook (emacs-lisp-mode . (lambda ()
                              (add-to-list
@@ -64,7 +65,7 @@
   (cl-defun pretty-hydra-title (title &optional icon-type icon-name
                                       &key face height v-adjust)
     "Add an icon in the hydra title."
-    (let ((face (or face `(:inherit highlight :reverse-video t)))
+    (let ((face (or face 'mode-line-emphasis))
           (height (or height 1.2))
           (v-adjust (or v-adjust 0.0)))
       (concat
@@ -152,10 +153,10 @@
        "Package Archive"
        (("p m" (centaur-set-package-archives 'melpa t)
          "melpa" :toggle (eq centaur-package-archives 'melpa) :exit t)
-        ("p c" (centaur-set-package-archives 'emacs-cn t)
-         "emacs-cn" :toggle (eq centaur-package-archives 'emacs-cn) :exit t)
         ("p b" (centaur-set-package-archives 'bfsu t)
          "bfsu" :toggle (eq centaur-package-archives 'bfsu) :exit t)
+        ("p i" (centaur-set-package-archives 'iscas t)
+         "iscas" :toggle (eq centaur-package-archives 'iscas) :exit t)
         ("p n" (centaur-set-package-archives 'netease t)
          "netease" :toggle (eq centaur-package-archives 'netease) :exit t)
         ("p s" (centaur-set-package-archives 'sjtu t)

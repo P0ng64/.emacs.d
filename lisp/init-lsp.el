@@ -1,6 +1,6 @@
 ;; init-lsp.el --- Initialize LSP configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2024 Vincent Zhang
+;; Copyright (C) 2018-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -31,29 +31,30 @@
 ;;; Code:
 
 (eval-when-compile
+  (require 'init-const)
   (require 'init-custom))
 
 (pcase centaur-lsp
   ('eglot
    (use-package eglot
      :hook ((prog-mode . (lambda ()
-                           (unless (derived-mode-p 'emacs-lisp-mode 'lisp-mode 'makefile-mode 'snippet-mode)
+                           (unless (derived-mode-p
+                                    'emacs-lisp-mode 'lisp-mode
+                                    'makefile-mode 'snippet-mode
+                                    'ron-mode)
                              (eglot-ensure))))
             ((markdown-mode yaml-mode yaml-ts-mode) . eglot-ensure))
      :init
      (setq read-process-output-max (* 1024 1024)) ; 1MB
      (setq eglot-autoshutdown t
-           eglot-send-changes-idle-time 0.5)
-     :config
-     (use-package consult-eglot
-       :bind (:map eglot-mode-map
-                   ("C-M-." . consult-eglot-symbols)))))
-  ('lsp-mode
-   ;; Performace tuning
-   ;; @see https://emacs-lsp.github.io/lsp-mode/page/performance/
-   (setq read-process-output-max (* 1024 1024)) ; 1MB
-   (setenv "LSP_USE_PLISTS" "true")
+           eglot-events-buffer-size 0
+           eglot-send-changes-idle-time 0.5))
 
+   (use-package consult-eglot
+     :after consult eglot
+     :bind (:map eglot-mode-map
+            ("C-M-." . consult-eglot-symbols))))
+  ('lsp-mode
    ;; Emacs client for the Language Server Protocol
    ;; https://github.com/emacs-lsp/lsp-mode#supported-languages
    (use-package lsp-mode
@@ -61,8 +62,16 @@
      :defines (lsp-diagnostics-disabled-modes lsp-clients-python-library-directories)
      :autoload lsp-enable-which-key-integration
      :commands (lsp-format-buffer lsp-organize-imports)
+     :preface
+     ;; Performace tuning
+     ;; @see https://emacs-lsp.github.io/lsp-mode/page/performance/
+     (setq read-process-output-max (* 1024 1024)) ; 1MB
+     (setenv "LSP_USE_PLISTS" "true")
      :hook ((prog-mode . (lambda ()
-                           (unless (derived-mode-p 'emacs-lisp-mode 'lisp-mode 'makefile-mode 'snippet-mode)
+                           (unless (derived-mode-p
+                                    'emacs-lisp-mode 'lisp-mode
+                                    'makefile-mode 'snippet-mode
+                                    'ron-mode)
                              (lsp-deferred))))
             ((markdown-mode yaml-mode yaml-ts-mode) . lsp-deferred)
             (lsp-mode . (lambda ()
@@ -75,10 +84,12 @@
                             (add-hook 'before-save-hook #'lsp-format-buffer t t)
                             (add-hook 'before-save-hook #'lsp-organize-imports t t)))))
      :bind (:map lsp-mode-map
-                 ("C-c C-d" . lsp-describe-thing-at-point)
-                 ([remap xref-find-definitions] . lsp-find-definition)
-                 ([remap xref-find-references] . lsp-find-references))
-     :init (setq lsp-keymap-prefix "C-c l"
+            ("C-c C-d" . lsp-describe-thing-at-point)
+            ([remap xref-find-definitions] . lsp-find-definition)
+            ([remap xref-find-references] . lsp-find-references))
+     :init (setq lsp-use-plists t
+
+                 lsp-keymap-prefix "C-c l"
                  lsp-keep-workspace-alive nil
                  lsp-signature-auto-activate nil
                  lsp-modeline-code-actions-enable nil
@@ -122,15 +133,6 @@
 
        ;; Display icons
        (when (icons-displayable-p)
-         (defun my-lsp-icons-get-symbol-kind (fn &rest args)
-           (and (icons-displayable-p) (apply fn args)))
-         (advice-add #'lsp-icons-get-by-symbol-kind :around #'my-lsp-icons-get-symbol-kind)
-
-         ;; For `lsp-headerline'
-         (defun my-lsp-icons-get-by-file-ext (fn &rest args)
-           (and (icons-displayable-p) (apply fn args)))
-         (advice-add #'lsp-icons-get-by-file-ext :around #'my-lsp-icons-get-by-file-ext)
-
          (defun my-lsp-icons-get-by-file-ext (file-ext &optional feature)
            (when (and file-ext
                       (lsp-icons--enabled-for-feature feature))
@@ -245,9 +247,7 @@
      (defun my-lsp-ui-doc-set-border ()
        "Set the border color of lsp doc."
        (setq lsp-ui-doc-border
-             (if (facep 'posframe-border)
-                 (face-background 'posframe-border nil t)
-               (face-background 'region nil t))))
+             (face-background 'posframe-border nil t)))
      (my-lsp-ui-doc-set-border)
      (add-hook 'after-load-theme-hook #'my-lsp-ui-doc-set-border t)
      :config
@@ -493,16 +493,18 @@
    ;; Python
    (use-package lsp-pyright
      :preface
-     ;; Use yapf to format
-     (defun lsp-pyright-format-buffer ()
-       (interactive)
-       (when (and (executable-find "yapf") buffer-file-name)
-         (call-process "yapf" nil nil nil "-i" buffer-file-name)))
      :hook (((python-mode python-ts-mode) . (lambda ()
                                               (require 'lsp-pyright)
                                               (add-hook 'after-save-hook #'lsp-pyright-format-buffer t t))))
-     :init (when (executable-find "python3")
-             (setq lsp-pyright-python-executable-cmd "python3")))
+     :init
+     (when (executable-find "python3")
+       (setq lsp-pyright-python-executable-cmd "python3"))
+
+     (defun lsp-pyright-format-buffer ()
+       "Use `yapf' to format the buffer."
+       (interactive)
+       (when (and (executable-find "yapf") buffer-file-name)
+         (call-process "yapf" nil nil nil "-i" buffer-file-name))))
 
    ;; C/C++/Objective-C
    (use-package ccls
@@ -513,8 +515,8 @@
        ;; @see https://github.com/emacs-lsp/emacs-ccls/issues/109
        (cl-defmethod my-lsp-execute-command
          ((_server (eql ccls)) (command (eql ccls.xref)) arguments)
-         (when-let ((xrefs (lsp--locations-to-xref-items
-                            (lsp--send-execute-command (symbol-name command) arguments))))
+         (when-let* ((xrefs (lsp--locations-to-xref-items
+                             (lsp--send-execute-command (symbol-name command) arguments))))
            (xref--show-xrefs xrefs nil)))
        (advice-add #'lsp-execute-command :override #'my-lsp-execute-command)))
 

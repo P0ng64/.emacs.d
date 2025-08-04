@@ -1,6 +1,6 @@
 ;; init-highlight.el --- Initialize highlighting configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2024 Vincent Zhang
+;; Copyright (C) 2006-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -43,12 +43,19 @@
 ;; Highlight matching parens
 (use-package paren
   :ensure nil
+  :functions childframe-workable-p
+  :custom-face
+  (show-paren-match ((((class color) (background light))
+                      (:box (:line-width (-1 . -1) :color "gray73")))
+                     (((class color) (background dark))
+                      (:box (:line-width (-1 . -1) :color "gray56")))))
   :hook (after-init . show-paren-mode)
   :init (setq show-paren-when-point-inside-paren t
               show-paren-when-point-in-periphery t)
   :config
   (if emacs/>=29p
-      (setq show-paren-context-when-offscreen
+      (setq blink-matching-paren-highlight-offscreen t
+            show-paren-context-when-offscreen
             (if (childframe-workable-p) 'child-frame 'overlay))
     (with-no-warnings
       ;; Display matching line for off-screen paren.
@@ -108,17 +115,20 @@ FACE defaults to inheriting from default and highlight."
   (symbol-overlay-face-6 ((t (:inherit nerd-icons-orange :background unspecified :foreground unspecified :inverse-video t))))
   (symbol-overlay-face-7 ((t (:inherit nerd-icons-green :background unspecified :foreground unspecified :inverse-video t))))
   (symbol-overlay-face-8 ((t (:inherit nerd-icons-cyan :background unspecified :foreground unspecified :inverse-video t))))
-  :bind (("M-i" . symbol-overlay-put)
-         ("M-n" . symbol-overlay-jump-next)
-         ("M-p" . symbol-overlay-jump-prev)
-         ("M-N" . symbol-overlay-switch-forward)
-         ("M-P" . symbol-overlay-switch-backward)
-         ("M-C" . symbol-overlay-remove-all)
-         ([M-f3] . symbol-overlay-remove-all))
-  :hook (((prog-mode yaml-mode) . symbol-overlay-mode)
-         (iedit-mode            . turn-off-symbol-overlay)
-         (iedit-mode-end        . turn-on-symbol-overlay))
-  :init (setq symbol-overlay-idle-time 0.1)
+  :bind (("M-i"  . symbol-overlay-put)
+         ("M-n"  . symbol-overlay-jump-next)
+         ("M-p"  . symbol-overlay-jump-prev)
+         ("M-N"  . symbol-overlay-switch-forward)
+         ("M-P"  . symbol-overlay-switch-backward)
+         ("M-C"  . symbol-overlay-remove-all)
+         ([M-f2] . symbol-overlay-mode)
+         ([M-f3] . symbol-overlay-put)
+         ([M-f4] . symbol-overlay-remove-all))
+  :bind-keymap ("M-s s"  . symbol-overlay-map)
+  :hook (((prog-mode yaml-mode yaml-ts-mode) . symbol-overlay-mode)
+         (iedit-mode     . turn-off-symbol-overlay)
+         (iedit-mode-end . turn-on-symbol-overlay))
+  :init (setq symbol-overlay-idle-time 0.3)
   :config
   (with-no-warnings
     ;; Disable symbol highlighting while selecting
@@ -126,71 +136,46 @@ FACE defaults to inheriting from default and highlight."
       "Turn off symbol highlighting."
       (interactive)
       (symbol-overlay-mode -1))
-    (advice-add #'set-mark :after #'turn-off-symbol-overlay)
 
     (defun turn-on-symbol-overlay (&rest _)
       "Turn on symbol highlighting."
       (interactive)
-      (when (derived-mode-p 'prog-mode 'yaml-mode)
+      (when (derived-mode-p 'prog-mode 'yaml-mode 'yaml-ts-mode)
         (symbol-overlay-mode 1)))
-    (advice-add #'deactivate-mark :after #'turn-on-symbol-overlay)))
+
+    (advice-add #'activate-mark :after #'turn-off-symbol-overlay)
+    (advice-add #'deactivate-mark :after #'turn-on-symbol-overlay)
+    (advice-add #'easy-kill :after #'turn-off-symbol-overlay)
+    (advice-add #'easy-kill-destroy-candidate :after #'turn-on-symbol-overlay)))
+
+;; Mark occurrences of current region (selection)
+(use-package region-occurrences-highlighter
+  :diminish
+  :bind (:map region-occurrences-highlighter-nav-mode-map
+         ("M-n" . region-occurrences-highlighter-next)
+         ("M-p" . region-occurrences-highlighter-prev))
+  :hook (after-init . global-region-occurrences-highlighter-mode))
 
 ;; Highlight indentions
-(use-package highlight-indent-guides
-  :diminish
-  :hook ((prog-mode yaml-mode) . (lambda ()
-                                   "Highlight indentations in small files for better performance."
-                                   (unless (too-long-file-p)
-                                     (highlight-indent-guides-mode 1))))
-  :init (setq highlight-indent-guides-method 'character
-              highlight-indent-guides-responsive 'top
-              highlight-indent-guides-suppress-auto-error t)
-  :config
-  (with-no-warnings
-    ;; Don't display first level of indentation
-    (defun my-indent-guides-for-all-but-first-column (level responsive display)
-      (unless (< level 1)
-        (highlight-indent-guides--highlighter-default level responsive display)))
-    (setq highlight-indent-guides-highlighter-function
-          #'my-indent-guides-for-all-but-first-column)
-
-    ;; Disable in `macrostep' expanding
-    (with-eval-after-load 'macrostep
-      (advice-add #'macrostep-expand
-                  :after (lambda (&rest _)
-                           (when highlight-indent-guides-mode
-                             (highlight-indent-guides-mode -1))))
-      (advice-add #'macrostep-collapse
-                  :after (lambda (&rest _)
-                           (when (derived-mode-p 'prog-mode 'yaml-mode)
-                             (highlight-indent-guides-mode 1)))))))
+(use-package indent-bars
+  :custom
+  (indent-bars-color '(highlight :face-bg t :blend 0.225))
+  (indent-bars-treesit-support centaur-tree-sitter)
+  (indent-bars-no-descend-string t)
+  (indent-bars-treesit-ignore-blank-lines-types '("module"))
+  (indent-bars-prefer-character t)
+  (indent-bars-treesit-scope '((python function_definition class_definition for_statement
+				                       if_statement with_statement while_statement)))
+  :hook ((prog-mode yaml-mode) . indent-bars-mode)
+  :config (require 'indent-bars-ts))
 
 ;; Colorize color names in buffers
-(use-package rainbow-mode
+(use-package colorful-mode
   :diminish
-  :defines helpful-mode-map
-  :bind (:map help-mode-map
-         ("w" . rainbow-mode))
-  :hook ((html-mode php-mode helpful-mode) . rainbow-mode)
-  :init (with-eval-after-load 'helpful
-          (bind-key "w" #'rainbow-mode helpful-mode-map))
-  :config
-  (with-no-warnings
-    ;; HACK: Use overlay instead of text properties to override `hl-line' faces.
-    ;; @see https://emacs.stackexchange.com/questions/36420
-    (defun my-rainbow-colorize-match (color &optional match)
-      (let* ((match (or match 0))
-             (ov (make-overlay (match-beginning match) (match-end match))))
-        (overlay-put ov 'ovrainbow t)
-        (overlay-put ov 'face `((:foreground ,(if (> 0.5 (rainbow-x-color-luminance color))
-                                                  "white" "black"))
-                                (:background ,color)))))
-    (advice-add #'rainbow-colorize-match :override #'my-rainbow-colorize-match)
-
-    (defun my-rainbow-clear-overlays ()
-      "Clear all rainbow overlays."
-      (remove-overlays (point-min) (point-max) 'ovrainbow t))
-    (advice-add #'rainbow-turn-off :after #'my-rainbow-clear-overlays)))
+  :hook (after-init . global-colorful-mode)
+  :init (setq colorful-use-prefix t)
+  :config (dolist (mode '(html-mode php-mode help-mode helpful-mode))
+            (add-to-list 'global-colorful-modes mode)))
 
 ;; Highlight brackets according to their depth
 (use-package rainbow-delimiters
@@ -198,19 +183,19 @@ FACE defaults to inheriting from default and highlight."
 
 ;; Highlight TODO and similar keywords in comments and strings
 (use-package hl-todo
+  :autoload hl-todo-flymake hl-todo-search-and-highlight
+  :functions rg rg-read-files rg-project
   :custom-face
   (hl-todo ((t (:width condensed :weight semibold :underline nil))))
   :bind (:map hl-todo-mode-map
-         ([C-f3] . hl-todo-occur)
+         ([C-f3]    . hl-todo-occur)
+         ("C-c t o" . hl-todo-occur)
          ("C-c t p" . hl-todo-previous)
          ("C-c t n" . hl-todo-next)
-         ("C-c t o" . hl-todo-occur)
+         ("C-c t i" . hl-todo-insert)
          ("C-c t r" . hl-todo-rg-project)
-         ("C-c t i" . hl-todo-insert))
-  :hook ((after-init . global-hl-todo-mode)
-         (hl-todo-mode . (lambda ()
-                           (add-hook 'flymake-diagnostic-functions
-                                     #'hl-todo-flymake nil t))))
+         ("C-c t R" . hl-todo-rg))
+  :hook (after-init . global-hl-todo-mode)
   :init (setq hl-todo-require-punctuation t
               hl-todo-highlight-punctuation ":")
   :config
@@ -220,6 +205,17 @@ FACE defaults to inheriting from default and highlight."
     (add-to-list 'hl-todo-keyword-faces `(,keyword . "#d0bf8f")))
   (dolist (keyword '("DEBUG" "STUB"))
     (add-to-list 'hl-todo-keyword-faces `(,keyword . "#7cb8bb")))
+
+  ;; Integrate into flymake
+  (with-eval-after-load 'flymake
+    (add-hook 'flymake-diagnostic-functions #'hl-todo-flymake))
+
+  ;; Integrate into magit
+  (with-eval-after-load 'magit
+    (add-hook 'magit-log-wash-summary-hook
+              #'hl-todo-search-and-highlight t)
+    (add-hook 'magit-revision-wash-message-hook
+              #'hl-todo-search-and-highlight t))
 
   (defun hl-todo-rg (regexp &optional files dir)
     "Use `rg' to find all TODO or similar keywords."
@@ -243,6 +239,7 @@ FACE defaults to inheriting from default and highlight."
 ;; Highlight uncommitted changes using VC
 (use-package diff-hl
   :custom (diff-hl-draw-borders nil)
+  :autoload diff-hl-flydiff-mode
   :custom-face
   (diff-hl-change ((t (:inherit custom-changed :foreground unspecified :background unspecified))))
   (diff-hl-insert ((t (:inherit diff-added :background unspecified))))
@@ -327,7 +324,7 @@ FACE defaults to inheriting from default and highlight."
 ;; Pulse modified region
 (use-package goggles
   :diminish
-  :hook ((prog-mode text-mode) . goggles-mode))
+  :hook ((prog-mode text-mode conf-mode) . goggles-mode))
 
 (provide 'init-highlight)
 

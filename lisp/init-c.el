@@ -1,6 +1,6 @@
 ;; init-c.el --- Initialize c configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2024 Vincent Zhang
+;; Copyright (C) 2006-2025 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -32,6 +32,8 @@
 
 (eval-when-compile
   (require 'init-custom))
+
+(declare-function centaur-treesit-available-p "init-funcs")
 
 ;; C/C++ Mode
 (use-package cc-mode
