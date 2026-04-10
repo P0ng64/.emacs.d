@@ -419,8 +419,7 @@
   (setq x-gtk-use-system-tooltips nil))
 
 ;; improve CJK character performance when line truncating
-(when emacs/>=28p
-  (setq word-wrap-by-category t))
+(setq word-wrap-by-category t)
 
 ;; Fix compile escape codes
 (add-hook 'compilation-filter-hook
