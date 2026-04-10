@@ -1,6 +1,6 @@
 ;; init-window.el --- Initialize window configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2025 Vincent Zhang
+;; Copyright (C) 2006-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -33,24 +33,8 @@
 ;; Directional window-selection routines
 (use-package windmove
   :ensure nil
-  :hook (after-init . (lambda ()
-                        (windmove-default-keybindings 'super))))
-
-;; Restore old window configurations
-(use-package winner
-  :ensure nil
-  :commands (winner-undo winner-redo)
-  :hook (after-init . winner-mode)
-  :init (setq winner-boring-buffers '("*Completions*"
-                                      "*Compile-Log*"
-                                      "*inferior-lisp*"
-                                      "*Fuzzy Completions*"
-                                      "*Apropos*"
-                                      "*Help*"
-                                      "*cvs*"
-                                      "*Buffer List*"
-                                      "*Ibuffer*"
-                                      "*esh command on file*")))
+  :hook (window-setup . (lambda ()
+                          (windmove-default-keybindings 'super))))
 
 ;; Quickly switch windows
 (use-package ace-window
@@ -86,15 +70,16 @@
     (("o" set-frame-font "frame font")
      ("f" make-frame-command "new frame")
      ("d" delete-frame "delete frame")
-     ("<left>" winner-undo "winner undo")
-     ("<right>" winner-redo "winner redo"))))
+     ("<left>" tab-bar-history-back "previous layout")
+     ("<right>" tab-bar-history-back "next layout"))))
   :custom-face
   (aw-leading-char-face ((t (:inherit font-lock-keyword-face :foreground unspecified :bold t :height 3.0))))
   (aw-minibuffer-leading-char-face ((t (:inherit font-lock-keyword-face :bold t :height 1.0))))
   (aw-mode-line-face ((t (:inherit mode-line-emphasis :bold t))))
   :bind (([remap other-window] . ace-window)
-         ("C-c w" . ace-window-hydra/body))
-  :hook (emacs-startup . ace-window-display-mode)
+         ("C-c w" . ace-window-hydra/body)
+         ("C-x |" . split-window-horizontally-instead)
+         ("C-x _" . split-window-vertically-instead))
   :config
   (defun toggle-window-split ()
     (interactive)
@@ -123,38 +108,18 @@
       (user-error "`toggle-window-split' only supports two windows")))
 
   ;; Bind hydra to dispatch list
-  (add-to-list 'aw-dispatch-alist '(?w ace-window-hydra/body) t)
-
-  ;; Select widnow via `M-1'...`M-9'
-  (defun aw--select-window (number)
-    "Slecet the specified window."
-    (when (numberp number)
-      (let ((found nil))
-        (dolist (win (aw-window-list))
-          (when (and (window-live-p win)
-                     (eq number
-                         (string-to-number
-                          (window-parameter win 'ace-window-path))))
-            (setq found t)
-            (aw-switch-to-window win)))
-        (unless found
-          (message "No specified window: %d" number)))))
-  (dotimes (n 9)
-    (bind-key (format "M-%d" (1+ n))
-              (lambda ()
-                (interactive)
-                (aw--select-window (1+ n))))))
+  (add-to-list 'aw-dispatch-alist '(?w ace-window-hydra/body) t))
 
 ;; Enforce rules for popups
 (use-package popper
   :custom
-  (popper-group-function #'popper-group-by-directory)
+  (popper-group-function #'popper-group-by-project)
   (popper-echo-dispatch-actions t)
   :bind (:map popper-mode-map
          ("C-h z"       . popper-toggle)
          ("C-<tab>"     . popper-cycle)
          ("C-M-<tab>"   . popper-toggle-type))
-  :hook (emacs-startup . popper-echo-mode)
+  :hook (window-setup . popper-tab-line-mode)
   :init
   (setq popper-mode-line ""
         popper-reference-buffers
@@ -180,53 +145,48 @@
           Buffer-menu-mode
 
           flymake-diagnostics-buffer-mode
-          flycheck-error-list-mode flycheck-verify-mode
-
           gnus-article-mode devdocs-mode
-          grep-mode occur-mode rg-mode deadgrep-mode ag-mode pt-mode
-          youdao-dictionary-mode osx-dictionary-mode fanyi-mode
+          grep-mode occur-mode rg-mode
+
+          osx-dictionary-mode fanyi-mode
           "^\\*gt-result\\*$" "^\\*gt-log\\*$"
+          "^\\*Process List\\*$" process-menu-mode cargo-process-mode
 
-          "^\\*Process List\\*$" process-menu-mode
-          list-environment-mode cargo-process-mode
-
-          "^\\*.*eshell.*\\*.*$"
-          "^\\*.*shell.*\\*.*$"
-          "^\\*.*terminal.*\\*.*$"
-          "^\\*.*vterm[inal]*.*\\*.*$"
+          "^\\*.*eat.*\\*.*$" eat-mode
+          "^\\*.*eshell.*\\*.*$" eshell-mode
+          "^\\*.*shell.*\\*.*$" shell-mode
+          "^\\*.*terminal.*\\*.*$" term-mode
+          "^\\*.*vterm[inal]*.*\\*.*$" vterm-mode
 
           "\\*DAP Templates\\*$" dap-server-log-mode
-          "\\*ELP Profiling Restuls\\*" profiler-report-mode
-          "\\*Paradox Report\\*$" "\\*package update results\\*$" "\\*Package-Lint\\*$"
+          "\\*ELP Profiling Results\\*" profiler-report-mode
+          "\\*package update results\\*$" "\\*Package-Lint\\*$"
           "\\*[Wo]*Man.*\\*$"
-          "\\*ert\\*$" overseer-buffer-mode
+          "\\*ert\\*$"
           "\\*gud-debug\\*$"
           "\\*lsp-help\\*$" "\\*lsp session\\*$"
           "\\*quickrun\\*$"
-          "\\*tldr\\*$"
           "\\*vc-.*\\**"
           "\\*diff-hl\\**"
           "^\\*macro expansion\\**"
 
           "\\*Agenda Commands\\*" "\\*Org Select\\*" "\\*Capture\\*" "^CAPTURE-.*\\.org*"
           "\\*Gofmt Errors\\*$" "\\*Go Test\\*$" godoc-mode
-          "\\*docker-.+\\*"
-          "\\*prolog\\*" inferior-python-mode inf-ruby-mode swift-repl-mode
-          "\\*rustfmt\\*$" rustic-compilation-mode rustic-cargo-clippy-mode
-          rustic-cargo-outdated-mode rustic-cargo-run-mode rustic-cargo-test-mode))
+          "\\*docker-.+\\*" "\\*prolog\\*" "\\*rustfmt\\*$"
+          inferior-python-mode inf-ruby-mode swift-repl-mode))
   :config
   (with-no-warnings
-    (defun my-popper-fit-window-height (win)
+    (defun my/popper-fit-window-height (win)
       "Adjust the height of popup window WIN to fit the buffer's content."
       (let ((desired-height (floor (/ (frame-height) 3))))
         (fit-window-to-buffer win desired-height desired-height)))
-    (setq popper-window-height #'my-popper-fit-window-height)
+    (setq popper-window-height #'my/popper-fit-window-height)
 
     (defun popper-close-window-hack (&rest _args)
       "Close popper window via `C-g'."
       (when (and ; (called-interactively-p 'interactive)
-                 (not (region-active-p))
-                 popper-open-popup-alist)
+             (not (region-active-p))
+             popper-open-popup-alist)
         (let ((window (caar popper-open-popup-alist))
               (buffer (cdar popper-open-popup-alist)))
           (when (and (window-live-p window)

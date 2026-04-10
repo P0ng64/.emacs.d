@@ -1,6 +1,6 @@
 ;; init-snippet.el --- Initialize snippet configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2025 Vincent Zhang
+;; Copyright (C) 2006-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -40,7 +40,22 @@
 
 ;; Yasnippet Completion At Point Function
 (use-package yasnippet-capf
-  :init (add-to-list 'completion-at-point-functions #'yasnippet-capf))
+  :commands yasnippet-capf
+  :functions cape-capf-super eglot-completion-at-point
+  :hook (((conf-mode prog-mode text-mode) . my/yasnippet-capf-h)
+         (eglot-managed-mode . my/eglot-capf))
+  :init
+  (defun my/yasnippet-capf-h ()
+    (add-to-list 'completion-at-point-functions #'yasnippet-capf))
+
+  ;; Making a Cape Super Capf for Eglot
+  ;; https://github.com/minad/corfu/wiki#making-a-cape-super-capf-for-eglot
+  (defun my/eglot-capf ()
+    (setq-local completion-at-point-functions
+                (list
+	             (cape-capf-super
+		          #'eglot-completion-at-point
+		          #'yasnippet-capf)))))
 
 (provide 'init-snippet)
 

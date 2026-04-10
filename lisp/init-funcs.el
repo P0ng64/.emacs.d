@@ -1,6 +1,6 @@
 ;; init-funcs.el --- Define functions.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2025 Vincent Zhang
+;; Copyright (C) 2018-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -40,6 +40,7 @@
 (defvar socks-noproxy)
 (defvar socks-server)
 
+(declare-function browse-url-file-url "browse-url")
 (declare-function browse-url-interactive-arg "browse-url")
 (declare-function chart-bar-quickie "chart")
 (declare-function consult-theme "ext:consult")
@@ -50,7 +51,7 @@
 
 
 ;; Font
-(defun font-installed-p (font-name)
+(defun font-available-p (font-name)
   "Check if font with FONT-NAME is available."
   (find-font (font-spec :name font-name)))
 
@@ -66,8 +67,8 @@
   (set-buffer-file-coding-system 'undecided-dos nil))
 
 (defun delete-dos-eol ()
-  "Delete `' characters in current region or buffer.
-Same as '`replace-string' `C-q' `C-m' `RET' `RET''."
+  "Delete `^M' characters in current region or buffer.
+Same as `replace-string' `C-q' `C-m' `RET' `RET'."
   (interactive)
   (save-excursion
     (when (region-active-p)
@@ -81,13 +82,6 @@ Same as '`replace-string' `C-q' `C-m' `RET' `RET''."
     (widen)))
 
 ;; File and buffer
-(defun revert-this-buffer ()
-  "Revert the current buffer."
-  (interactive)
-  (unless (minibuffer-window-active-p (selected-window))
-    (revert-buffer t t)
-    (message "Reverted this buffer")))
-
 (defun delete-this-file ()
   "Delete the current file, and kill the buffer."
   (interactive)
@@ -120,18 +114,6 @@ Same as '`replace-string' `C-q' `C-m' `RET' `RET''."
         (error "Cannot open tramp file")
       (browse-url (concat "file://" file-name)))))
 
-(defun copy-file-name ()
-  "Copy the current buffer file name to the clipboard."
-  (interactive)
-  (let ((filename (if (equal major-mode 'dired-mode)
-                      default-directory
-                    (buffer-file-name))))
-    (if filename
-        (progn
-          (kill-new filename)
-          (message "Copied '%s'" filename))
-      (warn "Current buffer is not attached to a file!"))))
-
 (defun create-scratch-buffer ()
   "Create a scratch buffer."
   (interactive)
@@ -162,16 +144,6 @@ Same as '`replace-string' `C-q' `C-m' `RET' `RET''."
   (and (display-graphic-p)
        (featurep 'xwidget-internal)))
 
-(defun centaur-browse-url (url)
-  "Open URL using a configurable method.
-See `browse-url' for more details."
-  (interactive (progn
-                 (require 'browse-url)
-                 (browse-url-interactive-arg "URL: ")))
-  (if (xwidget-workable-p)
-      (centaur-webkit-browse-url url t)
-    (browse-url url)))
-
 (defun centaur-webkit-browse-url (url &optional pop-buffer new-session)
   "Browse URL with xwidget-webkit' and switch or pop to the buffer.
 
@@ -189,14 +161,24 @@ Interactively, URL defaults to the string looking like a url around point."
           (pop-to-buffer buf)
         (switch-to-buffer buf)))))
 
-;; Mode line
-(defun mode-line-height ()
-  "Get the height of the mode-line."
-  (- (elt (window-pixel-edges) 3)
-     (elt (window-inside-pixel-edges) 3)
-     (if (bound-and-true-p window-divider-mode)
-         window-divider-default-bottom-width
-       0)))
+(defun centaur-browse-url (url)
+  "Open URL using a configurable method.
+See `browse-url' for more details."
+  (interactive)
+  (if (xwidget-workable-p)
+      (centaur-webkit-browse-url url t)
+    (browse-url url)))
+
+(defun centaur-browse-url-of-file (file)
+  "Use a web browser to display FILE.
+Display the current buffer's file if FILE is nil or if called
+interactively.  Turn the filename into a URL with function
+`browse-url-file-url'.  Pass the URL to a browser using the
+`browse-url' function then run `browse-url-of-file-hook'."
+  (interactive)
+  (if (xwidget-workable-p)
+      (centaur-webkit-browse-url (browse-url-file-url file) t)
+    (browse-url-of-file file)))
 
 ;; Reload configurations
 (defun reload-init-file ()
@@ -212,8 +194,10 @@ Interactively, URL defaults to the string looking like a url around point."
   (browse-url centaur-homepage))
 
 ;; Open custom file
-(defun find-custom-file()
-  "Open custom files."
+(defun find-custom-file ()
+  "Open custom files.
+If the custom file doesn't exist, copy the example file to create it.
+Also opens the custom-post file in another window if it exists."
   (interactive)
   (unless (file-exists-p custom-file)
     (if (file-exists-p centaur-custom-example-file)
@@ -270,7 +254,9 @@ Native tree-sitter is introduced since 29.1."
 (defun centaur-set-variable (variable value &optional no-save)
   "Set the VARIABLE to VALUE, and return VALUE.
 
-  Save to option `custom-file' if NO-SAVE is nil."
+If NO-SAVE is non-nil, don't save to the custom file.
+This function both sets the variable in the current session and persists it to
+the custom file."
   (customize-set-variable variable value)
   (when (and (not no-save)
              (file-writable-p custom-file))
@@ -279,13 +265,16 @@ Native tree-sitter is introduced since 29.1."
       (goto-char (point-min))
       (while (re-search-forward
               (format "^[\t ]*[;]*[\t ]*(setq %s .*)" variable)
-                               nil t)
-  (replace-match (format "(setq %s '%s)" variable value) nil nil))
+              nil t)
+        (replace-match (format "(setq %s '%s)" variable value) nil nil))
       (write-region nil nil custom-file)
       (message "Saved %s (%s) to %s" variable value custom-file))))
 
-(defun too-long-file-p ()
-  "Check whether the file is too long."
+(defun file-too-long-p ()
+  "Check whether the file is too long.
+
+Returns non-nil if the buffer size exceeds 500,000 bytes or has more than 10,000
+lines."
   (or (> (buffer-size) 500000)
       (and (fboundp 'buffer-line-statistics)
            (> (car (buffer-line-statistics)) 10000))))
@@ -304,13 +293,13 @@ Native tree-sitter is introduced since 29.1."
       (and (fboundp 'mixed-pitch-mode) (mixed-pitch-mode -1))
       (text-scale-set 0))))
 
-;; Pakcage repository (ELPA)
+;; Package repository (ELPA)
 (defun set-package-archives (archives &optional refresh async no-save)
   "Set the package ARCHIVES (ELPA).
 
-REFRESH is non-nil, will refresh archive contents.
-ASYNC specifies whether to perform the downloads in the background.
-Save to option `custom-file' if NO-SAVE is nil."
+If REFRESH is non-nil, refresh the package contents.  If ASYNC is non-nil,
+perform the refresh in the background.  Save the setting to `custom-file'
+if NO-SAVE is nil.  This function updates `centaur-package-archives'."
   (interactive
    (list
     (intern
@@ -408,8 +397,8 @@ Return the fastest package archive."
   (message "Updating packages...done"))
 (defalias 'centaur-update-packages #'update-packages)
 
-(defun update-config-and-packages()
-  "Update confgiurations and packages."
+(defun update-config-and-packages ()
+  "Update configurations and packages."
   (interactive)
   (update-config)
   (update-packages))
@@ -442,7 +431,7 @@ Return the fastest package archive."
       (message "\"%s\" doesn't exist" dir))))
 (defalias 'centaur-update-org #'update-org)
 
-(defun update-all()
+(defun update-all ()
   "Update dotfiles, org files, configurations and packages to the latest."
   (interactive)
   (update-org)
@@ -459,14 +448,16 @@ Return the fastest package archive."
 
 
 
-
 ;; UI
 (defvar after-load-theme-hook nil
   "Hook run after a color theme is loaded using `load-theme'.")
 (defun run-after-load-theme-hook (&rest _)
   "Run `after-load-theme-hook'."
   (run-hooks 'after-load-theme-hook))
-(advice-add #'load-theme :after #'run-after-load-theme-hook)
+
+(if (boundp 'enable-theme-functions)    ; Introduced in 29.1
+    (add-hook 'enable-theme-functions #'run-after-load-theme-hook)
+  (advice-add #'load-theme :after #'run-after-load-theme-hook))
 
 (defun childframe-workable-p ()
   "Whether childframe is workable."
@@ -521,7 +512,7 @@ Return the fastest package archive."
       (centaur--load-theme theme))))
 
 (defun centaur-load-theme (theme &optional no-save)
-  "Load color THEME. Save to option `custom-file' if NO-SAVE is nil."
+  "Load color THEME. Save setting to `custom-file' if NO-SAVE is nil."
   (interactive
    (list
     (intern
@@ -572,6 +563,31 @@ Return the fastest package archive."
             (lambda (theme)
               "Save theme."
               (centaur-set-variable 'centaur-theme theme)))
+
+
+
+;; Window
+
+;; Rearrange split windows
+(defun split-window-horizontally-instead ()
+  "Kill other windows and split the current window is on the top half of the frame."
+  (interactive)
+  (let* ((next-window (next-window))
+         (other-buffer (and next-window (window-buffer next-window))))
+    (delete-other-windows)
+    (split-window-horizontally)
+    (when other-buffer
+      (set-window-buffer next-window other-buffer))))
+
+(defun split-window-vertically-instead ()
+  "Kill other windows and split the current window is on left half of the frame."
+  (interactive)
+  (let* ((next-window (next-window))
+         (other-buffer (and next-window (window-buffer next-window))))
+    (delete-other-windows)
+    (split-window-vertically)
+    (when other-buffer
+      (set-window-buffer next-window other-buffer))))
 
 
 
@@ -728,7 +744,7 @@ Return the fastest package archive."
     (enable-socks-proxy)))
 
 (defun enable-proxy ()
-  "Enbale proxy."
+  "Enable proxy."
   (interactive)
   (enable-http-proxy)
   (enable-socks-proxy))

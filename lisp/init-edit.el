@@ -1,6 +1,6 @@
 ;; init-edit.el --- Initialize editing configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2025 Vincent Zhang
+;; Copyright (C) 2006-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -29,6 +29,9 @@
 ;;
 
 ;;; Code:
+
+(eval-when-compile
+  (require 'init-const))
 
 ;; Delete selection if you insert
 (use-package delsel
@@ -129,10 +132,39 @@
 
 ;; Quickly follow links
 (use-package link-hint
-  :bind (("M-o" . link-hint-open-link)
+  :defines (Info-mode-map
+            compilation-mode-map custom-mode-map
+            devdocs-mode-map elfeed-show-mode-map eww-mode-map
+            help-mode-map helpful-mode-map nov-mode-map
+            woman-mode-map xref--xref-buffer-mode-map)
+  :functions embark-dwim
+  :bind (("M-o"     . link-hint-open-link)
          ("C-c l o" . link-hint-open-link)
          ("C-c l c" . link-hint-copy-link))
   :init
+  (with-eval-after-load 'compile
+    (bind-key "o" #'link-hint-open-link compilation-mode-map))
+  (with-eval-after-load 'cus-edit
+    (bind-key "o" #'link-hint-open-link custom-mode-map))
+  (with-eval-after-load 'devdocs
+    (bind-key "o" #'link-hint-open-link devdocs-mode-map))
+  (with-eval-after-load 'elfeed-show
+    (bind-key "o" #'link-hint-open-link elfeed-show-mode-map))
+  (with-eval-after-load 'eww
+    (bind-key "o" #'link-hint-open-link eww-mode-map))
+  (with-eval-after-load 'help
+    (bind-key "o" #'link-hint-open-link help-mode-map))
+  (with-eval-after-load 'helpful
+    (bind-key "o" #'link-hint-open-link helpful-mode-map))
+  (with-eval-after-load 'info
+    (bind-key "o" #'link-hint-open-link Info-mode-map))
+  (with-eval-after-load 'nov
+    (bind-key "o" #'link-hint-open-link nov-mode-map))
+  (with-eval-after-load 'woman
+    (bind-key "o" #'link-hint-open-link woman-mode-map))
+  (with-eval-after-load 'xref
+    (bind-key "o" #'link-hint-open-link xref--xref-buffer-mode-map))
+
   (with-eval-after-load 'embark
     (setq link-hint-action-fallback-commands
           (list :open (lambda ()
@@ -148,37 +180,6 @@
   :diminish
   :hook (after-init . ace-pinyin-global-mode))
 
-;; Minor mode to aggressively keep your code always indented
-(use-package aggressive-indent
-  :diminish
-  :hook ((after-init . global-aggressive-indent-mode)
-         ;; NOTE: Disable in large files due to the performance issues
-         ;; https://github.com/Malabarba/aggressive-indent-mode/issues/73
-         (find-file . (lambda ()
-                        (when (too-long-file-p)
-                          (aggressive-indent-mode -1)))))
-  :config
-  ;; Disable in some modes
-  (dolist (mode '(gitconfig-mode
-                  asm-mode web-mode html-mode
-                  css-mode css-ts-mode
-                  go-mode go-ts-mode
-                  python-ts-mode yaml-ts-mode
-                  scala-mode
-                  shell-mode term-mode vterm-mode
-                  prolog-inferior-mode))
-    (add-to-list 'aggressive-indent-excluded-modes mode))
-
-  ;; Disable in some commands
-  (add-to-list 'aggressive-indent-protected-commands #'delete-trailing-whitespace t)
-
-  ;; Be slightly less aggressive in C/C++/C#/Java/Go/Swift
-  (add-to-list 'aggressive-indent-dont-indent-if
-               '(and (derived-mode-p 'c-mode 'c++-mode 'csharp-mode
-                                     'java-mode 'go-mode 'swift-mode)
-                     (null (string-match "\\([;{}]\\|\\b\\(if\\|for\\|while\\)\\b\\)"
-                                         (thing-at-point 'line))))))
-
 ;; Show number of matches in mode-line while searching
 (use-package anzu
   :diminish
@@ -192,6 +193,7 @@
 ;; Redefine M-< and M-> for some modes
 (use-package beginend
   :diminish beginend-global-mode
+  :functions diminish
   :hook (after-init . beginend-global-mode)
   :config (mapc (lambda (pair)
                   (diminish (cdr pair)))
@@ -212,7 +214,7 @@
   :hook(;; show org ediffs unfolded
         (ediff-prepare-buffer . outline-show-all)
         ;; restore window layout when done
-        (ediff-quit . winner-undo))
+        (ediff-quit . tab-bar-history-back))
   :config
   (setq ediff-window-setup-function 'ediff-setup-windows-plain
         ediff-split-window-function 'split-window-horizontally
@@ -220,7 +222,6 @@
 
 ;; Automatic parenthesis pairing
 (use-package elec-pair
-  :ensure nil
   :hook (after-init . electric-pair-mode)
   :init (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit))
 
@@ -229,20 +230,19 @@
 
 ;; Edit multiple regions in the same way simultaneously
 (use-package iedit
-  :defines desktop-minor-mode-table
-  :bind (("C-;" . iedit-mode)
+  :bind (:map global-map
+         ("C-;" . iedit-mode)
          ("C-x r RET" . iedit-rectangle-mode)
-         :map isearch-mode-map ("C-;" . iedit-mode-from-isearch)
-         :map esc-map ("C-;" . iedit-execute-last-modification)
-         :map help-map ("C-;" . iedit-mode-toggle-on-function))
-  :config
-  ;; Avoid restoring `iedit-mode'
-  (with-eval-after-load 'desktop
-    (add-to-list 'desktop-minor-mode-table
-                 '(iedit-mode nil))))
+         :map isearch-mode-map
+         ("C-;" . iedit-mode-from-isearch)
+         :map esc-map
+         ("C-;" . iedit-execute-last-modification)
+         :map help-map
+         ("C-;" . iedit-mode-toggle-on-function)))
 
 ;; Increase selected region by semantic units
 (use-package expand-region
+  :functions centaur-treesit-available-p treesit-buffer-root-node
   :bind ("C-=" . er/expand-region)
   :config
   (when (centaur-treesit-available-p)
@@ -305,12 +305,14 @@
   :ensure nil
   :diminish
   :if (executable-find "aspell")
-  :hook (((text-mode outline-mode) . flyspell-mode)
-         ;; (prog-mode . flyspell-prog-mode)
-         (flyspell-mode . (lambda ()
-                            (dolist (key '("C-;" "C-," "C-."))
-                              (unbind-key key flyspell-mode-map)))))
+  :bind (:map flyspell-mode-map
+         ("C-;" . nil)
+         ("C-," . nil)
+         ("C-." . nil))
+  :hook ((text-mode outline-mode)
+         (prog-mode . flyspell-prog-mode))
   :init (setq flyspell-issue-message-flag nil
+              flyspell-issue-welcome-flag nil
               ispell-program-name "aspell"
               ispell-extra-args '("--sug-mode=ultra" "--lang=en_US" "--run-together")))
 
@@ -340,8 +342,7 @@
 (use-package subword
   :ensure nil
   :diminish
-  :hook ((prog-mode . subword-mode)
-         (minibuffer-setup . subword-mode)))
+  :hook (prog-mode minibuffer-setup))
 
 ;; Flexible text folding
 (use-package hideshow
@@ -462,6 +463,10 @@
 ;; Hanlde minified code
 (use-package so-long
   :hook (after-init . global-so-long-mode))
+
+;; Better performance via tramp
+(use-package tramp-hlo
+  :hook (after-init . tramp-hlo-setup))
 
 (provide 'init-edit)
 

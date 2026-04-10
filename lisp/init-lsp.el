@@ -1,6 +1,6 @@
 ;; init-lsp.el --- Initialize LSP configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2025 Vincent Zhang
+;; Copyright (C) 2018-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -38,27 +38,21 @@
   ('eglot
    (use-package eglot
      :hook ((prog-mode . (lambda ()
-                           (unless (derived-mode-p 'emacs-lisp-mode 'lisp-mode 'makefile-mode 'snippet-mode)
+                           (unless (derived-mode-p
+                                    'emacs-lisp-mode 'lisp-mode
+                                    'makefile-mode 'snippet-mode
+                                    'ron-mode)
                              (eglot-ensure))))
             ((markdown-mode yaml-mode yaml-ts-mode) . eglot-ensure))
-     :init
-     (setq read-process-output-max (* 1024 1024)) ; 1MB
-     (setq eglot-autoshutdown t
-           eglot-events-buffer-size 0
-           eglot-send-changes-idle-time 0.5))
+     :init (setq eglot-autoshutdown t
+                 eglot-events-buffer-config '(:size 0 :format 'short)
+                 eglot-send-changes-idle-time 0.5))
 
-   (use-package consult-eglot
-     :after consult eglot
-     :bind (:map eglot-mode-map
-            ("C-M-." . consult-eglot-symbols)))
-
-   ;; Emacs LSP booster
-   (use-package eglot-booster
-     :when (and emacs/>=29p (executable-find "emacs-lsp-booster"))
-     :ensure nil
-     :init (unless (package-installed-p 'eglot-booster)
-             (package-vc-install "https://github.com/jdtsmith/eglot-booster"))
-     :hook (after-init . eglot-booster-mode)))
+   (with-eval-after-load 'consult
+     (use-package consult-eglot
+       :after eglot
+       :bind (:map eglot-mode-map
+              ("C-M-." . consult-eglot-symbols)))))
   ('lsp-mode
    ;; Emacs client for the Language Server Protocol
    ;; https://github.com/emacs-lsp/lsp-mode#supported-languages
@@ -67,13 +61,11 @@
      :defines (lsp-diagnostics-disabled-modes lsp-clients-python-library-directories)
      :autoload lsp-enable-which-key-integration
      :commands (lsp-format-buffer lsp-organize-imports)
-     :preface
-     ;; Performace tuning
-     ;; @see https://emacs-lsp.github.io/lsp-mode/page/performance/
-     (setq read-process-output-max (* 1024 1024)) ; 1MB
-     (setenv "LSP_USE_PLISTS" "true")
      :hook ((prog-mode . (lambda ()
-                           (unless (derived-mode-p 'emacs-lisp-mode 'lisp-mode 'makefile-mode 'snippet-mode)
+                           (unless (derived-mode-p
+                                    'emacs-lisp-mode 'lisp-mode
+                                    'makefile-mode 'snippet-mode
+                                    'ron-mode)
                              (lsp-deferred))))
             ((markdown-mode yaml-mode yaml-ts-mode) . lsp-deferred)
             (lsp-mode . (lambda ()
@@ -90,6 +82,7 @@
             ([remap xref-find-definitions] . lsp-find-definition)
             ([remap xref-find-references] . lsp-find-references))
      :init (setq lsp-use-plists t
+                 lsp-log-io nil
 
                  lsp-keymap-prefix "C-c l"
                  lsp-keep-workspace-alive nil
@@ -120,67 +113,26 @@
               ("C-M-." . consult-lsp-symbols)))
 
      (with-no-warnings
-       ;; Emacs LSP booster
-       ;; @see https://github.com/blahgeek/emacs-lsp-booster
-       (when (executable-find "emacs-lsp-booster")
-         (defun lsp-booster--advice-json-parse (old-fn &rest args)
-           "Try to parse bytecode instead of json."
-           (or
-            (when (equal (following-char) ?#)
-              (let ((bytecode (read (current-buffer))))
-                (when (byte-code-function-p bytecode)
-                  (funcall bytecode))))
-            (apply old-fn args)))
-         (advice-add (if (progn (require 'json)
-                                (fboundp 'json-parse-buffer))
-                         'json-parse-buffer
-                       'json-read)
-                     :around
-                     #'lsp-booster--advice-json-parse)
-
-         (defun lsp-booster--advice-final-command (old-fn cmd &optional test?)
-           "Prepend emacs-lsp-booster command to lsp CMD."
-           (let ((orig-result (funcall old-fn cmd test?)))
-             (if (and (not test?)                             ;; for check lsp-server-present?
-                      (not (file-remote-p default-directory)) ;; see lsp-resolve-final-command, it would add extra shell wrapper
-                      lsp-use-plists
-                      (not (functionp 'json-rpc-connection))  ;; native json-rpc
-                      (executable-find "emacs-lsp-booster"))
-                 (progn
-                   (message "Using emacs-lsp-booster for %s!" orig-result)
-                   (cons "emacs-lsp-booster" orig-result))
-               orig-result)))
-         (advice-add 'lsp-resolve-final-command :around #'lsp-booster--advice-final-command))
-
        ;; Disable `lsp-mode' in `git-timemachine-mode'
-       (defun my-lsp--init-if-visible (fn &rest args)
+       (defun my/lsp--init-if-visible (fn &rest args)
          (unless (bound-and-true-p git-timemachine-mode)
            (apply fn args)))
-       (advice-add #'lsp--init-if-visible :around #'my-lsp--init-if-visible)
+       (advice-add #'lsp--init-if-visible :around #'my/lsp--init-if-visible)
 
        ;; Enable `lsp-mode' in sh/bash/zsh
-       (defun my-lsp-bash-check-sh-shell (&rest _)
+       (defun my/lsp-bash-check-sh-shell (&rest _)
          (and (memq major-mode '(sh-mode bash-ts-mode))
               (memq sh-shell '(sh bash zsh))))
-       (advice-add #'lsp-bash-check-sh-shell :override #'my-lsp-bash-check-sh-shell)
+       (advice-add #'lsp-bash-check-sh-shell :override #'my/lsp-bash-check-sh-shell)
        (add-to-list 'lsp-language-id-configuration '(bash-ts-mode . "shellscript"))
 
        ;; Display icons
        (when (icons-displayable-p)
-         (defun my-lsp-icons-get-symbol-kind (fn &rest args)
-           (and (icons-displayable-p) (apply fn args)))
-         (advice-add #'lsp-icons-get-by-symbol-kind :around #'my-lsp-icons-get-symbol-kind)
-
-         ;; For `lsp-headerline'
-         (defun my-lsp-icons-get-by-file-ext (fn &rest args)
-           (and (icons-displayable-p) (apply fn args)))
-         (advice-add #'lsp-icons-get-by-file-ext :around #'my-lsp-icons-get-by-file-ext)
-
-         (defun my-lsp-icons-get-by-file-ext (file-ext &optional feature)
+         (defun my/lsp-icons-get-by-file-ext (file-ext &optional feature)
            (when (and file-ext
                       (lsp-icons--enabled-for-feature feature))
              (nerd-icons-icon-for-extension file-ext)))
-         (advice-add #'lsp-icons-get-by-file-ext :override #'my-lsp-icons-get-by-file-ext)
+         (advice-add #'lsp-icons-get-by-file-ext :override #'my/lsp-icons-get-by-file-ext)
 
          (defvar lsp-symbol-alist
            '((misc          nerd-icons-codicon "nf-cod-symbol_namespace" :face font-lock-warning-face)
@@ -204,13 +156,13 @@
              (operator      nerd-icons-codicon "nf-cod-symbol_operator" :face font-lock-comment-delimiter-face)
              (template      nerd-icons-codicon "nf-cod-symbol_snippet" :face font-lock-type-face)))
 
-         (defun my-lsp-icons-get-by-symbol-kind (kind &optional feature)
+         (defun my/lsp-icons-get-by-symbol-kind (kind &optional feature)
            (when (and kind
                       (lsp-icons--enabled-for-feature feature))
              (let* ((icon (cdr (assoc (lsp-treemacs-symbol-kind->icon kind) lsp-symbol-alist)))
                     (args (cdr icon)))
                (apply (car icon) args))))
-         (advice-add #'lsp-icons-get-by-symbol-kind :override #'my-lsp-icons-get-by-symbol-kind)
+         (advice-add #'lsp-icons-get-by-symbol-kind :override #'my/lsp-icons-get-by-symbol-kind)
 
          (setq lsp-headerline-arrow (nerd-icons-octicon "nf-oct-chevron_right"
                                                         :face 'lsp-headerline-breadcrumb-separator-face)))))
@@ -275,7 +227,8 @@
             ("s-<return>" . lsp-ui-sideline-apply-code-actions)
             ([remap xref-find-definitions] . lsp-ui-peek-find-definitions)
             ([remap xref-find-references] . lsp-ui-peek-find-references))
-     :hook (lsp-mode . lsp-ui-mode)
+     :hook ((lsp-mode . lsp-ui-mode)
+            (after-load-theme . lsp-ui-set-doc-border))
      :init
      (setq lsp-ui-sideline-show-diagnostics nil
            lsp-ui-sideline-ignore-duplicate t
@@ -287,14 +240,11 @@
                                  ,(face-foreground 'font-lock-constant-face)
                                  ,(face-foreground 'font-lock-variable-name-face)))
      ;; Set correct color to borders
-     (defun my-lsp-ui-doc-set-border ()
+     (defun lsp-ui-set-doc-border ()
        "Set the border color of lsp doc."
        (setq lsp-ui-doc-border
-             (if (facep 'posframe-border)
-                 (face-background 'posframe-border nil t)
-               (face-background 'region nil t))))
-     (my-lsp-ui-doc-set-border)
-     (add-hook 'after-load-theme-hook #'my-lsp-ui-doc-set-border t)
+             (face-background 'posframe-border nil t)))
+     (lsp-ui-set-doc-border)
      :config
      (with-no-warnings
        ;; Display peek in child frame if possible
@@ -327,7 +277,7 @@
        (advice-add #'lsp-ui-peek--peek-hide :around #'lsp-ui-peek--peek-destroy)
 
        ;; Handle docs
-       (defun my-lsp-ui-doc--handle-hr-lines nil
+       (defun my/lsp-ui-doc--handle-hr-lines nil
          (let (bolp next before after)
            (goto-char 1)
            (while (setq next (next-single-property-change (or next 1) 'markdown-hr))
@@ -349,11 +299,12 @@
                  ;; :align-to is added here too
                  (propertize " " 'display '(space :height (1)))
                  (and (not (equal after ?\n)) (propertize " \n" 'face '(:height 0.5)))))))))
-       (advice-add #'lsp-ui-doc--handle-hr-lines :override #'my-lsp-ui-doc--handle-hr-lines)))
+       (advice-add #'lsp-ui-doc--handle-hr-lines :override #'my/lsp-ui-doc--handle-hr-lines)))
 
    ;; `lsp-mode' and `treemacs' integration
    (use-package lsp-treemacs
      :after lsp-mode
+     :functions lsp-treemacs-sync-mode
      :bind (:map lsp-mode-map
             ("C-<f8>" . lsp-treemacs-errors-list)
             ("M-<f8>" . lsp-treemacs-symbols)
@@ -537,7 +488,7 @@
 
    ;; Python
    (use-package lsp-pyright
-     :preface
+     :functions lsp-pyright-format-buffer
      :hook (((python-mode python-ts-mode) . (lambda ()
                                               (require 'lsp-pyright)
                                               (add-hook 'after-save-hook #'lsp-pyright-format-buffer t t))))
@@ -558,12 +509,12 @@
      (with-no-warnings
        ;; FIXME: fail to call ccls.xref
        ;; @see https://github.com/emacs-lsp/emacs-ccls/issues/109
-       (cl-defmethod my-lsp-execute-command
+       (cl-defmethod my/lsp-execute-command
          ((_server (eql ccls)) (command (eql ccls.xref)) arguments)
          (when-let* ((xrefs (lsp--locations-to-xref-items
                              (lsp--send-execute-command (symbol-name command) arguments))))
            (xref--show-xrefs xrefs nil)))
-       (advice-add #'lsp-execute-command :override #'my-lsp-execute-command)))
+       (advice-add #'lsp-execute-command :override #'my/lsp-execute-command)))
 
    ;; Swift
    (use-package lsp-sourcekit)

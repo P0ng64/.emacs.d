@@ -1,6 +1,6 @@
 ;; init-markdown.el --- Initialize markdown configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2009-2025 Vincent Zhang
+;; Copyright (C) 2009-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -90,20 +90,18 @@ mermaid.initialize({
     (advice-add #'markdown--command-map-prompt :override #'ignore)
     (advice-add #'markdown--style-map-prompt   :override #'ignore)
 
-    ;; Preview with built-in webkit
-    (defun my-markdown-export-and-preview (fn)
+    ;; Preview with webkit
+    (defun my/markdown-export-and-preview ()
       "Preview with `xwidget' if applicable, otherwise with the default browser."
-      (if (xwidget-workable-p)
-          (centaur-webkit-browse-url (concat "file://" (markdown-export)) t)
-        (funcall fn)))
-    (advice-add #'markdown-export-and-preview :around #'my-markdown-export-and-preview)))
+      (centaur-browse-url-of-file (markdown-export)))
+    (advice-add #'markdown-export-and-preview :override #'my/markdown-export-and-preview)))
 
 ;; Table of contents
 (use-package markdown-toc
   :diminish
   :bind (:map markdown-mode-command-map
          ("r" . markdown-toc-generate-or-refresh-toc))
-  :hook (markdown-mode . markdown-toc-mode)
+  :hook markdown-mode
   :init (setq markdown-toc-indentation-space 2
               markdown-toc-header-toc-title "\n## Table of Contents"
               markdown-toc-user-toc-structure-manipulation-fn 'cdr)
@@ -112,21 +110,21 @@ mermaid.initialize({
     (define-advice markdown-toc-generate-toc (:around (fn &rest args) lsp)
       "Generate or refresh toc after disabling lsp."
       (cond
-       ((bound-and-true-p lsp-managed-mode)
-        (lsp-managed-mode -1)
-        (apply fn args)
-        (lsp-managed-mode 1))
        ((bound-and-true-p eglot--manage-mode)
         (eglot--manage-mode -1)
         (apply fn args)
         (eglot--manage-mode 1))
+       ((bound-and-true-p lsp-managed-mode)
+        (lsp-managed-mode -1)
+        (apply fn args)
+        (lsp-managed-mode 1))
        (t
         (apply fn args))))))
 
 ;; Preview markdown files
 ;; @see https://github.com/seagle0128/grip-mode?tab=readme-ov-file#prerequisite
 (use-package grip-mode
-  :defines markdown-mode-command-map org-mode-map
+  :defines markdown-mode-command-map org-mode-map grip-update-after-change grip-use-mdopen
   :functions auth-source-user-and-password
   :autoload grip-mode
   :init

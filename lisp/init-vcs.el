@@ -1,6 +1,6 @@
 ;; init-vcs.el --- Initialize version control system configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2016-2025 Vincent Zhang
+;; Copyright (C) 2016-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -33,31 +33,29 @@
 (eval-when-compile
   (require 'init-const))
 
-;; Git
+;; Magit
 ;; See `magit-define-global-key-bindings'
 (use-package magit
-  :init (setq magit-diff-refine-hunk t)
+  :custom
+  (magit-diff-refine-hunk t)
+  (git-commit-major-mode 'git-commit-elisp-text-mode)
+  :hook (git-commit-setup . (lambda () (setq fill-column git-commit-summary-max-length)))
   :config
   (when sys/win32p
-    (setenv "GIT_ASKPASS" "git-gui--askpass"))
+    (setenv "GIT_ASKPASS" "git-gui--askpass")))
 
-  ;; Unbind M-1, M-2, M-3, and M-4 shortcuts due to conflict with `ace-window'
-  (unbind-key "M-1" magit-mode-map)
-  (unbind-key "M-2" magit-mode-map)
-  (unbind-key "M-3" magit-mode-map)
-  (unbind-key "M-4" magit-mode-map)
+;; Prime cache before Magit refresh
+(use-package magit-prime
+  :diminish
+  :hook after-init)
 
-  ;; Access Git forges from Magit
-  (when emacs/>=29p
-    (use-package forge
-      :demand t
-      :custom-face
-      (forge-topic-label ((t (:inherit variable-pitch :height 0.9 :width condensed :weight regular :underline nil))))
-      :init (setq forge-topic-list-columns
-                  '(("#" 5 forge-topic-list-sort-by-number (:right-align t) number nil)
-                    ("Title" 60 t nil title  nil)
-                    ("State" 6 t nil state nil)
-                    ("Updated" 10 t nil updated nil))))))
+;; Show TODOs in Magit
+(use-package magit-todos
+  :after magit-status
+  :commands magit-todos-mode
+  :init
+  (setq magit-todos-nice (if (executable-find "nice") t nil))
+  (magit-todos-mode 1))
 
 ;; Walk through git revisions of a file
 (use-package git-timemachine
@@ -68,20 +66,15 @@
          ("t" . git-timemachine))
   :hook ((git-timemachine-mode . (lambda ()
                                    "Improve `git-timemachine' buffers."
-                                   ;; Display different colors in mode-line
-                                   (if (facep 'mode-line-active)
-                                       (face-remap-add-relative 'mode-line-active 'custom-state)
-                                     (face-remap-add-relative 'mode-line 'custom-state))
-
                                    ;; Highlight symbols in elisp
-                                   (and (derived-mode-p 'emacs-lisp-mode)
-                                        (fboundp 'highlight-defined-mode)
-                                        (highlight-defined-mode t))
+                                   (when (derived-mode-p 'emacs-lisp-mode)
+                                     (and (fboundp 'highlight-defined-mode)
+                                          (highlight-defined-mode t)))
 
                                    ;; Display line numbers
-                                   (and (derived-mode-p 'prog-mode 'yaml-mode)
-                                        (fboundp 'display-line-numbers-mode)
-                                        (display-line-numbers-mode t))))
+                                   (when (derived-mode-p 'prog-mode 'yaml-mode 'yaml-ts-mode)
+                                     (and (fboundp 'display-line-numbers-mode)
+                                          (display-line-numbers-mode t)))))
          (before-revert . (lambda ()
                             (when (bound-and-true-p git-timemachine-mode)
                               (user-error "Cannot revert the timemachine buffer"))))))
@@ -104,7 +97,7 @@
         ("," (catch 'git-messenger-loop (git-messenger:show-parent)) "go parent")
         ("q" git-messenger:popup-close "quit")))
 
-    (defun my-git-messenger:format-detail (vcs commit-id author message)
+    (defun my/git-messenger:format-detail (fn vcs commit-id author message)
       (if (eq vcs 'git)
           (let ((date (git-messenger:commit-date commit-id))
                 (colon (propertize ":" 'face 'font-lock-comment-face)))
@@ -119,9 +112,10 @@
              (propertize (make-string 38 ?─) 'face 'font-lock-comment-face)
              message
              (propertize "\nPress q to quit" 'face '(:inherit (font-lock-comment-face italic)))))
-        (git-messenger:format-detail vcs commit-id author message)))
+        (funcall fn vcs commit-id author message)))
+    (advice-add #'git-messenger:format-detail :around #'my/git-messenger:format-detail)
 
-    (defun my-git-messenger:popup-message ()
+    (defun my/git-messenger:popup-message ()
       "Popup message with `posframe', `pos-tip', `lv' or `message', and dispatch actions with `hydra'."
       (interactive)
       (let* ((hydra-hint-display-type 'message)
@@ -133,7 +127,7 @@
              (author (cdr commit-info))
              (msg (git-messenger:commit-message vcs commit-id))
              (popuped-message (if (git-messenger:show-detail-p commit-id)
-                                  (my-git-messenger:format-detail vcs commit-id author msg)
+                                  (git-messenger:format-detail vcs commit-id author msg)
                                 (cl-case vcs
                                   (git msg)
                                   (svn (if (string= commit-id "-")
@@ -146,19 +140,17 @@
         (run-hook-with-args 'git-messenger:before-popup-hook popuped-message)
         (git-messenger-hydra/body)
         (cond ((and (fboundp 'posframe-workable-p) (posframe-workable-p))
-               (let ((buffer-name "*git-messenger*"))
+               (let ((buffer-name " *git-messenger*"))
                  (posframe-show buffer-name
-                                :string (concat (propertize "\n" 'face '(:height 0.3))
-                                                popuped-message
-                                                "\n"
-                                                (propertize "\n" 'face '(:height 0.3)))
+                                :string popuped-message
                                 :left-fringe 8
                                 :right-fringe 8
                                 :max-width (round (* (frame-width) 0.62))
                                 :max-height (round (* (frame-height) 0.62))
                                 :internal-border-width 1
                                 :internal-border-color (face-background 'posframe-border nil t)
-                                :background-color (face-background 'tooltip nil t))
+                                :foreground-color (face-foreground 'tooltip nil t)
+                                :background-color (face-background 'tooltip nil t)                                )
                  (unwind-protect
                      (push (read-event) unread-command-events)
                    (posframe-hide buffer-name))))
@@ -172,7 +164,7 @@
               (t (message "%s" popuped-message)))
         (run-hook-with-args 'git-messenger:after-popup-hook popuped-message)))
     (advice-add #'git-messenger:popup-close :override #'ignore)
-    (advice-add #'git-messenger:popup-message :override #'my-git-messenger:popup-message)))
+    (advice-add #'git-messenger:popup-message :override #'my/git-messenger:popup-message)))
 
 ;; Resolve diff3 conflicts
 (use-package smerge-mode

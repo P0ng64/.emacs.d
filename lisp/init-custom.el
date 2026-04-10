@@ -1,6 +1,6 @@
 ;; init-custom.el --- Define customizations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2025 Vincent Zhang
+;; Copyright (C) 2006-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -70,8 +70,13 @@
   :group 'centaur
   :type 'string)
 
-(defcustom centaur-server t
-  "Enable `server-mode' or not."
+
+
+(defcustom centaur-use-exec-path-from-shell
+  (and (or (memq window-system '(mac ns x)) (daemonp))
+       (not (bound-and-true-p ns-emacs-plus-injected-path)))
+  "Use `exec-path-from-shell' or not.
+If using emacs-plus with path ejection, set to nil."
   :group 'centaur
   :type 'boolean)
 
@@ -225,6 +230,40 @@ Native tree-sitter is introduced in 29."
 `prog-mode' means ignoring all derived modes."
   :group 'centaur
   :type '(repeat (symbol :tag "Major-Mode")))
+
+(defcustom centaur-chinese-calendar nil
+  "Enable Chinese calendar or not."
+  :group 'centaur
+  :type 'boolean)
+
+(defcustom centaur-player nil
+  "Enable players or not."
+  :group 'centaur
+  :type 'boolean)
+
+(defcustom centaur-prettify-symbols-alist
+  '(("lambda" . ?λ)
+    ("<-"     . ?←)
+    ("->"     . ?→)
+    ("->>"    . ?↠)
+    ("=>"     . ?⇒)
+    ("map"    . ?↦)
+    ("/="     . ?≠)
+    ("!="     . ?≠)
+    ("=="     . ?≡)
+    ("<="     . ?≤)
+    (">="     . ?≥)
+    ("=<<"    . (?= (Br . Bl) ?≪))
+    (">>="    . (?≫ (Br . Bl) ?=))
+    ("<=<"    . ?↢)
+    (">=>"    . ?↣)
+    ("&&"     . ?∧)
+    ("||"     . ?∨)
+    ("not"    . ?¬))
+  "A list of symbol prettifications.
+Nil to use font supports ligatures."
+  :group 'centaur
+  :type '(alist :key-type string :value-type (choice character sexp)))
 
 ;; Load `custom-file'
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))

@@ -1,6 +1,6 @@
 ;; init-c.el --- Initialize c configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2025 Vincent Zhang
+;; Copyright (C) 2006-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -35,14 +35,19 @@
 
 ;; C/C++ Mode
 (use-package cc-mode
-  :ensure nil
-  :bind (:map c-mode-base-map
-         ("<f12>" . compile))
-  :init (setq c-default-style "gnu"))
+  :init (setq-default c-default-style "gnu))
 
 (when (and centaur-tree-sitter (centaur-treesit-available-p))
   (use-package c-ts-mode
-    :init (setq c-ts-mode-indent-offset 2)))
+    :functions centaur-treesit-available-p
+    :init
+    (setq c-ts-mode-indent-offset 4)
+
+    (when (boundp 'major-mode-remap-alist)
+      (add-to-list 'major-mode-remap-alist '(c-mode . c-ts-mode))
+      (add-to-list 'major-mode-remap-alist '(c++-mode . c++-ts-mode))
+      (add-to-list 'major-mode-remap-alist
+                   '(c-or-c++-mode . c-or-c++-ts-mode)))))
 
 (provide 'init-c)
 

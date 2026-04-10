@@ -1,6 +1,6 @@
 ;; init-rust.el --- Initialize Rust configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2019-2025 Vincent Zhang
+;; Copyright (C) 2019-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -32,20 +32,9 @@
 
 ;; Rust
 (use-package rust-mode
-  :mode ("\\.rs\\'" . rustic-mode)
+  :functions centaur-treesit-available-p
   :init (setq rust-format-on-save t
-              rust-mode-treesitter-derive t)
-  :config
-  (setq rustic-lsp-client 'eglot)
-  ;; HACK: `global-treesit-auto-mode' will override `rust-mode'.
-  (define-derived-mode rustic-mode rust-mode "Rust"
-    "Major mode for Rust code.
-
-\\{rust-mode-map}")
-
-  (when (centaur-treesit-available-p)
-    (setq auto-mode-alist (delete '("\\.rs\\'" . rust-mode) auto-mode-alist))
-    (setq auto-mode-alist (delete '("\\.rs\\'" . rust-ts-mode) auto-mode-alist))))
+              rust-mode-treesitter-derive (centaur-treesit-available-p)))
 
 (use-package ron-mode
   :mode ("\\.ron" . ron-mode))

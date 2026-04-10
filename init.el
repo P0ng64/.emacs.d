@@ -1,10 +1,10 @@
 ;;; init.el --- A Fancy and Fast Emacs Configuration.	-*- lexical-binding: t no-byte-compile: t -*-
 
-;; Copyright (C) 2006-2025 Vincent Zhang
+;; Copyright (C) 2006-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
-;; Version: 8.2.0
+;; Version: 8.3.0
 ;; Keywords: .emacs.d centaur
 
 ;;
@@ -54,50 +54,45 @@
   (error "This requires Emacs 28.1 and above!"))
 
 ;;
-;; Speed up startup
+;; Speed up Startup Process
 ;;
 
-;; Defer garbage collection further back in the startup process
-(setq gc-cons-threshold most-positive-fixnum)
-
-;; Prevent flashing of unstyled modeline at startup
-(setq-default mode-line-format nil)
-
-;; Don't pass case-insensitive to `auto-mode-alist'
+;; Optimize `auto-mode-alist'
 (setq auto-mode-case-fold nil)
 
+;; PERF: Restore file-name-handler-alist after startup.
+;; It was set to nil in early-init.el for faster startup.
 (unless (or (daemonp) noninteractive init-file-debug)
-  ;; Suppress file handlers operations at startup
-  ;; `file-name-handler-alist' is consulted on each call to `require' and `load'
-  (let ((old-value file-name-handler-alist))
-    (setq file-name-handler-alist nil)
-    (set-default-toplevel-value 'file-name-handler-alist file-name-handler-alist)
-    (add-hook 'emacs-startup-hook
-              (lambda ()
-                "Recover file name handlers."
-                (setq file-name-handler-alist
-                      (delete-dups (append file-name-handler-alist old-value))))
-              101)))
+  (add-hook 'emacs-startup-hook
+            (lambda ()
+              (setq file-name-handler-alist
+                    (delete-dups (append file-name-handler-alist
+                                         centaur--file-name-handler-alist))))
+            101))
 
-;; Load path
-;; Optimize: Force "lisp"" and "site-lisp" at the head to reduce the startup time.
+;;
+;; Configure Load Path
+;;
+
+;; Add "lisp" and "site-lisp" to the beginning of `load-path`
 (defun update-load-path (&rest _)
-  "Update `load-path'."
+  "Update the `load-path` to prioritize personal configurations."
   (dolist (dir '("site-lisp" "lisp"))
     (push (expand-file-name dir user-emacs-directory) load-path)))
 
-(defun add-subdirs-to-load-path (&rest _)
-  "Add subdirectories to `load-path'.
+;; Initialize load paths explicitly
+(update-load-path)
 
-Don't put large files in `site-lisp' directory, e.g. EAF.
-Otherwise the startup will be very slow."
+;; Add subdirectories inside "site-lisp" to `load-path`
+(defun add-subdirs-to-load-path (&rest _)
+  "Recursively add subdirectories in `site-lisp` to `load-path`.
+
+Avoid placing large files like EAF in `site-lisp` to prevent slow startup."
   (let ((default-directory (expand-file-name "site-lisp" user-emacs-directory)))
     (normal-top-level-add-subdirs-to-load-path)))
 
-(advice-add #'package-initialize :after #'update-load-path)
+;; Ensure these functions are called after `package-initialize`
 (advice-add #'package-initialize :after #'add-subdirs-to-load-path)
-
-(update-load-path)
 
 ;; Requisites
 (require 'init-const)
@@ -144,6 +139,7 @@ Otherwise the startup will be very slow."
 (require 'init-check)
 (require 'init-lsp)
 (require 'init-dap)
+(require 'init-ai)
 
 (require 'init-prog)
 (require 'init-elisp)
