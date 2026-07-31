@@ -1,6 +1,6 @@
 ;; init-prog.el --- Initialize programming configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2025 Vincent Zhang
+;; Copyright (C) 2006-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -34,9 +34,6 @@
   (require 'init-const)
   (require 'init-custom))
 
-(declare-function centaur-treesit-available-p "init-funcs")
-(declare-function childframe-workable-p "init-funcs")
-
 ;; ---------------------------------------------------------------------------
 ;; Code Display & Utilities
 ;; ---------------------------------------------------------------------------
@@ -52,35 +49,32 @@
 (when (centaur-treesit-available-p)
   ;; Automatic Tree-sitter grammar management
   (use-package treesit-auto
+    :functions centaur-treesit-available-p
     :hook (after-init . global-treesit-auto-mode)
-    :init (setq treesit-auto-install 'prompt))
-
-  ;; Code folding indicators using Tree-sitter
-  (use-package treesit-fold-indicators
-    :ensure treesit-fold
-    :hook (after-init . global-treesit-fold-indicators-mode)
-    :init (setq treesit-fold-indicators-priority -1)))
+    :init (setq treesit-auto-install 'prompt)
+    :config
+    ;; `rust-mode' will handle tree-sitter
+    (delete 'rust treesit-auto-langs)))
 
 ;; Show function arglist or variable docstring
 (use-package eldoc
   :ensure nil
   :diminish
+  :functions childframe-workable-p
+  :commands eldoc-box-hover-mode
   :config
-  (when (childframe-workable-p)
-    (use-package eldoc-box
-      :diminish (eldoc-box-hover-mode eldoc-box-hover-at-point-mode)
-      :custom
-      (eldoc-box-lighter nil)
-      (eldoc-box-only-multi-line t)
-      (eldoc-box-clear-with-C-g t)
-      :custom-face
-      (eldoc-box-border ((t (:inherit posframe-border :background unspecified))))
-      (eldoc-box-body ((t (:inherit tooltip))))
-      :hook ((eglot-managed-mode . eldoc-box-hover-at-point-mode))
-      :config
-      ;; Prettify `eldoc-box' frame
-      (setf (alist-get 'left-fringe eldoc-box-frame-parameters) 8
-            (alist-get 'right-fringe eldoc-box-frame-parameters) 8))))
+  (use-package eldoc-box
+    :custom
+    (eldoc-box-lighter nil)
+    (eldoc-box-only-multi-line t)
+    (eldoc-box-clear-with-C-g t)
+    :custom-face
+    (eldoc-box-border ((t (:inherit posframe-border :background unspecified))))
+    (eldoc-box-body ((t (:inherit tooltip))))
+    :hook (eglot-managed-mode . (lambda ()
+                                  (if (childframe-workable-p)
+                                      (eldoc-box-hover-mode 1)
+                                    (eldoc-box-hover-mode -1))))))
 
 ;; Cross-referencing commands
 (use-package xref
@@ -99,7 +93,12 @@
 ;; Code styles
 (use-package editorconfig
   :diminish
-  :hook (after-init . editorconfig-mode))
+  :hook after-init)
+
+;; Reformat buffer stably
+(use-package apheleia
+  :diminish
+  :hook (after-init . apheleia-global-mode))
 
 ;; Run commands quickly
 (use-package quickrun
@@ -108,32 +107,34 @@
 
 ;; Browse devdocs.io documents using EWW
 (use-package devdocs
-  :autoload (devdocs--installed-docs devdocs--available-docs)
+  :autoload devdocs--available-docs
   :commands (devdocs-install devdocs-lookup)
   :bind (:map prog-mode-map
          ("M-<f1>" . devdocs-dwim)
          ("C-h D"  . devdocs-dwim))
   :init
-  (defconst devdocs-major-mode-docs-alist
-    '((c-mode          . ("c"))
-      (c++-mode        . ("cpp"))
-      (python-mode     . ("python~3.10" "python~2.7"))
-      (ruby-mode       . ("ruby~3.1"))
-
-      (rustic-mode     . ("rust"))
-      (css-mode        . ("css"))
-      (html-mode       . ("html"))
-      (julia-mode      . ("julia~1.8"))
-      (js-mode         . ("javascript" "jquery"))
-      (emacs-lisp-mode . ("elisp")))
+  (defvar devdocs-major-mode-docs-alist
+    '(((c-mode c-ts-mode)           . ("c"))
+      ((c++-mode c++-ts-mode)       . ("cpp"))
+      ((css-mode css-ts-mode)       . ("css"))
+      (emacs-lisp-mode              . ("elisp"))
+      ((html-mode html-ts-mode)     . ("html"))
+      ((js-mode js-ts-mode)         . ("javascript"))
+      ((python-mode python-ts-mode) . ("python~3.14"))
+      ((ruby-mode ruby-ts-mode)     . ("ruby~3"))
+      ((rust-mode rust-ts-mode)     . ("rust")))
     "Alist of major-mode and docs.")
 
-  (mapc
-   (lambda (mode)
-     (add-hook (intern (format "%s-hook" (car mode)))
-               (lambda ()
-                 (setq-local devdocs-current-docs (cdr mode)))))
-   devdocs-major-mode-docs-alist)
+  (mapc (lambda (item)
+          (let ((modes (car item))
+                (docs  (cdr item)))
+            (when (nlistp modes)
+              (setq modes (list modes)))
+            (dolist (m modes)
+              (add-hook (intern (format "%s-hook" m))
+                        (lambda ()
+                          (setq-local devdocs-current-docs docs))))))
+        devdocs-major-mode-docs-alist)
 
   (setq devdocs-data-dir (expand-file-name "devdocs" user-emacs-directory))
 
@@ -167,29 +168,43 @@ Install the doc if it's not installed."
 (use-package csv-mode)
 (use-package cue-sheet-mode)
 (use-package dart-mode)
-(use-package julia-mode)
 (use-package lua-mode)
-(use-package mermaid-mode)
-(use-package powershell)
-(use-package scala-mode)
-(use-package swift-mode)
 (use-package v-mode)
 (use-package vimrc-mode)
-(use-package yaml-mode)
 
-;; Protobuf mode configuration
+(use-package powershell
+  :custom (explicit-pwsh.exe-args explicit-powershell.exe-args))
+
+(if (centaur-treesit-available-p)
+    (progn
+      (use-package julia-ts-mode)
+      (use-package mermaid-ts-mode
+        :mode ("\\.mmd\\'" . mermaid-ts-mode))
+      (use-package scala-ts-mode)
+      (use-package swift-ts-mode
+        :mode ("\\.swift\\'" . swift-ts-mode))
+      (use-package yaml-ts-mode
+        :mode ("\\.ya?ml\\'" . yaml-ts-mode)))
+  (progn
+    (use-package julia-mode)
+    (use-package mermaid-mode)
+    (use-package scala-mode)
+    (use-package swift-mode)
+    (use-package yaml-mode)))
+
+;; Protobuf item configuration
 (use-package protobuf-mode
   :hook (protobuf-mode . (lambda ()
                            "Set up Protobuf's imenu generic expressions."
                            (setq imenu-generic-expression
                                  '((nil "^[[:space:]]*\\(message\\|service\\|enum\\)[[:space:]]+\\([[:alnum:]]+\\)" 2))))))
 
-;; nXML mode for special file types
+;; nXML item for special file types
 (use-package nxml-mode
   :ensure nil
   :mode (("\\.xaml\\'" . xml-mode)))
 
-;; Fish shell mode and auto-formatting
+;; Fish shell item and auto-formatting
 (use-package fish-mode
   :commands fish_indent-before-save
   :defines eglot-server-programs

@@ -1,6 +1,6 @@
 ;; init-org.el --- Initialize Org configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2025 Vincent Zhang
+;; Copyright (C) 2006-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -31,6 +31,7 @@
 ;;; Code:
 
 (eval-when-compile
+  (require 'init-const)
   (require 'init-custom))
 
 (use-package org
@@ -75,9 +76,9 @@
             (insert "#+HEADERS: :results output :exports both :shebang \"#!/usr/bin/env perl\"\n")
             (hot-expand "<s" "perl")) "Perl tangled")
      ("<" self-insert-command "ins"))))
-  :bind (("C-c a" . org-agenda)
-         ("C-c b" . org-switchb)
-         ("C-c x" . org-capture)
+  :bind (("C-c o a" . org-agenda)
+         ("C-c o b" . org-switchb)
+         ("C-c o x" . org-capture)
          :map org-mode-map
          ("<" . (lambda ()
                   "Insert org template."
@@ -164,12 +165,11 @@ prepended to the element after the #+HEADER: tag."
   (add-to-list 'org-structure-template-alist '("n" . "note"))
 
   ;; Use embedded webkit browser if possible
-  (when (xwidget-workable-p)
-    (push '("\\.\\(x?html?\\|pdf\\)\\'"
-            .
-            (lambda (file _link)
-              (centaur-webkit-browse-url (concat "file://" file) t)))
-          org-file-apps))
+  (add-to-list 'org-file-apps
+               '("\\.\\(x?html?\\|pdf\\)\\'"
+                 .
+                 (lambda (file _link)
+                   (centaur-browse-url-of-file (browse-url-file-url file)))))
 
   ;; Add md/gfm backends
   (add-to-list 'org-export-backends 'md)
@@ -177,16 +177,15 @@ prepended to the element after the #+HEADER: tag."
     :init (add-to-list 'org-export-backends 'gfm))
 
   ;; Prettify UI
-  (if emacs/>=27p
-      (use-package org-modern
-        :hook ((org-mode . org-modern-mode)
-               (org-agenda-finalize . org-modern-agenda)
-               (org-modern-mode . (lambda ()
-                                    "Adapt `org-modern-mode'."
-                                    ;; Disable Prettify Symbols mode
-                                    (setq prettify-symbols-alist nil)
-                                    (prettify-symbols-mode -1)))))
-    (progn
+  (use-package org-modern
+    :hook ((org-mode . org-modern-mode)
+           (org-agenda-finalize . org-modern-agenda)
+           (org-modern-mode . (lambda ()
+                                "Adapt `org-modern-mode'."
+                                ;; Disable Prettify Symbols mode
+                                (setq prettify-symbols-alist nil)
+                                (prettify-symbols-mode -1)))))
+
       (use-package org-superstar
         :if (and (display-graphic-p) (char-displayable-p ?◉))
         :hook (org-mode . org-superstar-mode)
@@ -200,7 +199,7 @@ prepended to the element after the #+HEADER: tag."
         :init (setq org-fancy-priorities-list
                     (if (and (display-graphic-p) (char-displayable-p ?🅐))
                         '("🅐" "🅑" "🅒" "🅓")
-                      '("HIGH" "MEDIUM" "LOW" "OPTIONAL"))))))
+                      '("HIGH" "MEDIUM" "LOW" "OPTIONAL"))))
 
   ;; Babel
   (setq org-confirm-babel-evaluate nil
@@ -261,109 +260,99 @@ prepended to the element after the #+HEADER: tag."
     :ensure t)
 
   (org-babel-do-load-languages 'org-babel-load-languages
-                               load-language-alist)
+                               load-language-alist))
 
-  (use-package org-rich-yank
-    :bind (:map org-mode-map
-           ("C-M-y" . org-rich-yank)))
+;; Prettify UI
+(when emacs/>=29p
+  (use-package org-modern
+    :diminish
+    :autoload org-modern-mode org-modern-agenda
+    :hook ((org-mode . (lambda ()
+                         "Display org modern looks in GUI."
+                         (if (display-graphic-p)
+                             (org-modern-mode 1)
+                           (org-modern-mode -1))))
+           (org-agenda-finalize . (lambda ()
+                                    "Display org modern agenda in GUI."
+                                    (when (display-graphic-p)
+                                      (org-modern-agenda)))))))
 
-  ;; Table of contents
-  (use-package toc-org
-    :hook (org-mode . toc-org-mode))
+;; Paste with org-mode markup and link
+(use-package org-rich-yank
+  :after org
+  :diminish
+  :bind (:map org-mode-map
+         ("C-M-y" . org-rich-yank)))
 
-  ;; Export text/html MIME emails
-  (use-package org-mime
-    :bind (:map message-mode-map
-           ("C-c M-o" . org-mime-htmlize)
-           :map org-mode-map
-           ("C-c M-o" . org-mime-org-buffer-htmlize)))
-
-  ;; Automatically toggle org-mode mark up symbols
+;; Auto-toggle Org elements
+(when emacs/>=29p
   (use-package org-appear
-    :hook (org-mode . org-appear-mode)
-    :config (setq org-appear-autolinks t))
+    :diminish
+    :hook org-mode
+    :custom
+    (org-appear-autoentities t)
+    (org-appear-autokeywords t)
+    (org-appear-autolinks t)
+    (org-appear-autosubmarkers t)
+    (org-appear-inside-latex t)
+    (org-appear-manual-linger t)
+    (org-appear-delay 0.5)))
 
-  (when emacs/>=27p
-    ;; Auto-toggle Org LaTeX fragments
+;; Table of contents
+(use-package toc-org
+  :diminish
+  :hook org-mode)
+
+(when emacs/>=27p
+  ;; Auto-toggle Org LaTeX fragments
     (use-package org-fragtog
       :diminish
-      :hook (org-mode . org-fragtog-mode)))
+      :hook (org-mode . org-fragtog-mode))
   (setq org-format-latex-options
-        (plist-put org-format-latex-options
-                   :scale 1.5))
-
-  ;; Preview
-  (use-package org-preview-html
-    :diminish
-    :bind (:map org-mode-map
-           ("C-c C-h" . org-preview-html-mode))
-    :init (when (featurep 'xwidget-internal)
-            (setq org-preview-html-viewer 'xwidget)))
-
-  ;; Clear LaTeX fragments Preview
-  (setq org-preview-latex-default-process 'dvisvgm)
+        (plist-put org-format-latex-options :scale 1.5)
+        ;; Clear LaTeX fragments Preview
+        (org-preview-latex-default-process 'dvisvgm))
 
   ;; Syntax highlighting for exported code blocks
   (setq org-latex-pdf-process '("latexmk -shell-escape -f -pdf -%latex -interaction=nonstopmode -output-directory=%o %f")
         org-latex-listings 'minted
         org-latex-packages-alist '(("" "minted"))))
 
-(when emacs/>=27p
-  ;; Auto-toggle Org LaTeX fragments
-  (use-package org-fragtog
-    :diminish
-    :hook (org-mode . org-fragtog-mode))
-
-  ;; Preview
-  (use-package org-preview-html
-    :diminish
-    :bind (:map org-mode-map
-           ("C-c C-h" . org-preview-html-mode))
-    :init (when (xwidget-workable-p)
-            (setq org-preview-html-viewer 'xwidget)))
-
-;; Presentation
-(use-package org-tree-slide
+;; Preview
+(use-package org-preview-html
+  :after org
   :diminish
+  :functions xwidget-workable-p
   :bind (:map org-mode-map
          ("C-c C-h" . org-preview-html-mode))
-  :init (when (featurep 'xwidget-internal)
+  :init (when (xwidget-workable-p)
           (setq org-preview-html-viewer 'xwidget)))
 
 ;; Presentation
-(use-package org-tree-slide
-  :diminish
-  :functions (org-display-inline-images
-              org-remove-inline-images)
-  :bind (:map org-mode-map
-         ("s-<f7>" . org-tree-slide-mode)
-         :map org-tree-slide-mode-map
-         ("<left>" . org-tree-slide-move-previous-tree)
-         ("<right>" . org-tree-slide-move-next-tree)
-         ("S-SPC" . org-tree-slide-move-previous-tree)
-         ("SPC" . org-tree-slide-move-next-tree))
-  :hook ((org-tree-slide-play . (lambda ()
-                                  (text-scale-increase 4)
-                                  (org-display-inline-images)
-                                  (read-only-mode 1)))
-         (org-tree-slide-stop . (lambda ()
-                                  (text-scale-increase 0)
-                                  (org-remove-inline-images)
-                                  (read-only-mode -1))))
-  :init (setq org-tree-slide-header nil
-              org-tree-slide-slide-in-effect t
-              org-tree-slide-heading-emphasis nil
-              org-tree-slide-cursor-init t
-              org-tree-slide-modeline-display 'outside
-              org-tree-slide-skip-done nil
-              org-tree-slide-skip-comments t
-              org-tree-slide-skip-outline-level 3))
+(if emacs/>=29.2p
+    (use-package dslide
+      :after org
+      :diminish
+      :bind (:map org-mode-map
+             ("s-<f7>" . dslide-deck-start)))
+  (use-package org-tree-slide
+    :after org
+    :diminish
+    :defines org-tree-slide-mode-map
+    :bind (:map org-mode-map
+           ("s-<f7>" . org-tree-slide-mode)
+           :map org-tree-slide-mode-map
+           ("<left>" . org-tree-slide-move-previous-tree)
+           ("<right>" . org-tree-slide-move-next-tree)
+           ("S-SPC" . org-tree-slide-move-previous-tree)
+           ("SPC" . org-tree-slide-move-next-tree))
+    :custom (org-tree-slide-skip-outline-level 3)))
 
 ;; Roam
 (when (and (fboundp 'sqlite-available-p) (sqlite-available-p))
   (use-package org-roam
     :diminish
-    :functions centaur-browse-url org-roam-db-autosync-enable
+    :functions centaur-browse-url org-roam-db-autosync-mode
     :defines org-roam-graph-viewer
     :bind (("C-c n l" . org-roam-buffer-toggle)
            ("C-c n f" . org-roam-node-find)
@@ -380,7 +369,8 @@ prepended to the element after the #+HEADER: tag."
       (make-directory org-roam-directory))
     (add-to-list 'org-agenda-files org-roam-directory)
 
-    (org-roam-db-autosync-enable))
+    ;; Keep Org-roam session automatically synchronized
+    (org-roam-db-autosync-mode))
 
   (use-package org-roam-ui
     :bind ("C-c n u" . org-roam-ui-mode)

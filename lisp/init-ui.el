@@ -1,6 +1,6 @@
 ;; init-ui.el --- Better lookings and appearances.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2025 Vincent Zhang
+;; Copyright (C) 2006-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -34,18 +34,17 @@
   (require 'init-const)
   (require 'init-custom))
 
-(declare-function childframe-completion-workable-p "init-funcs")
-(declare-function centaur-compatible-theme-p "init-funcs")
-(declare-function refresh-ns-appearance "init-ui")
-
 ;; Optimization
-(setq idle-update-delay 1.0)
-
 (setq-default cursor-in-non-selected-windows nil)
 (setq highlight-nonselected-windows nil)
 
 (setq fast-but-imprecise-scrolling t)
 (setq redisplay-skip-fontification-on-input t)
+
+;; Disable Bidirectional Text Scanning
+(setq-default bidi-display-reordering 'left-to-right
+              bidi-paragraph-direction 'left-to-right)
+(setq bidi-inhibit-bpa t)
 
 ;; Inhibit resizing frame
 (setq frame-inhibit-implied-resize t
@@ -66,8 +65,6 @@
 (setq ns-use-proxy-icon nil)
 
 (when (or sys/mac-ns-p sys/mac-port-p)
-  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
-  (add-to-list 'default-frame-alist '(ns-appearance . dark))
   (add-hook 'server-after-make-frame-hook
             (lambda ()
               (if (display-graphic-p)
@@ -75,51 +72,37 @@
                 (menu-bar-mode -1))))
 
   (defun refresh-ns-appearance ()
-    "Refresh frame parameter ns-appearance."
+    "Safely refresh frame parameter `ns-appearance' to match background mode."
+    (interactive)
     (let ((bg (frame-parameter nil 'background-mode)))
       (set-frame-parameter nil 'ns-appearance bg)
-      (setcdr (assq 'ns-appearance default-frame-alist) bg)))
+      (setf (alist-get 'ns-appearance default-frame-alist) bg)))
+
+  ;; Hook up appearance refresh to theme changes
   (add-hook 'after-load-theme-hook #'refresh-ns-appearance)
-  (with-eval-after-load'auto-dark
-   (add-hook 'auto-dark-dark-mode-hook #'refresh-ns-appearance)
-   (add-hook 'auto-dark-light-mode-hook #'refresh-ns-appearance)))
+
+  (with-eval-after-load 'auto-dark
+    (dolist (hook '(auto-dark-dark-mode-hook auto-dark-light-mode-hook))
+      (add-hook hook #'refresh-ns-appearance))))
 
 ;; Theme
 (if (centaur-compatible-theme-p centaur-theme)
     (progn
       ;; Make certain buffers grossly incandescent
       (use-package solaire-mode
-        :hook (after-init . solaire-global-mode))
+        :commands solaire-global-mode
+        :init (solaire-global-mode 1)
+        :config (add-to-list 'solaire-mode-remap-alist
+                             '(ghostel-default . solaire-default-face)))
 
       ;; Excellent themes
       (use-package doom-themes
-        :functions centaur-load-theme doom-themes-visual-bell-config
-        :custom
-        (doom-themes-enable-bold t)
-        (doom-themes-enable-italic t)
+        :functions (centaur-compatible-theme-p
+                    centaur-load-theme
+                    doom-themes-visual-bell-config
+                    refresh-ns-appearance)
         :init (centaur-load-theme centaur-theme t)
-        :config
-        ;; Enable flashing mode-line on errors
-        (doom-themes-visual-bell-config)
-
-        ;; WORKAROUND: Visual bell on 29+
-        ;; @see https://github.com/doomemacs/themes/issues/733
-        (with-no-warnings
-          (defun my-doom-themes-visual-bell-fn ()
-            "Blink the mode-line red briefly. Set `ring-bell-function' to this to use it."
-            (let ((buf (current-buffer))
-                  (cookies (mapcar (lambda (face)
-                                     (face-remap-add-relative face 'doom-themes-visual-bell))
-                                   (if (facep 'mode-line-active)
-                                       '(mode-line-active solaire-mode-line-active-face)
-                                     '(mode-line solaire-mode-line-face)))))
-              (force-mode-line-update)
-              (run-with-timer 0.15 nil
-                              (lambda ()
-                                (with-current-buffer buf
-                                  (mapc #'face-remap-remove-relative cookies)
-                                  (force-mode-line-update))))))
-          (advice-add #'doom-themes-visual-bell-fn :override #'my-doom-themes-visual-bell-fn))))
+        :config (doom-themes-visual-bell-config)))
   (progn
     (warn "The current theme may be incompatible!")
     (centaur-load-theme centaur-theme t)))
@@ -148,7 +131,7 @@
       "unicode fallback" :toggle doom-modeline-unicode-fallback)
      ("m" (setq doom-modeline-major-mode-icon (not doom-modeline-major-mode-icon))
       "major mode" :toggle doom-modeline-major-mode-icon)
-     ("c" (setq doom-modeline-major-mode-color-icon (not doom-modeline-major-mode-color-icon))
+     ("l" (setq doom-modeline-major-mode-color-icon (not doom-modeline-major-mode-color-icon))
       "colorful major mode" :toggle doom-modeline-major-mode-color-icon)
      ("s" (setq doom-modeline-buffer-state-icon (not doom-modeline-buffer-state-icon))
       "buffer state" :toggle doom-modeline-buffer-state-icon)
@@ -185,10 +168,6 @@
       "irc" :toggle doom-modeline-irc)
      ("g f" (setq doom-modeline-irc-buffers (not doom-modeline-irc-buffers))
       "irc buffers" :toggle doom-modeline-irc-buffers)
-     ("g s" (progn
-              (setq doom-modeline-check-simple-format (not doom-modeline-check-simple-format))
-              (and (bound-and-true-p flycheck-mode) (flycheck-buffer)))
-      "simple check format" :toggle doom-modeline-check-simple-format)
      ("g t" (setq doom-modeline-time (not doom-modeline-time))
       "time" :toggle doom-modeline-time)
      ("g v" (setq doom-modeline-env-version (not doom-modeline-env-version))
@@ -233,7 +212,16 @@
      ("r t" (setq doom-modeline-buffer-file-name-style 'relative-to-project)
       "relative to project"
       :toggle (eq doom-modeline-buffer-file-name-style 'relative-to-project)))
-    "Project Detection"
+    "Check"
+    (("c a" (setq doom-modeline-check 'auto)
+      "auto" :toggle (eq doom-modeline-check 'auto))
+     ("c f" (setq doom-modeline-check 'full)
+      "full" :toggle (eq doom-modeline-check 'full))
+     ("c s" (setq doom-modeline-check 'simple)
+      "simple" :toggle (eq doom-modeline-check 'simple))
+     ("c d" (setq doom-modeline-check nil)
+      "disable" :toggle (eq doom-modeline-check nil)))
+    "Project"
     (("p a" (setq doom-modeline-project-detection 'auto)
       "auto"
       :toggle (eq doom-modeline-project-detection 'auto))
@@ -246,7 +234,7 @@
      ("p p" (setq doom-modeline-project-detection 'project)
       "project"
       :toggle (eq doom-modeline-project-detection 'project))
-     ("p n" (setq doom-modeline-project-detection nil)
+     ("p d" (setq doom-modeline-project-detection nil)
       "disable"
       :toggle (eq doom-modeline-project-detection nil)))
     "Misc"
@@ -255,10 +243,8 @@
             (run-with-timer 300 nil #'doom-modeline--github-fetch-notifications)
             (browse-url "https://github.com/notifications"))
       "github notifications" :exit t)
-     ("e" (cond ((bound-and-true-p flycheck-mode)
-                 (flycheck-list-errors))
-                ((bound-and-true-p flymake-mode)
-                 (flymake-show-diagnostics-buffer)))
+     ("e" (and (bound-and-true-p flymake-mode)
+               (flymake-show-diagnostics-buffer))
       "list errors" :exit t)
      ("w" (if (bound-and-true-p grip-mode)
               (grip-browse-preview)
@@ -274,16 +260,13 @@
       "set gnus interval" :exit t)))))
 
 (use-package hide-mode-line
-  :autoload turn-off-hide-mode-line-mode
-  :hook (((eat-mode
-           eshell-mode shell-mode
-           term-mode vterm-mode
-           embark-collect-mode lsp-ui-imenu-mode
-           pdf-annot-list-mode) . turn-on-hide-mode-line-mode)))
+  :hook (((eshell-mode
+           ghostel-mode shell-mode term-mode
+           embark-collect-mode pdf-annot-list-mode) . turn-on-hide-mode-line-mode)))
 
 ;; A minor-mode menu for mode-line
 (use-package minions
-  :hook (after-init . minions-mode))
+  :hook after-init)
 
 ;; Icons
 (use-package nerd-icons
@@ -337,22 +320,18 @@
   :init (setq display-time-default-load-average nil
               display-time-format "%H:%M"))
 
-;; Mouse & Smooth Scroll
+;; Scrolling
 ;; Scroll one line at a time (less "jumpy" than defaults)
-(when (display-graphic-p)
-  (setq mouse-wheel-scroll-amount '(1 ((shift) . hscroll))
-        mouse-wheel-scroll-amount-horizontal 1
-        mouse-wheel-progressive-speed nil))
-(setq scroll-step 1
+(setq hscroll-step 1
+      hscroll-margin 2
+      scroll-step 1
       scroll-margin 0
       scroll-conservatively 100000
+      scroll-preserve-screen-position t
       auto-window-vscroll nil
-      scroll-preserve-screen-position t)
-
-;; Smooth scrolling
-(when emacs/>=29p
-  (use-package ultra-scroll
-    :hook (after-init . ultra-scroll-mode)))
+      ;; mouse
+      mouse-wheel-scroll-amount-horizontal 1
+      mouse-wheel-progressive-speed nil)
 
 ;; Use fixed pitch where it's sensible
 (use-package mixed-pitch
@@ -366,21 +345,25 @@
   :config (dolist (mode '(dashboard-mode emacs-news-mode))
             (add-to-list 'page-break-lines-modes mode)))
 
-;; Transient
-(when (childframe-completion-workable-p)
-  ;; Display transient in child frame
-  (use-package transient-posframe
-    :diminish
-    :defines posframe-border-width
-    :custom-face
-    (transient-posframe ((t (:inherit tooltip))))
-    (transient-posframe-border ((t (:inherit posframe-border :background unspecified))))
-    :hook (after-init . transient-posframe-mode)
-    :init (setq transient-mode-line-format nil
-                transient-posframe-border-width posframe-border-width
-                transient-posframe-poshandler 'posframe-poshandler-frame-center
-                transient-posframe-parameters '((left-fringe . 8)
-                                                (right-fringe . 8)))))
+;; Display transient in the child frame
+(use-package transient-posframe
+  :diminish
+  :defines posframe-border-width
+  :functions childframe-completion-workable-p
+  :commands transient-posframe-mode
+  :custom-face
+  (transient-posframe-border ((t (:inherit posframe-border :background unspecified))))
+  :hook ((after-init server-after-make-frame)
+         .
+         (lambda ()
+           "Display transient in the child frame if applicable."
+           (if (childframe-completion-workable-p)
+               (transient-posframe-mode 1)
+             (transient-posframe-mode -1))))
+  :init (setq transient-mode-line-format nil
+              transient-posframe-border-width posframe-border-width
+              transient-posframe-parameters '((left-fringe . 8)
+                                              (right-fringe . 8))))
 
 ;; For macOS
 (with-no-warnings
@@ -401,7 +384,7 @@
     :init (defvar composition-ligature-table (make-char-table nil))
     :hook (((prog-mode
              conf-mode nxml-mode markdown-mode help-mode
-             shell-mode eshell-mode term-mode vterm-mode)
+             eshell-mode ghostel-mode shell-mode term-mode)
             . (lambda () (setq-local composition-function-table composition-ligature-table))))
     :config
     ;; support ligatures, some toned down to prevent hang

@@ -1,6 +1,6 @@
 ;; init-treemacs.el --- Initialize treemacs.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2025 Vincent Zhang
+;; Copyright (C) 2018-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -35,9 +35,10 @@
 
 ;; A tree layout file explorer
 (use-package treemacs
-  :commands (treemacs-follow-mode
-             treemacs-filewatch-mode
-             treemacs-git-mode)
+  :functions (treemacs-follow-mode
+              treemacs-filewatch-mode
+              treemacs-git-mode
+              treemacs-set-scope-type)
   :custom-face
   (cfrs-border-color ((t (:inherit posframe-border))))
   :bind (([f8]        . treemacs)
@@ -68,20 +69,14 @@
      (treemacs-git-mode 'simple)))
 
   (use-package treemacs-nerd-icons
-    :demand t
-    :functions treemacs-load-theme
-    :config (treemacs-load-theme "nerd-icons"))
+    :autoload treemacs-nerd-icons-config
+    :init (treemacs-nerd-icons-config))
 
   (use-package treemacs-magit
-    :hook ((magit-post-commit
-            git-commit-post-finish
-            magit-post-stage
-            magit-post-unstage)
-           . treemacs-magit--schedule-update))
+    :demand t)
 
   (use-package treemacs-tab-bar
     :demand t
-    :functions treemacs-set-scope-type
     :config (treemacs-set-scope-type 'Tabs)))
 
 (provide 'init-treemacs)

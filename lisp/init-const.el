@@ -1,6 +1,6 @@
 ;; init-const.el --- Define constants.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2025 Vincent Zhang
+;; Copyright (C) 2006-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -43,6 +43,10 @@
   "Custom file after startup.
 
 Put private configurations to override defaults here.")
+
+(defconst centaur-env-file
+  (expand-file-name "env.el" user-emacs-directory)
+  "Environment file at startup.")
 
 (defconst centaur-custom-post-org-file
   (expand-file-name "custom-post.org" user-emacs-directory)
@@ -94,6 +98,10 @@ Loaded by `org-babel-load-file'.")
 (defconst emacs/>=29p
   (>= emacs-major-version 29)
   "Emacs is 29 or above.")
+
+(defconst emacs/>=29.2p
+  (version<= "29.2" emacs-version)
+  "Emacs is 29.2 or above.")
 
 (defconst emacs/>=30p
   (>= emacs-major-version 30)

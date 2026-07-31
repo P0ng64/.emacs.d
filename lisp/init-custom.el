@@ -1,6 +1,6 @@
 ;; init-custom.el --- Define customizations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2025 Vincent Zhang
+;; Copyright (C) 2006-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -70,8 +70,11 @@
   :group 'centaur
   :type 'string)
 
-(defcustom centaur-server t
-  "Enable `server-mode' or not."
+(defcustom centaur-use-exec-path-from-shell
+  (and (or (memq window-system '(mac ns x)) (daemonp))
+       (not (bound-and-true-p ns-emacs-plus-injected-path)))
+  "Use `exec-path-from-shell' or not.
+If using emacs-plus with path ejection, set to nil."
   :group 'centaur
   :type 'boolean)
 
@@ -197,16 +200,10 @@ If Non-nil, use dashboard, otherwise will restore previous session."
   :group 'centaur
   :type 'boolean)
 
-(defcustom centaur-lsp 'eglot
-  "Set language server.
-
-`lsp-mode': See https://github.com/emacs-lsp/lsp-mode.
-`eglot': See https://github.com/joaotavora/eglot.
-nil means disabled."
+(defcustom centaur-lsp t
+  "Enable language server or not."
   :group 'centaur
-  :type '(choice (const :tag "LSP Mode" lsp-mode)
-                 (const :tag "Eglot" eglot)
-                 (const :tag "Disable" nil)))
+  :type 'boolean)
 
 (defcustom centaur-tree-sitter t
   "Enable tree-sitter or not.
@@ -214,17 +211,29 @@ Native tree-sitter is introduced in 29."
   :group 'centaur
   :type 'boolean)
 
-(defcustom centaur-lsp-format-on-save nil
-  "Auto format buffers on save."
+(defcustom centaur-prettify-symbols-alist
+  '(("lambda" . ?λ)
+    ("<-"     . ?←)
+    ("->"     . ?→)
+    ("->>"    . ?↠)
+    ("=>"     . ?⇒)
+    ("map"    . ?↦)
+    ("/="     . ?≠)
+    ("!="     . ?≠)
+    ("=="     . ?≡)
+    ("<="     . ?≤)
+    (">="     . ?≥)
+    ("=<<"    . (?= (Br . Bl) ?≪))
+    (">>="    . (?≫ (Br . Bl) ?=))
+    ("<=<"    . ?↢)
+    (">=>"    . ?↣)
+    ("&&"     . ?∧)
+    ("||"     . ?∨)
+    ("not"    . ?¬))
+  "A list of symbol prettifications.
+Nil to use font supports ligatures."
   :group 'centaur
-  :type 'boolean)
-
-(defcustom centaur-lsp-format-on-save-ignore-modes
-  '(c-mode c++-mode python-mode markdown-mode)
-  "The modes that don't auto format and organize imports while saving the buffers.
-`prog-mode' means ignoring all derived modes."
-  :group 'centaur
-  :type '(repeat (symbol :tag "Major-Mode")))
+  :type '(alist :key-type string :value-type (choice character sexp)))
 
 ;; Load `custom-file'
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))

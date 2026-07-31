@@ -1,6 +1,6 @@
 ;; init-ruby.el --- Initialize ruby configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2010-2025 Vincent Zhang
+;; Copyright (C) 2010-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -54,8 +54,7 @@
   :diminish
   :autoload rspec-install-snippets
   :hook (dired-mode . rspec-dired-mode)
-  :config (with-eval-after-load 'yasnippet
-            (rspec-install-snippets)))
+  :config (rspec-install-snippets))
 
 (provide 'init-ruby)
 

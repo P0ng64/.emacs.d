@@ -1,6 +1,6 @@
 ;; init-base.el --- Better default configurations.	-*- lexical-binding: t -*-
 
-;; Copyright (C) 2006-2025 Vincent Zhang
+;; Copyright (C) 2006-2026 Vincent Zhang
 
 ;; Author: Vincent Zhang <seagle0128@gmail.com>
 ;; URL: https://github.com/seagle0128/.emacs.d
@@ -37,9 +37,6 @@
 
 (require 'init-funcs)
 
-;; Compatibility
-(use-package compat :demand t)
-
 ;; Personal information
 (setq user-full-name centaur-full-name
       user-mail-address centaur-mail-address)
@@ -72,9 +69,6 @@
   (unless sys/linuxp
     (setq command-line-x-option-alist nil))
 
-  ;; Increase how much is read from processes in a single chunk (default is 4kb)
-  (setq read-process-output-max #x10000)  ; 64kb
-
   ;; Don't ping things that look like domain names.
   (setq ffap-machine-p-known 'reject))
 
@@ -82,10 +76,9 @@
 (use-package gcmh
   :diminish
   :hook (emacs-startup . gcmh-mode)
-  :init
-  (setq gcmh-idle-delay 'auto
-        gcmh-auto-idle-delay-factor 10
-        gcmh-high-cons-threshold #x1000000)) ; 16MB
+  :init (setq gcmh-idle-delay 'auto
+              gcmh-auto-idle-delay-factor 10
+              gcmh-high-cons-threshold #x4000000)) ; 64MB
 
 ;; Set UTF-8 as the default coding system
 (when (fboundp 'set-charset-priority)
@@ -107,7 +100,7 @@
   (set-selection-coding-system 'utf-8))
 
 ;; Environment
-(when (or sys/mac-x-p sys/linux-x-p (daemonp))
+(when centaur-use-exec-path-from-shell
   (use-package exec-path-from-shell
     :commands exec-path-from-shell-initialize
     :custom (exec-path-from-shell-arguments '("-l"))
@@ -118,8 +111,9 @@
 
 ;; Start server
 (use-package server
-  :if centaur-server
-  :hook (after-init . server-mode))
+  :hook (emacs-startup . (lambda ()
+			               (unless server-mode
+                             (server-mode 1)))))
 
 ;; Save place
 (use-package saveplace
@@ -153,6 +147,7 @@
 
 ;; Misc.
 (use-package simple
+  :diminish visual-line-mode
   :ensure nil
   :hook ((after-init . size-indication-mode)
          (text-mode . visual-line-mode)
@@ -174,7 +169,7 @@
 
   ;; Prettify the process list
   (with-no-warnings
-    (defun my-list-processes--prettify ()
+    (defun my/list-processes--prettify ()
       "Prettify process list."
       (when-let* ((entries tabulated-list-entries))
         (setq tabulated-list-entries nil)
@@ -194,14 +189,13 @@
                       (cmd (list (aref val 6) 'face 'completions-annotations)))
             (push (list p (vector name pid status buf-label tty thread cmd))
 		          tabulated-list-entries)))))
-    (advice-add #'list-processes--refresh :after #'my-list-processes--prettify)))
+    (advice-add #'list-processes--refresh :after #'my/list-processes--prettify)))
 
-;; Misc
 (if (boundp 'use-short-answers)
     (setq use-short-answers t)
   (fset 'yes-or-no-p 'y-or-n-p))
 (setq-default major-mode 'text-mode
-              fill-column 80
+              fill-column 100
               tab-width 4
               indent-tabs-mode nil)     ; Permanently indent with spaces, never with TABs
 
@@ -217,13 +211,6 @@
       sentence-end "\\([。！？]\\|……\\|[.?!][]\"')}]*\\($\\|[ \t]\\)\\)[ \t\n]*"
       sentence-end-double-space nil
       word-wrap-by-category t)
-
-;; Async
-(use-package async
-  :functions (async-bytecomp-package-mode dired-async-mode)
-  :init
-  (async-bytecomp-package-mode 1)
-  (dired-async-mode 1))
 
 ;; Frame
 (when (display-graphic-p)
@@ -244,7 +231,7 @@
              ("C-M-<up>"        . centaur-frame-top-half)
              ("C-M-<down>"      . centaur-frame-bottom-half))
 
-  ;; Frame transparence
+  ;; Frame transparency
   (use-package transwin
     :bind (("C-M-9" . transwin-inc)
            ("C-M-8" . transwin-dec)
@@ -255,6 +242,8 @@
 
 ;; Child frame
 (use-package posframe
+  :custom-face
+  (child-frame-border ((t (:inherit posframe-border))))
   :hook (after-load-theme . posframe-delete-all)
   :init
   (defface posframe-border
@@ -265,9 +254,9 @@
     "Default posframe border width.")
   :config
   (with-no-warnings
-    (defun my-posframe--prettify-frame (&rest _)
+    (defun my/posframe--prettify-frame (&rest _)
       (set-face-background 'fringe nil posframe--frame))
-    (advice-add #'posframe--create-posframe :after #'my-posframe--prettify-frame)
+    (advice-add #'posframe--create-posframe :after #'my/posframe--prettify-frame)
 
     (defun posframe-poshandler-frame-center-near-bottom (info)
       (cons (/ (- (plist-get info :parent-frame-width)
