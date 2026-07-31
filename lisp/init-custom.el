@@ -163,7 +163,7 @@ For example:
      It's only available on macOS currently."
     :group 'centaur
     :type '(alist :key-type (symbol :tag "Appearance")
-                  :value-type (symbol :tag "Theme"))))
+                  :value-type (symbol :tag "Theme")))
 
 (defcustom centaur-theme 'default
   "The color theme."
