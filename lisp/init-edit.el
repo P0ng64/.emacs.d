@@ -190,13 +190,9 @@
 (use-package beginend
   :hook (after-init . beginend-global-mode))
 
-;; Drag stuff (lines, words, region, etc...) around
-(use-package drag-stuff
-  :autoload drag-stuff-define-keys
-  :hook (after-init . drag-stuff-global-mode)
-  :config
-  (add-to-list 'drag-stuff-except-modes 'org-mode)
-  (drag-stuff-define-keys))
+;; Move the current line/region up and down with M-<up>/M-<down>
+(use-package move-text
+  :hook (after-init . move-text-default-bindings))
 
 ;; A comprehensive visual interface to diff & patch
 (use-package ediff

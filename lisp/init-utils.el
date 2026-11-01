@@ -174,19 +174,6 @@
   :bind ("<f7>" . olivetti-mode)
   :init (setq olivetti-body-width 0.62))
 
-;; Edit text for browsers with GhostText or AtomicChrome extension
-(use-package atomic-chrome
-  :hook ((emacs-startup . atomic-chrome-start-server)
-         (atomic-chrome-edit-mode . delete-other-windows))
-  :init (setq atomic-chrome-buffer-frame-width 100
-              atomic-chrome-buffer-frame-height 30
-              atomic-chrome-buffer-open-style 'frame)
-  :config
-  (when (fboundp 'gfm-mode)
-    (setq atomic-chrome-url-major-mode-alist
-          '(("github\\.com" . gfm-mode)
-            ("gitlab\\.*"   . gfm-mode)))))
-
 ;; Process
 (use-package proced
   :ensure nil
