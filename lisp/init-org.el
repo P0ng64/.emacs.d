@@ -297,15 +297,16 @@ prepended to the element after the #+HEADER: tag."
 (use-package toc-org
   :hook org-mode)
 
-(when emacs/>=27p
-  ;; Auto-toggle Org LaTeX fragments
-    (use-package org-fragtog
-      :diminish
-      :hook (org-mode . org-fragtog-mode))
+;; Auto-toggle Org LaTeX fragments
+(use-package org-fragtog
+  :diminish
+  :hook (org-mode . org-fragtog-mode))
+
+(with-eval-after-load 'org
   (setq org-format-latex-options
-        (plist-put org-format-latex-options :scale 1.5)
-        ;; Clear LaTeX fragments Preview
-        (org-preview-latex-default-process 'dvisvgm))
+        (plist-put org-format-latex-options :scale 1.5))
+  ;; Clear LaTeX fragments Preview
+  (setq org-preview-latex-default-process 'dvisvgm)
 
   ;; Syntax highlighting for exported code blocks
   (setq org-latex-pdf-process '("latexmk -shell-escape -f -pdf -%latex -interaction=nonstopmode -output-directory=%o %f")
