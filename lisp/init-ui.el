@@ -87,25 +87,24 @@
 
 ;; Theme
 (if (centaur-compatible-theme-p centaur-theme)
-    (progn
-      ;; Make certain buffers grossly incandescent
-      (use-package solaire-mode
-        :commands solaire-global-mode
-        :init (solaire-global-mode 1)
-        :config (add-to-list 'solaire-mode-remap-alist
-                             '(ghostel-default . solaire-default-face)))
-
-      ;; Excellent themes
-      (use-package doom-themes
-        :functions (centaur-compatible-theme-p
-                    centaur-load-theme
-                    doom-themes-visual-bell-config
-                    refresh-ns-appearance)
-        :init (centaur-load-theme centaur-theme t)
-        :config (doom-themes-visual-bell-config)))
+    ;; Excellent themes
+    (use-package doom-themes
+      :functions (centaur-compatible-theme-p
+                  centaur-load-theme
+                  doom-themes-visual-bell-config
+                  refresh-ns-appearance)
+      :init (centaur-load-theme centaur-theme t)
+      :config (doom-themes-visual-bell-config))
   (progn
-    (warn "The current theme may be incompatible!")
+    (message "The current theme `%s' may be incompatible" centaur-theme)
     (centaur-load-theme centaur-theme t)))
+
+;; Make certain buffers grossly incandescent
+(use-package solaire-mode
+  :commands solaire-global-mode
+  :init (solaire-global-mode 1)
+  :config (add-to-list 'solaire-mode-remap-alist
+                       '(ghostel-default . solaire-default-face)))
 
 ;; Mode-line
 (use-package doom-modeline
@@ -125,39 +124,47 @@
   ((:title (pretty-hydra-title "Mode Line" 'sucicon "nf-custom-emacs" :face 'nerd-icons-purple)
     :color amaranth :quit-key ("q" "C-g"))
    ("Icon"
-    (("i" (setq doom-modeline-icon (not doom-modeline-icon))
-      "display icons" :toggle doom-modeline-icon)
-     ("u" (setq doom-modeline-unicode-fallback (not doom-modeline-unicode-fallback))
+    (("i e" (setq doom-modeline-icon (not doom-modeline-icon))
+      "enable icons" :toggle doom-modeline-icon)
+     ("i u" (setq doom-modeline-unicode-fallback (not doom-modeline-unicode-fallback))
       "unicode fallback" :toggle doom-modeline-unicode-fallback)
-     ("m" (setq doom-modeline-major-mode-icon (not doom-modeline-major-mode-icon))
+     ("i m" (setq doom-modeline-major-mode-icon (not doom-modeline-major-mode-icon))
       "major mode" :toggle doom-modeline-major-mode-icon)
-     ("l" (setq doom-modeline-major-mode-color-icon (not doom-modeline-major-mode-color-icon))
+     ("i c" (setq doom-modeline-major-mode-color-icon (not doom-modeline-major-mode-color-icon))
       "colorful major mode" :toggle doom-modeline-major-mode-color-icon)
-     ("s" (setq doom-modeline-buffer-state-icon (not doom-modeline-buffer-state-icon))
-      "buffer state" :toggle doom-modeline-buffer-state-icon)
-     ("o" (setq doom-modeline-buffer-modification-icon (not doom-modeline-buffer-modification-icon))
+     ("i o" (setq doom-modeline-buffer-modification-icon (not doom-modeline-buffer-modification-icon))
       "modification" :toggle doom-modeline-buffer-modification-icon)
-     ("x" (setq doom-modeline-time-icon (not doom-modeline-time-icon))
+     ("i s" (setq doom-modeline-buffer-state-icon (not doom-modeline-buffer-state-icon))
+      "buffer state" :toggle doom-modeline-buffer-state-icon)
+     ("i t" (setq doom-modeline-time-icon (not doom-modeline-time-icon))
       "time" :toggle doom-modeline-time-icon)
-     ("v" (setq doom-modeline-modal-icon (not doom-modeline-modal-icon))
+     ("i v" (setq doom-modeline-modal-icon (not doom-modeline-modal-icon))
       "modal" :toggle doom-modeline-modal-icon))
     "Segment"
     (("g h" (setq doom-modeline-hud (not doom-modeline-hud))
       "hud" :toggle doom-modeline-hud)
      ("g m" (setq doom-modeline-minor-modes (not doom-modeline-minor-modes))
       "minor modes" :toggle doom-modeline-minor-modes)
-     ("g w" (setq doom-modeline-enable-word-count (not doom-modeline-enable-word-count))
+     ("g c" (setq doom-modeline-enable-word-count (not doom-modeline-enable-word-count))
       "word count" :toggle doom-modeline-enable-word-count)
      ("g e" (setq doom-modeline-buffer-encoding (not doom-modeline-buffer-encoding))
       "encoding" :toggle doom-modeline-buffer-encoding)
      ("g i" (setq doom-modeline-indent-info (not doom-modeline-indent-info))
       "indent" :toggle doom-modeline-indent-info)
-     ("g c" (setq doom-modeline-display-misc-in-all-mode-lines (not doom-modeline-display-misc-in-all-mode-lines))
+     ("g x" (setq doom-modeline-display-misc-in-all-mode-lines (not doom-modeline-display-misc-in-all-mode-lines))
       "misc info" :toggle doom-modeline-display-misc-in-all-mode-lines)
      ("g l" (setq doom-modeline-lsp (not doom-modeline-lsp))
       "lsp" :toggle doom-modeline-lsp)
-     ("g k" (setq doom-modeline-workspace-name (not doom-modeline-workspace-name))
+     ("g p" (setq doom-modeline-project-name (not doom-modeline-project-name))
+      "project" :toggle doom-modeline-project-name)
+     ("g P" (setq doom-modeline-persp-name (not doom-modeline-persp-name))
+      "perspective" :toggle doom-modeline-persp-name)
+     ("g w" (setq doom-modeline-workspace-name (not doom-modeline-workspace-name))
       "workspace" :toggle doom-modeline-workspace-name)
+     ("g s" (setq doom-modeline-spell (not doom-modeline-spell))
+      "spell" :toggle doom-modeline-spell)
+     ("g b" (setq doom-modeline-battery (not doom-modeline-battery))
+      "battery" :toggle doom-modeline-battery)
      ("g g" (setq doom-modeline-github (not doom-modeline-github))
       "github" :toggle doom-modeline-github)
      ("g n" (setq doom-modeline-gnus (not doom-modeline-gnus))
@@ -166,50 +173,50 @@
       "mu4e" :toggle doom-modeline-mu4e)
      ("g r" (setq doom-modeline-irc (not doom-modeline-irc))
       "irc" :toggle doom-modeline-irc)
-     ("g f" (setq doom-modeline-irc-buffers (not doom-modeline-irc-buffers))
+     ("g R" (setq doom-modeline-irc-buffers (not doom-modeline-irc-buffers))
       "irc buffers" :toggle doom-modeline-irc-buffers)
      ("g t" (setq doom-modeline-time (not doom-modeline-time))
       "time" :toggle doom-modeline-time)
      ("g v" (setq doom-modeline-env-version (not doom-modeline-env-version))
       "version" :toggle doom-modeline-env-version))
     "Style"
-    (("a" (setq doom-modeline-buffer-file-name-style 'auto)
+    (("y a" (setq doom-modeline-buffer-file-name-style 'auto)
       "auto"
       :toggle (eq doom-modeline-buffer-file-name-style 'auto))
-     ("b" (setq doom-modeline-buffer-file-name-style 'buffer-name)
+     ("y b" (setq doom-modeline-buffer-file-name-style 'buffer-name)
       "buffer name"
       :toggle (eq doom-modeline-buffer-file-name-style 'buffer-name))
-     ("f" (setq doom-modeline-buffer-file-name-style 'file-name)
+     ("y f" (setq doom-modeline-buffer-file-name-style 'file-name)
       "file name"
       :toggle (eq doom-modeline-buffer-file-name-style 'file-name))
-     ("F" (setq doom-modeline-buffer-file-name-style 'file-name-with-project)
+     ("y p" (setq doom-modeline-buffer-file-name-style 'file-name-with-project)
       "file name with project"
       :toggle (eq doom-modeline-buffer-file-name-style 'file-name-with-project))
-     ("t u" (setq doom-modeline-buffer-file-name-style 'truncate-upto-project)
+     ("y tu" (setq doom-modeline-buffer-file-name-style 'truncate-upto-project)
       "truncate upto project"
       :toggle (eq doom-modeline-buffer-file-name-style 'truncate-upto-project))
-     ("t f" (setq doom-modeline-buffer-file-name-style 'truncate-from-project)
+     ("y tf" (setq doom-modeline-buffer-file-name-style 'truncate-from-project)
       "truncate from project"
       :toggle (eq doom-modeline-buffer-file-name-style 'truncate-from-project))
-     ("t w" (setq doom-modeline-buffer-file-name-style 'truncate-with-project)
+     ("y tw" (setq doom-modeline-buffer-file-name-style 'truncate-with-project)
       "truncate with project"
       :toggle (eq doom-modeline-buffer-file-name-style 'truncate-with-project))
-     ("t e" (setq doom-modeline-buffer-file-name-style 'truncate-except-project)
+     ("y te" (setq doom-modeline-buffer-file-name-style 'truncate-except-project)
       "truncate except project"
       :toggle (eq doom-modeline-buffer-file-name-style 'truncate-except-project))
-     ("t r" (setq doom-modeline-buffer-file-name-style 'truncate-upto-root)
+     ("y tr" (setq doom-modeline-buffer-file-name-style 'truncate-upto-root)
       "truncate upto root"
       :toggle (eq doom-modeline-buffer-file-name-style 'truncate-upto-root))
-     ("t a" (setq doom-modeline-buffer-file-name-style 'truncate-all)
+     ("y ta" (setq doom-modeline-buffer-file-name-style 'truncate-all)
       "truncate all"
       :toggle (eq doom-modeline-buffer-file-name-style 'truncate-all))
-     ("t n" (setq doom-modeline-buffer-file-name-style 'truncate-nil)
+     ("y tn" (setq doom-modeline-buffer-file-name-style 'truncate-nil)
       "truncate none"
       :toggle (eq doom-modeline-buffer-file-name-style 'truncate-nil))
-     ("r f" (setq doom-modeline-buffer-file-name-style 'relative-from-project)
+     ("y rf" (setq doom-modeline-buffer-file-name-style 'relative-from-project)
       "relative from project"
       :toggle (eq doom-modeline-buffer-file-name-style 'relative-from-project))
-     ("r t" (setq doom-modeline-buffer-file-name-style 'relative-to-project)
+     ("y rt" (setq doom-modeline-buffer-file-name-style 'relative-to-project)
       "relative to project"
       :toggle (eq doom-modeline-buffer-file-name-style 'relative-to-project)))
     "Check"
@@ -223,58 +230,77 @@
       "disable" :toggle (eq doom-modeline-check nil)))
     "Project"
     (("p a" (setq doom-modeline-project-detection 'auto)
-      "auto"
-      :toggle (eq doom-modeline-project-detection 'auto))
+      "auto" :toggle (eq doom-modeline-project-detection 'auto))
      ("p f" (setq doom-modeline-project-detection 'ffip)
-      "ffip"
-      :toggle (eq doom-modeline-project-detection 'ffip))
+      "ffip" :toggle (eq doom-modeline-project-detection 'ffip))
      ("p i" (setq doom-modeline-project-detection 'projectile)
-      "projectile"
-      :toggle (eq doom-modeline-project-detection 'projectile))
+      "projectile" :toggle (eq doom-modeline-project-detection 'projectile))
      ("p p" (setq doom-modeline-project-detection 'project)
-      "project"
-      :toggle (eq doom-modeline-project-detection 'project))
+      "project" :toggle (eq doom-modeline-project-detection 'project))
      ("p d" (setq doom-modeline-project-detection nil)
-      "disable"
-      :toggle (eq doom-modeline-project-detection nil)))
+      "disable" :toggle (eq doom-modeline-project-detection nil)))
     "Misc"
-    (("n" (progn
-            (message "Fetching GitHub notifications...")
-            (run-with-timer 300 nil #'doom-modeline--github-fetch-notifications)
-            (browse-url "https://github.com/notifications"))
+    (("x n" (progn
+              (message "Fetching GitHub notifications...")
+              (run-with-timer 300 nil #'doom-modeline--github-fetch-notifications)
+              (browse-url "https://github.com/notifications"))
       "github notifications" :exit t)
-     ("e" (and (bound-and-true-p flymake-mode)
-               (flymake-show-diagnostics-buffer))
+     ("x e" (and (bound-and-true-p flymake-mode)
+                 (flymake-show-diagnostics-buffer))
       "list errors" :exit t)
-     ("w" (if (bound-and-true-p grip-mode)
-              (grip-browse-preview)
-            (message "Not in preview"))
+     ("x p" (if (bound-and-true-p grip-mode)
+                (grip-browse-preview)
+              (message "Not in preview"))
       "browse preview" :exit t)
-     ("z h" (set-from-minibuffer 'doom-modeline-height)
+     ("x i" (set-from-minibuffer 'doom-modeline-number-limit)
+      "set notification limit" :exit t)
+     ("x w" (set-from-minibuffer 'doom-modeline-window-width-limit)
+      "set window width limit" :exit t)
+     ("x h" (set-from-minibuffer 'doom-modeline-height)
       "set height" :exit t)
-     ("z w" (set-from-minibuffer 'doom-modeline-bar-width)
+     ("x b" (set-from-minibuffer 'doom-modeline-bar-width)
       "set bar width" :exit t)
-     ("z g" (set-from-minibuffer 'doom-modeline-github-interval)
+     ("x u" (set-from-minibuffer 'doom-modeline-hud-width)
+      "set hud width" :exit t)
+     ("x g" (set-from-minibuffer 'doom-modeline-github-interval)
       "set github interval" :exit t)
-     ("z n" (set-from-minibuffer 'doom-modeline-gnus-timer)
+     ("x p" (set-from-minibuffer 'doom-modeline-project-name)
+      "set project name" :exit t)
+     ("x n" (set-from-minibuffer 'doom-modeline-gnus-timer)
       "set gnus interval" :exit t)))))
 
-(use-package hide-mode-line
-  :hook (((eshell-mode
-           ghostel-mode shell-mode term-mode
-           embark-collect-mode pdf-annot-list-mode) . turn-on-hide-mode-line-mode)))
+;; Hide mode-line in some modes
+(if (fboundp 'mode-line-invisible-mode)
+    ;; Built into Emacs 31+
+    (use-package mode-line-invisible
+      :ensure nil
+      :hook ((eshell-mode
+              ghostel-mode shell-mode term-mode
+              embark-collect-mode pdf-annot-list-mode)))
+  ;; Fall back to the hide-mode-line package
+  (use-package hide-mode-line
+    :hook ((eshell-mode
+            ghostel-mode shell-mode term-mode
+            embark-collect-mode pdf-annot-list-mode))))
 
-;; A minor-mode menu for mode-line
-(use-package minions
-  :hook after-init)
+;; Hide minor-modes lighters
+(if (boundp 'mode-line-collapse-minor-modes)
+    ;; Built into Emacs 31+
+    (setq mode-line-collapse-minor-modes '(not markdown-ts-code-block-in-context-mode
+                                               markdown-ts-in-table-mode))
+  ;; A minor-mode menu for mode-line
+  (use-package minions
+    :custom (minions-prominent-modes '(markdown-ts-code-block-in-context-mode
+                                       markdown-ts-in-table-mode))
+    :hook after-init))
 
 ;; Icons
 (use-package nerd-icons
   :commands nerd-icons-install-fonts
   :functions font-available-p
   :config
-  ;; Install nerd fonts automatically only in GUI
-  ;; For macOS, may install via "brew install font-symbols-only-nerd-font"
+  ;; Install nerd fonts automatically ONLY in GUI
+  ;; On macOS, use "brew install font-symbols-only-nerd-font"
   (when (and (display-graphic-p)
              (not (font-available-p nerd-icons-font-family)))
     (nerd-icons-install-fonts t)))
@@ -333,24 +359,33 @@
       mouse-wheel-scroll-amount-horizontal 1
       mouse-wheel-progressive-speed nil)
 
+;; Smooth Scroll
+(when emacs/>=29p
+  (use-package ultra-scroll
+    :custom
+    (scroll-conservatively 3)
+    (scroll-margin 0)
+    :hook window-setup))
+
 ;; Use fixed pitch where it's sensible
 (use-package mixed-pitch
-  :diminish
   :hook (org-mode . mixed-pitch-mode))
 
 ;; Display ugly ^L page breaks as tidy horizontal lines
 (use-package page-break-lines
-  :diminish
   :hook (after-init . global-page-break-lines-mode)
   :config (dolist (mode '(dashboard-mode emacs-news-mode))
             (add-to-list 'page-break-lines-modes mode)))
 
 ;; Display transient in the child frame
 (use-package transient-posframe
-  :diminish
-  :defines posframe-border-width
   :functions childframe-completion-workable-p
   :commands transient-posframe-mode
+  :custom
+  (transient-mode-line-format nil)
+  (transient-posframe-border-width posframe-border-width)
+  (transient-posframe-parameters '((left-fringe . 8) (right-fringe . 8)))
+  (transient-posframe-poshandler #'posframe-poshandler-frame-center)
   :custom-face
   (transient-posframe-border ((t (:inherit posframe-border :background unspecified))))
   :hook ((after-init server-after-make-frame)
@@ -359,11 +394,7 @@
            "Display transient in the child frame if applicable."
            (if (childframe-completion-workable-p)
                (transient-posframe-mode 1)
-             (transient-posframe-mode -1))))
-  :init (setq transient-mode-line-format nil
-              transient-posframe-border-width posframe-border-width
-              transient-posframe-parameters '((left-fringe . 8)
-                                              (right-fringe . 8))))
+             (transient-posframe-mode -1)))))
 
 ;; For macOS
 (with-no-warnings
@@ -382,10 +413,12 @@
   (use-package composite
     :ensure nil
     :init (defvar composition-ligature-table (make-char-table nil))
-    :hook (((prog-mode
-             conf-mode nxml-mode markdown-mode help-mode
-             eshell-mode ghostel-mode shell-mode term-mode)
-            . (lambda () (setq-local composition-function-table composition-ligature-table))))
+    :hook ((prog-mode
+            conf-mode nxml-mode markdown-mode markdown-ts-mode help-mode
+            eshell-mode ghostel-mode shell-mode term-mode)
+           .
+           (lambda ()
+             (setq-local composition-function-table composition-ligature-table)))
     :config
     ;; support ligatures, some toned down to prevent hang
     (let ((alist

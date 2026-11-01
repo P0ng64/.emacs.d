@@ -38,9 +38,7 @@
   :group 'convenience
   :link '(url-link :tag "Homepage" "https://github.com/seagle0128/.emacs.d"))
 
-(defcustom centaur-logo (expand-file-name
-                         (if (display-graphic-p) "logo.png" "banner.txt")
-                         user-emacs-directory)
+(defcustom centaur-logo (locate-user-emacs-file (if (display-graphic-p) "logo.png" "banner.txt"))
   "Set Centaur logo. nil means official logo."
   :group 'centaur
   :type 'string)
@@ -84,30 +82,32 @@ If using emacs-plus with path ejection, set to nil."
   :type 'boolean)
 
 ;; Emacs Lisp Package Archive (ELPA)
-;; @see https://github.com/melpa/melpa and https://elpa.emacs-china.org/.
 (defcustom centaur-package-archives-alist
   (let ((proto (if (gnutls-available-p) "https" "http")))
-    `((melpa    . (("gnu"    . ,(format "%s://elpa.gnu.org/packages/" proto))
-                   ("nongnu" . ,(format "%s://elpa.nongnu.org/nongnu/" proto))
-                   ("melpa"  . ,(format "%s://melpa.org/packages/" proto))))
-      (bfsu     . (("gnu"    . ,(format "%s://mirrors.bfsu.edu.cn/elpa/gnu/" proto))
-                   ("nongnu" . ,(format "%s://mirrors.bfsu.edu.cn/elpa/nongnu/" proto))
-                   ("melpa"  . ,(format "%s://mirrors.bfsu.edu.cn/elpa/melpa/" proto))))
-      (iscas    . (("gnu"    . ,(format "%s://mirror.iscas.ac.cn/elpa/gnu/" proto))
-                   ("nongnu" . ,(format "%s://mirror.iscas.ac.cn/elpa/nongnu/" proto))
-                   ("melpa"  . ,(format "%s://mirror.iscas.ac.cn/elpa/melpa/" proto))))
-      (netease  . (("gnu"    . ,(format "%s://mirrors.163.com/elpa/gnu/" proto))
-                   ("nongnu" . ,(format "%s://mirrors.163.com/elpa/nongnu/" proto))
-                   ("melpa"  . ,(format "%s://mirrors.163.com/elpa/melpa/" proto))))
-      (sjtu     . (("gnu"    . ,(format "%s://mirrors.sjtug.sjtu.edu.cn/emacs-elpa/gnu/" proto))
-                   ("nongnu" . ,(format "%s://mirrors.sjtug.sjtu.edu.cn/emacs-elpa/nongnu/" proto))
-                   ("melpa"  . ,(format "%s://mirrors.sjtug.sjtu.edu.cn/emacs-elpa/melpa/" proto))))
-      (tuna     . (("gnu"    . ,(format "%s://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/" proto))
-                   ("nongnu" . ,(format "%s://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/" proto))
-                   ("melpa"  . ,(format "%s://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/" proto))))
-      (ustc     . (("gnu"    . ,(format "%s://mirrors.ustc.edu.cn/elpa/gnu/" proto))
-                   ("nongnu" . ,(format "%s://mirrors.ustc.edu.cn/elpa/nongnu/" proto))
-                   ("melpa"  . ,(format "%s://mirrors.ustc.edu.cn/elpa/melpa/" proto))))))
+    `((melpa   . (("gnu"    . ,(format "%s://elpa.gnu.org/packages/" proto))
+                  ("nongnu" . ,(format "%s://elpa.nongnu.org/nongnu/" proto))
+                  ("melpa"  . ,(format "%s://melpa.org/packages/" proto))))
+      (bfsu    . (("gnu"    . ,(format "%s://mirrors.bfsu.edu.cn/elpa/gnu/" proto))
+                  ("nongnu" . ,(format "%s://mirrors.bfsu.edu.cn/elpa/nongnu/" proto))
+                  ("melpa"  . ,(format "%s://mirrors.bfsu.edu.cn/elpa/melpa/" proto))))
+      (cernet  . (("gnu"    . ,(format "%s://mirrors.cernet.edu.cn/elpa/gnu/" proto))
+                  ("nongnu" . ,(format "%s://mirrors.cernet.edu.cn/elpa/nongnu/" proto))
+                  ("melpa"  . ,(format "%s://mirrors.cernet.edu.cn/elpa/melpa/" proto))))
+      (iscas   . (("gnu"    . ,(format "%s://mirror.iscas.ac.cn/elpa/gnu/" proto))
+                  ("nongnu" . ,(format "%s://mirror.iscas.ac.cn/elpa/nongnu/" proto))
+                  ("melpa"  . ,(format "%s://mirror.iscas.ac.cn/elpa/melpa/" proto))))
+      (netease . (("gnu"    . ,(format "%s://mirrors.163.com/elpa/gnu/" proto))
+                  ("nongnu" . ,(format "%s://mirrors.163.com/elpa/nongnu/" proto))
+                  ("melpa"  . ,(format "%s://mirrors.163.com/elpa/melpa/" proto))))
+      (sjtu    . (("gnu"    . ,(format "%s://mirrors.sjtug.sjtu.edu.cn/emacs-elpa/gnu/" proto))
+                  ("nongnu" . ,(format "%s://mirrors.sjtug.sjtu.edu.cn/emacs-elpa/nongnu/" proto))
+                  ("melpa"  . ,(format "%s://mirrors.sjtug.sjtu.edu.cn/emacs-elpa/melpa/" proto))))
+      (tuna    . (("gnu"    . ,(format "%s://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/" proto))
+                  ("nongnu" . ,(format "%s://mirrors.tuna.tsinghua.edu.cn/elpa/nongnu/" proto))
+                  ("melpa"  . ,(format "%s://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/" proto))))
+      (ustc    . (("gnu"    . ,(format "%s://mirrors.ustc.edu.cn/elpa/gnu/" proto))
+                  ("nongnu" . ,(format "%s://mirrors.ustc.edu.cn/elpa/nongnu/" proto))
+                  ("melpa"  . ,(format "%s://mirrors.ustc.edu.cn/elpa/melpa/" proto))))))
   "A list of the package archives."
   :group 'centaur
   :type '(alist :key-type (symbol :tag "Archive group name")
@@ -236,7 +236,7 @@ Nil to use font supports ligatures."
   :type '(alist :key-type string :value-type (choice character sexp)))
 
 ;; Load `custom-file'
-(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(setq custom-file (locate-user-emacs-file "custom.el"))
 
 (provide 'init-custom)
 

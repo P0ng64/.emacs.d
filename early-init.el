@@ -1,4 +1,4 @@
-;;; early-init.el --- Early initialization. -*- lexical-binding: t -*-
+;;; early-init.el --- Early initialization. -*- lexical-binding: t no-byte-compile: t -*-
 
 ;; Copyright (C) 2019-2026 Vincent Zhang
 
@@ -76,6 +76,9 @@
 (setq native-comp-deferred-compilation nil ;; obsolete since 29.1
       native-comp-jit-compilation nil)
 
+;; PERF: reduce the startup time
+(setq package-quickstart t)
+
 ;; Package initialize occurs automatically, before `user-init-file' is
 ;; loaded, but after `early-init-file'. We handle package
 ;; initialization, so we must prevent Emacs from doing it early!
@@ -107,15 +110,6 @@
 
 ;; Prevent flash of unstyled mode line
 (setq-default mode-line-format nil)
-
-;; PATH and other environment variables injection
-;; To avoid loading `exec-path-from-shell' for better performance
-(when-let ((env-file (expand-file-name "env.el" user-emacs-directory))
-           (env-example-file (expand-file-name "env-example.el" user-emacs-directory)))
-  (when (and (not (file-exists-p env-file))
-             (file-exists-p env-example-file))
-    (copy-file env-example-file env-file))
-  (load env-file 'noerror))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; early-init.el ends here

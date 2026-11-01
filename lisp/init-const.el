@@ -35,21 +35,17 @@
   "The Github page of Centaur Emacs.")
 
 (defconst centaur-custom-example-file
-  (expand-file-name "custom-example.el" user-emacs-directory)
+  (locate-user-emacs-file "custom-example.el")
   "Custom example file of Centaur Emacs.")
 
 (defconst centaur-custom-post-file
-  (expand-file-name "custom-post.el" user-emacs-directory)
+  (locate-user-emacs-file "custom-post.el")
   "Custom file after startup.
 
 Put private configurations to override defaults here.")
 
-(defconst centaur-env-file
-  (expand-file-name "env.el" user-emacs-directory)
-  "Environment file at startup.")
-
 (defconst centaur-custom-post-org-file
-  (expand-file-name "custom-post.org" user-emacs-directory)
+  (locate-user-emacs-file "custom-post.org")
   "Custom org file after startup.
 
 Put private configurations to override defaults here.
@@ -63,9 +59,17 @@ Loaded by `org-babel-load-file'.")
   (eq system-type 'gnu/linux)
   "Are we running on a GNU/Linux system?")
 
+(defconst sys/unixp
+  (eq system-type 'berkeley-unix)
+  "Are we running on an Unix system?")
+
 (defconst sys/macp
   (eq system-type 'darwin)
   "Are we running on a Mac system?")
+
+(defconst sys/androidp
+  (eq system-type 'android)
+  "Are we running on an Android system?")
 
 (defconst sys/mac-x-p
   (and (display-graphic-p) sys/macp)
@@ -110,6 +114,10 @@ Loaded by `org-babel-load-file'.")
 (defconst emacs/>=31p
   (>= emacs-major-version 31)
   "Emacs is 31 or above.")
+
+(defconst emacs/>=32p
+  (>= emacs-major-version 32)
+  "Emacs is 32 or above.")
 
 (provide 'init-const)
 

@@ -73,9 +73,11 @@
 (centaur-setup-fonts)
 (add-hook 'window-setup-hook #'centaur-setup-fonts)
 (add-hook 'server-after-make-frame-hook #'centaur-setup-fonts)
+(add-hook 'after-load-theme-hook #'centaur-setup-fonts)
 
 ;; Mail
 ;; (setq message-send-mail-function 'smtpmail-send-it
+;;       send-mail-function #'smtpmail-send-it
 ;;       smtpmail-starttls-credentials '(("smtp.gmail.com" 587 nil nil))
 ;;       smtpmail-auth-credentials '(("smtp.gmail.com" 587
 ;;                                    user-mail-address nil))
@@ -103,9 +105,7 @@
 ;;            (> (display-pixel-width) 1920))
 ;;   (set-frame-parameter nil 'left 288))
 
-;; (put 'cl-destructuring-bind 'lisp-indent-function 'defun)
-;; (put 'pdf-view-create-image 'lisp-indent-function 'defun)
-;; (put 'treemacs-create-theme 'lisp-indent-function 'defun)
+;; (put 'ert-deftest 'lisp-indent-function 'defun)
 
 ;; For compat
 ;; (add-hook 'emacs-lisp-mode-hook

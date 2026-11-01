@@ -88,7 +88,6 @@
                     (self-insert-command 1)))))
   :hook (((org-babel-after-execute org-mode) . org-redisplay-inline-images) ; display image
          (org-indent-mode . (lambda()
-                              (diminish 'org-indent-mode)
                               ;; HACK: Prevent text moving around while using brackets
                               ;; @see https://github.com/seagle0128/.emacs.d/issues/88
                               (make-variable-buffer-local 'show-paren-mode)
@@ -262,10 +261,9 @@ prepended to the element after the #+HEADER: tag."
   (org-babel-do-load-languages 'org-babel-load-languages
                                load-language-alist))
 
-;; Prettify UI
 (when emacs/>=29p
+  ;; Prettify UI
   (use-package org-modern
-    :diminish
     :autoload org-modern-mode org-modern-agenda
     :hook ((org-mode . (lambda ()
                          "Display org modern looks in GUI."
@@ -275,20 +273,10 @@ prepended to the element after the #+HEADER: tag."
            (org-agenda-finalize . (lambda ()
                                     "Display org modern agenda in GUI."
                                     (when (display-graphic-p)
-                                      (org-modern-agenda)))))))
+                                      (org-modern-agenda))))))
 
-;; Paste with org-mode markup and link
-(use-package org-rich-yank
-  :after org
-  :diminish
-  :bind (:map org-mode-map
-         ("C-M-y" . org-rich-yank)))
-
-;; Auto-toggle Org elements
-(when emacs/>=29p
+  ;; Auto-toggle Org elements
   (use-package org-appear
-    :diminish
-    :hook org-mode
     :custom
     (org-appear-autoentities t)
     (org-appear-autokeywords t)
@@ -296,11 +284,17 @@ prepended to the element after the #+HEADER: tag."
     (org-appear-autosubmarkers t)
     (org-appear-inside-latex t)
     (org-appear-manual-linger t)
-    (org-appear-delay 0.5)))
+    (org-appear-delay 0.5)
+    :hook org-mode))
+
+;; Paste with org-mode markup and link
+(use-package org-rich-yank
+  :after org
+  :bind (:map org-mode-map
+         ("C-M-y" . org-rich-yank)))
 
 ;; Table of contents
 (use-package toc-org
-  :diminish
   :hook org-mode)
 
 (when emacs/>=27p
@@ -321,7 +315,6 @@ prepended to the element after the #+HEADER: tag."
 ;; Preview
 (use-package org-preview-html
   :after org
-  :diminish
   :functions xwidget-workable-p
   :bind (:map org-mode-map
          ("C-c C-h" . org-preview-html-mode))
@@ -332,12 +325,10 @@ prepended to the element after the #+HEADER: tag."
 (if emacs/>=29.2p
     (use-package dslide
       :after org
-      :diminish
       :bind (:map org-mode-map
              ("s-<f7>" . dslide-deck-start)))
   (use-package org-tree-slide
     :after org
-    :diminish
     :defines org-tree-slide-mode-map
     :bind (:map org-mode-map
            ("s-<f7>" . org-tree-slide-mode)
@@ -349,21 +340,20 @@ prepended to the element after the #+HEADER: tag."
     :custom (org-tree-slide-skip-outline-level 3)))
 
 ;; Roam
-(when (and (fboundp 'sqlite-available-p) (sqlite-available-p))
+(when (and (fboundp 'sqlite-available-p)
+           (sqlite-available-p))
   (use-package org-roam
-    :diminish
     :functions centaur-browse-url org-roam-db-autosync-mode
-    :defines org-roam-graph-viewer
     :bind (("C-c n l" . org-roam-buffer-toggle)
            ("C-c n f" . org-roam-node-find)
            ("C-c n g" . org-roam-graph)
            ("C-c n i" . org-roam-node-insert)
            ("C-c n c" . org-roam-capture)
            ("C-c n j" . org-roam-dailies-capture-today))
-    :init
-    (setq org-roam-directory centaur-org-directory
-          org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag))
-          org-roam-graph-viewer #'centaur-browse-url)
+    :custom
+    (org-roam-directory centaur-org-directory)
+    (org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+    (org-roam-graph-viewer #'centaur-browse-url)
     :config
     (unless (file-exists-p org-roam-directory)
       (make-directory org-roam-directory))

@@ -36,32 +36,23 @@
 ;; Interact with ChatGPT or other LLMs
 ;;
 ;; API Key management via authinfo (no plain-text secrets):
-;;
-;;   machine models.inference.ai.azure.com  login api-key password <gh_token>
 ;;   machine api.deepseek.com               login api-key password <ds_key>
-;;   machine dashscope.aliyuncs.com         login api-key password <qwen_key>
-;;   machine open.bigmodel.cn               login api-key password <zhipu_key>
-;;   machine generativelanguage.googleapis.com login api-key password <gemini_key>
 ;;   machine api.anthropic.com              login api-key password <claude_key>
 ;;
 (use-package gptel
-  :diminish
-  :functions (gptel-make-openai gptel-make-anthropic
-               gptel-make-deepseek gptel-make-gemini
-               gptel-make-ollama)
+  :functions (gptel-make-openai gptel-make-deepseek
+               gptel-make-anthropic gptel-make-gemini)
+  :autoload gptel-get-backend
   :bind (("C-<f12>"   . gptel)
-         ("C-M-<f12>" . gptel-menu))
+         ("C-M-<f12>" . gptel-menu)
+         ("C-c a g"   . gptel)
+         ("C-c a G"   . gptel-menu))
   :hook (gptel-mode . gptel-highlight-mode)
   :config
-  ;; GitHub Models (free with GH Copilot subscription)
-  (setq gptel-model 'gpt-4.1
-        gptel-backend
-        (gptel-make-openai "Github Models"
-          :host "models.inference.ai.azure.com"
-          :endpoint "/chat/completions?api-version=2024-05-01-preview"
-          :stream t
-          :key 'gptel-api-key
-          :models '(gpt-4o gpt-4.1)))
+  ;; DeepSeek
+  (gptel-make-deepseek "DeepSeek"
+    :stream t
+    :key 'gptel-api-key)
 
   ;; GLM
   (gptel-make-openai "GLM"
@@ -69,12 +60,7 @@
     :endpoint "/api/paas/v4/chat/completions"
     :stream t
     :key 'gptel-api-key
-    :models '(glm-5.2 glm-5.2-flash glm-4.7 glm-4.7-flash))
-
-  (gptel-make-deepseek "DeepSeek"
-    :stream t
-    :key 'gptel-api-key
-    :models '(deepseek-chat deepseek-reasoner))
+    :models '(glm-5.3 glm-5.3-flash))
 
   ;; Qwen (Alibaba Cloud)
   (gptel-make-openai "Qwen"
@@ -82,62 +68,76 @@
     :endpoint "/compatible-mode/v1/chat/completions"
     :stream t
     :key 'gptel-api-key
-    :models '(qwen-plus qwen-turbo-latest qwen-max))
+    :models '(qwen3.8-max qwen3.8-flash))
+
+  ;; Kimi (Moonshot)
+  (gptel-make-openai "Kimi"
+    :host "api.moonshot.cn" ;; or "api.moonshot.ai" for the global site
+    :key 'gptel-api-key
+    :stream t
+    :models '(kimi-k3.1-pro kimi-k3 kimi-k2.7-code))
 
   ;; Gemini (Google)
   (gptel-make-gemini "Gemini"
     :key 'gptel-api-key
-    :stream t
-    :models '(gemini-2.5-flash gemini-2.5-pro))
+    :stream t)
 
   ;; Claude (Anthropic)
   (gptel-make-anthropic "Claude"
     :stream t
-    :key 'gptel-api-key
-    :models '(claude-sonnet-4-20250514 claude-haiku-3-5-20241022)))
+    :key 'gptel-api-key)
 
-;; Generate commit messages for magit
-(use-package gptel-magit
-  :hook (magit-mode . gptel-magit-install))
+  ;; Set default model and backend
+  (setq gptel-model 'deepseek-flash
+        gptel-backend (gptel-get-backend "DeepSeek")))
 
-;; A native shell experience to interact with ACP agents
 (when emacs/>=29p
+  ;; Generate commit messages for magit
+  (use-package gptel-magit
+    :vc (:url "https://github.com/roife/gptel-magit" :rev :newest)
+    :hook (magit-mode . gptel-magit-install))
+
+  ;; A native shell experience to interact with ACP agents
   (use-package agent-shell
-    :diminish agent-shell-ui-mode
-    :commands agent-shell-insert
-    :defines magit-mode-map
-    :functions (magit-staged-files magit-commit-p magit-thing-at-point)
-    :custom (agent-shell-display-action '(display-buffer-reuse-window))
+    :custom
+    (agent-shell-display-action '(display-buffer-reuse-window))
+    (agent-shell-deepseek-authentication
+     (agent-shell-deepseek-make-authentication
+      :api-key (or (getenv "DEEPSEEK_API_KEY")
+                   (auth-source-pick-first-password
+                    :host "api.deepseek.com" :user "apikey"))))
     :bind (("<f12>"      . agent-shell)
            ("<f13>"      . agent-shell)
-           ("C-c a"      . agent-shell)
-           ("C-c A"      . agent-shell-new-shell)
+           ("C-c a a"    . agent-shell)
+           ("C-c a A"    . agent-shell-new-shell)
            :map agent-shell-mode-map
            ("C-h ?"      . agent-shell-help-menu)
-           ("C-<return>" . agent-shell-help-menu)
-           :map magit-mode-map
-           ("C-c C-g"    . centaur-generate-commit)
-           ("C-c C-r"    . centaur-review-commit))
+           ("C-<return>" . agent-shell-help-menu))
     :config
-    ;; Integrate into magit
-    (with-eval-after-load 'magit
-      (defun centaur-generate-commit ()
-        "Generate conventional commit message from staged changes."
-        (interactive)
-        (if (magit-staged-files)
-            (agent-shell-insert
-             :submit t
-             :text "Commit changes with conventional message")
-          (user-error "No staged changes")))
+    (with-no-warnings
+      ;; Integrate into magit
+      (with-eval-after-load 'magit
+        (defun centaur-generate-commit ()
+          "Generate conventional commit message from staged changes."
+          (interactive)
+          (if (magit-staged-files)
+              (agent-shell-insert
+               :submit t
+               :text "Commit changes with conventional message")
+            (user-error "No staged changes")))
 
-      (defun centaur-review-commit ()
-        "Send the commit at point to agent-shell for review."
-        (interactive)
-        (if-let ((commit (magit-commit-p (magit-thing-at-point 'git-revision t))))
-            (agent-shell-insert
-             :submit t
-             :text (format "Review commit: %s" commit))
-          (user-error "No magit commit at point"))))))
+        (defun centaur-review-commit ()
+          "Send the commit at point to agent-shell for review."
+          (interactive)
+          (if-let* ((commit (magit-commit-p (magit-thing-at-point 'git-revision t))))
+              (agent-shell-insert
+               :submit t
+               :text (format "Review commit: %s" commit))
+            (user-error "No magit commit at point")))
+
+        (bind-keys :map magit-mode-map
+          ("C-c C-g" . centaur-generate-commit)
+          ("C-c C-r" . centaur-review-commit))))))
 
 (provide 'init-ai)
 

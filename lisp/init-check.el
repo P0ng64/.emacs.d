@@ -31,18 +31,17 @@
 ;;; Code:
 
 (use-package flymake
-  :diminish
   :functions my/elisp-flymake-byte-compile
   :bind ("C-c f" . flymake-show-buffer-diagnostics)
   :hook prog-mode
   :custom
-  (flymake-no-changes-timeout nil)
+  (flymake-no-changes-timeout 0.15)
   (flymake-fringe-indicator-position 'right-fringe)
   (flymake-margin-indicator-position 'right-margin)
   :config
   ;; Check elisp with `load-path'
   (defun my/elisp-flymake-byte-compile (fn &rest args)
-    "Wrapper for `elisp-flymake-byte-compile'."
+    "Advice function to make Flymake inherit `load-path' and packages."
     (let ((elisp-flymake-byte-compile-load-path
            (append elisp-flymake-byte-compile-load-path load-path)))
       (apply fn args)))
@@ -50,10 +49,10 @@
 
 ;; Display Flymake errors with overlays
 (use-package flyover
-  :diminish
+  :functions centaur-dark-theme-p
   :custom
   (flyover-checkers '(flymake))
-  (flyover-background-lightness 60)
+  (flyover-background-lightness (if (centaur-dark-theme-p) 35 75))
   (flyover-icon-background-tint-percent 50)
   :hook flymake-mode)
 

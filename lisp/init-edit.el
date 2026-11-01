@@ -79,7 +79,6 @@
 ;; Automatically reload files was modified by external program
 (use-package autorevert
   :ensure nil
-  :diminish
   :hook (after-init . global-auto-revert-mode))
 
 ;; Pass a URL to a WWW browser
@@ -109,8 +108,7 @@
 ;; Click to browse URL or to send to e-mail address
 (use-package goto-addr
   :ensure nil
-  :hook ((text-mode . goto-address-mode)
-         (prog-mode . goto-address-prog-mode)))
+  :hook (prog-mode . goto-address-prog-mode))
 
 ;; Jump to things in Emacs tree-style
 (use-package avy
@@ -177,12 +175,10 @@
 
 ;; Jump to Chinese characters
 (use-package ace-pinyin
-  :diminish
   :hook (after-init . ace-pinyin-global-mode))
 
 ;; Show number of matches in mode-line while searching
 (use-package anzu
-  :diminish
   :bind (([remap query-replace] . anzu-query-replace)
          ([remap query-replace-regexp] . anzu-query-replace-regexp)
          :map isearch-mode-map
@@ -192,16 +188,10 @@
 
 ;; Redefine M-< and M-> for some modes
 (use-package beginend
-  :diminish beginend-global-mode
-  :functions diminish
-  :hook (after-init . beginend-global-mode)
-  :config (mapc (lambda (pair)
-                  (diminish (cdr pair)))
-                beginend-modes))
+  :hook (after-init . beginend-global-mode))
 
 ;; Drag stuff (lines, words, region, etc...) around
 (use-package drag-stuff
-  :diminish
   :autoload drag-stuff-define-keys
   :hook (after-init . drag-stuff-global-mode)
   :config
@@ -214,7 +204,7 @@
   :hook(;; show org ediffs unfolded
         (ediff-prepare-buffer . outline-show-all)
         ;; restore window layout when done
-        (ediff-quit . tab-bar-history-back))
+        (ediff-quit . winner-undo))
   :config
   (setq ediff-window-setup-function 'ediff-setup-windows-plain
         ediff-split-window-function 'split-window-horizontally
@@ -302,7 +292,6 @@
 ;; On-the-fly spell checker
 (use-package flyspell
   :ensure nil
-  :diminish
   :functions file-too-big-p
   :if (executable-find "aspell")
   :bind (:map flyspell-mode-map
@@ -321,7 +310,6 @@
 
 ;; Hungry deletion
 (use-package hungry-delete
-  :diminish
   :hook (after-init . global-hungry-delete-mode)
   :init (setq hungry-delete-chars-to-skip " \t\f\v"
               hungry-delete-except-modes
@@ -344,20 +332,57 @@
 ;; Handling capitalized subwords in a nomenclature
 (use-package subword
   :ensure nil
-  :diminish
   :hook (prog-mode minibuffer-setup))
+
+;; A unified method to fold and unfold text
+(use-package kirigami
+  :pretty-hydra
+  ((:title (pretty-hydra-title "Kirigami" 'octicon "nf-oct-fold")
+    :color amaranth :quit-key ("q" "C-g"))
+   ("Fold"
+    (("o" kirigami-open-fold "open fold at point")
+     ("O" kirigami-open-fold-rec "open fold recursively")
+     ("r" kirigami-open-folds "open all folds")
+     ("c" kirigami-close-fold "close fold at point")
+     ("m" kirigami-close-folds "close all folds")
+     ("a" kirigami-toggle-fold "toggle fold at point"))
+    "Move"
+    (("C-a" mwim-beginning-of-code-or-line "⭰")
+     ("C-e" mwim-end-of-code-or-line "⭲")
+     ("C-b" backward-char "←")
+     ("C-n" next-line "↓")
+     ("C-p" previous-line "↑")
+     ("C-f" forward-char "→")
+     ("C-v" pager-page-down "↘")
+     ("M-v" pager-page-up "↖")
+     ("M-<" beginning-of-buffer "⭶")
+     ("M->" end-of-buffer "⭸"))))
+  :custom
+  ;; Add Kirigami to the menu bar and context menu (`context-menu-mode').
+  (kirigami-show-menu-bar t)
+  (kirigami-show-context-menu t)
+  :bind (:map kirigami-mode-map
+         ("C-~" . kirigami-hydra/body)
+         ("M-RET" . kirigami-hydra/body)
+
+         ("C-c z o" . kirigami-open-fold)     ; Open fold at point
+         ("C-c z O" . kirigami-open-fold-rec) ; Open fold recursively
+         ("C-c z r" . kirigami-open-folds)    ; Open all folds
+         ("C-c z c" . kirigami-close-fold)    ; Close fold at point
+         ("C-c z m" . kirigami-close-folds)   ; Close all folds
+         ("C-c z a" . kirigami-toggle-fold))  ; Toggle fold at point
+  :hook (after-init . kirigami-global-mode))
 
 ;; Flexible text folding
 (use-package hideshow
   :ensure nil
-  :diminish hs-minor-mode
   :pretty-hydra
   ((:title (pretty-hydra-title "HideShow" 'octicon "nf-oct-fold")
     :color amaranth :quit-key ("q" "C-g"))
    ("Fold"
     (("t" hs-toggle-all "toggle all")
-     ("a" hs-show-all "show all" :exit t)
-     ("i" hs-hide-all "hide all" :exit t)
+     ("a" hs-show-all "show all")
+     ("i" hs-hide-all "hide all")
      ("g" hs-toggle-hiding "toggle hiding")
      ("c" hs-cycle "cycle block")
      ("s" hs-show-block "show block")
@@ -469,6 +494,7 @@
 
 ;; Hanlde minified code
 (use-package so-long
+  :ensure nil
   :hook (after-init . global-so-long-mode))
 
 (provide 'init-edit)

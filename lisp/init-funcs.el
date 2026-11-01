@@ -40,7 +40,6 @@
 (defvar socks-noproxy)
 (defvar socks-server)
 
-(declare-function apheleia-global-mode "apheleia")
 (declare-function browse-url-file-url "browse-url")
 (declare-function browse-url-interactive-arg "browse-url")
 (declare-function chart-bar-quickie "chart")
@@ -92,7 +91,7 @@ Same as `replace-string' `C-q' `C-m' `RET' `RET'."
   (when (yes-or-no-p (format "Really delete '%s'?"
                              (file-name-nondirectory buffer-file-name)))
     (delete-file (buffer-file-name))
-    (kill-this-buffer)))
+    (kill-current-buffer)))
 
 (defun rename-this-file (new-name)
   "Renames both current buffer and file it's visiting to NEW-NAME."
@@ -186,7 +185,10 @@ interactively.  Turn the filename into a URL with function
 (defun reload-init-file ()
   "Reload Emacs configurations."
   (interactive)
-  (load user-init-file))
+  (when (yes-or-no-p "Really reload Emacs configurations?")
+    (load early-init-file)
+    (load user-init-file)
+    (run-hooks 'after-init-hook 'window-setup-hook 'emacs-startup-hook)))
 (defalias 'centaur-reload-init-file #'reload-init-file)
 
 ;; Browse the homepage
@@ -221,10 +223,10 @@ Also opens the custom-post file in another window if it exists."
 (defun byte-compile-site-lisp ()
   "Compile packages in site-lisp directory."
   (interactive)
-  (let ((dir (locate-user-emacs-file "site-lisp")))
+  (let ((default-directory (locate-user-emacs-file "site-lisp")))
     (if (fboundp 'async-byte-recompile-directory)
-        (async-byte-recompile-directory dir)
-      (byte-recompile-directory dir 0 t))))
+        (async-byte-recompile-directory default-directory)
+      (byte-recompile-directory default-directory 0 t))))
 
 (defun native-compile-elpa ()
   "Native-compile packages in elpa directory."
@@ -235,9 +237,9 @@ Also opens the custom-post file in another window if it exists."
 (defun native-compile-site-lisp ()
   "Native compile packages in site-lisp directory."
   (interactive)
-  (let ((dir (locate-user-emacs-file "site-lisp")))
+  (let ((default-directory (locate-user-emacs-file "site-lisp")))
     (if (fboundp 'native-compile-async)
-        (native-compile-async dir t))))
+        (native-compile-async default-directory t))))
 
 (defun icons-displayable-p ()
   "Return non-nil if icons are displayable."
@@ -248,7 +250,7 @@ Also opens the custom-post file in another window if it exists."
 (defun centaur-treesit-available-p ()
   "Check whether tree-sitter is available.
 
-Native tree-sitter is introduced since 29.1."
+Native tree-sitter is built into 29.1+."
   (and centaur-tree-sitter
        (fboundp 'treesit-available-p)
        (treesit-available-p)))
@@ -383,23 +385,17 @@ Return the fastest package archive."
 (defun update-config ()
   "Update Centaur Emacs configurations to the latest version."
   (interactive)
-  (let ((dir (expand-file-name user-emacs-directory)))
-    (unless (file-exists-p dir)
-      (user-error "\"%s\" doesn't exist" dir))
-
-    (message "Updating configurations...")
-    (cd dir)
-    (shell-command "git pull")
-    (message "Updating configurations...done")))
+  (message "Updating configurations...")
+  (vc-dir user-emacs-directory)
+  (sleep-for 0.2)
+  (vc-pull))
 (defalias 'centaur-update-config #'update-config)
 
 (defun update-packages ()
   "Refresh package contents and update all packages."
   (interactive)
   (message "Updating packages...")
-  (and (fboundp 'apheleia-global-mode) (apheleia-global-mode -1))
   (package-upgrade-all)
-  (and (fboundp 'apheleia-global-mode) (apheleia-global-mode 1))
   (message "Updating packages...done"))
 (defalias 'centaur-update-packages #'update-packages)
 
@@ -413,28 +409,19 @@ Return the fastest package archive."
 (defun update-dotfiles ()
   "Update the dotfiles to the latest version."
   (interactive)
-  (let ((dir (or (getenv "DOTFILES")
-                 (expand-file-name "~/.dotfiles/"))))
-    (if (file-exists-p dir)
-        (progn
-          (message "Updating dotfiles...")
-          (cd dir)
-          (shell-command "git pull")
-          (message "Updating dotfiles...done"))
-      (message "\"%s\" doesn't exist" dir))))
+  (message "Updating dotfiles...")
+  (vc-dir "~/.dotfiles/")
+  (sleep-for 0.2)
+  (vc-pull))
 (defalias 'centaur-update-dotfiles #'update-dotfiles)
 
 (defun update-org ()
   "Update Org files to the latest version."
   (interactive)
-  (let ((dir (expand-file-name "~/org/")))
-    (if (file-exists-p dir)
-        (progn
-          (message "Updating org files...")
-          (cd dir)
-          (shell-command "git pull")
-          (message "Updating org files...done"))
-      (message "\"%s\" doesn't exist" dir))))
+  (message "Updating org files %s..." default-directory)
+  (vc-dir "~/org/")
+  (sleep-for 0.2)
+  (vc-pull))
 (defalias 'centaur-update-org #'update-org)
 
 (defun update-all ()
@@ -549,7 +536,6 @@ Return the fastest package archive."
      ;; System-appearance themes
      (use-package auto-dark
        :ensure t
-       :diminish
        :commands auto-dark-mode
        :init
        (setq auto-dark-themes `((,(alist-get 'dark centaur-system-themes))
@@ -594,6 +580,35 @@ Return the fastest package archive."
     (split-window-vertically)
     (when other-buffer
       (set-window-buffer next-window other-buffer))))
+
+(defun split-window-toggle ()
+  "Toggle window split style: top/below or left/right."
+  (interactive)
+  (if (fboundp 'window-layout-rotate-clockwise)
+      (window-layout-rotate-clockwise)
+    (if (= (count-windows) 2)
+        (let* ((this-win-buffer (window-buffer))
+               (next-win-buffer (window-buffer (next-window)))
+               (this-win-edges (window-edges (selected-window)))
+               (next-win-edges (window-edges (next-window)))
+               (this-win-2nd (not (and (<= (car this-win-edges)
+                                           (car next-win-edges))
+                                       (<= (cadr this-win-edges)
+                                           (cadr next-win-edges)))))
+               (splitter
+                (if (= (car this-win-edges)
+                       (car (window-edges (next-window))))
+                    'split-window-horizontally
+                  'split-window-vertically)))
+          (delete-other-windows)
+          (let ((first-win (selected-window)))
+            (funcall splitter)
+            (if this-win-2nd (other-window 1))
+            (set-window-buffer (selected-window) this-win-buffer)
+            (set-window-buffer (next-window) next-win-buffer)
+            (select-window first-win)
+            (if this-win-2nd (other-window 1))))
+      (user-error "`toggle-window-split' only supports two windows"))))
 
 
 

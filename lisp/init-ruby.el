@@ -30,19 +30,27 @@
 
 ;;; Code:
 
+(when (centaur-treesit-available-p)
+  (use-package ruby-ts-mode
+    :functions centaur-treesit-available-p
+    :mode ("\\(?:\\.\\(?:rbw?\\|ru\\|rake\\|thor\\|axlsx\\|jbuilder\\|rabl\\|\
+gemspec\\|podspec\\)\\|/\\(?:Gem\\|Rake\\|Cap\\|Thor\\|Puppet\\|Berks\\|Brew\\|\
+Fast\\|Vagrant\\|Guard\\|Pod\\)file\\)\\'")
+    :init (add-to-list 'major-mode-remap-alist '(ruby-mode . ruby-ts-mode))))
+
 ;; Run a Ruby process in a buffer
 (use-package inf-ruby
+  :bind (:map inf-ruby-minor-mode-map
+         ("C-c C-s" . inf-ruby-console-auto))
   :hook ((ruby-mode . inf-ruby-minor-mode)
          (compilation-filter . inf-ruby-auto-enter)))
 
 ;; Ruby YARD comments
 (use-package yard-mode
-  :diminish
   :hook (ruby-mode . yard-mode))
 
 ;; Ruby refactoring helpers
 (use-package ruby-refactor
-  :diminish
   :hook (ruby-mode . ruby-refactor-mode-launch))
 
 ;; Yet Another RI interface for Emacs
@@ -51,7 +59,6 @@
 
 ;; RSpec
 (use-package rspec-mode
-  :diminish
   :autoload rspec-install-snippets
   :hook (dired-mode . rspec-dired-mode)
   :config (rspec-install-snippets))
