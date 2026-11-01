@@ -52,7 +52,10 @@
   ;; DeepSeek
   (gptel-make-deepseek "DeepSeek"
     :stream t
-    :key 'gptel-api-key)
+    :key '(lambda ()
+            (auth-source-pick-first-password
+             :host "api.deepseek.com"
+             :login "api-key")))
 
   ;; GLM
   (gptel-make-openai "GLM"
