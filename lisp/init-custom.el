@@ -159,14 +159,14 @@ For example:
   :type '(alist :key-type (string :tag "Time")
                 :value-type (symbol :tag "Theme")))
 
-(defcustom centaur-system-themes '((dark  . doom-nord-light)
-                                   (light . doom-nord-aurora))
+(defcustom centaur-system-themes '((dark  . doom-molokai)
+                                   (light . doom-opera-light))
   "List of themes related the system appearance.
 
      It's only available on macOS currently."
-    :group 'centaur
-    :type '(alist :key-type (symbol :tag "Appearance")
-                  :value-type (symbol :tag "Theme")))
+  :group 'centaur
+  :type '(alist :key-type (symbol :tag "Appearance")
+                :value-type (symbol :tag "Theme")))
 
 (defcustom centaur-theme 'default
   "The color theme."
